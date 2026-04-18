@@ -4,9 +4,9 @@ export default function handler(req, res) {
     openrouter: !!process.env.OPENROUTER_API_KEY,
     gemini: !!process.env.GEMINI_API_KEY,
     models: {
-      default: 'google/gemini-2.0-flash-exp:free',
+      default: 'openai/gpt-4o',
       search: 'perplexity/llama-3.1-sonar-small-128k-online',
-      vision: 'google/gemini-2.0-flash-exp:free'
+      vision: 'openai/gpt-4o'
     },
     timestamp: new Date().toISOString()
   });
