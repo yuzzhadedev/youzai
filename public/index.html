@@ -2,10 +2,11 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Youz AI · by Yuzz Ofc</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app">
@@ -21,25 +22,73 @@
                 </button>
             </div>
             
+            <!-- User Section (Login/Logout) -->
+            <div class="user-section" id="userSection">
+                <div id="loginBtn" class="login-btn">
+                    <i class="fab fa-google"></i> Login dengan Google
+                </div>
+                <div id="userProfile" class="user-profile hidden">
+                    <img id="userAvatar" src="" alt="Avatar" class="user-avatar-img">
+                    <div class="user-info">
+                        <span id="userName"></span>
+                        <span id="userEmail"></span>
+                    </div>
+                    <button id="logoutBtn" class="logout-btn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
             <button class="new-chat-btn" id="newChatBtn">
                 <i class="fas fa-plus"></i> Percakapan Baru
             </button>
             
-            <div class="history-label">Riwayat</div>
-            <ul class="conversation-list" id="conversationList"></ul>
+            <div class="history-label">Riwayat Percakapan</div>
+            <ul class="conversation-list" id="conversationList">
+                <!-- Dynamic content -->
+            </ul>
+            
+            <!-- Model Selector (di sidebar bawah) -->
+            <div class="model-selector-sidebar">
+                <div class="model-selector-label">Pilih Model AI</div>
+                <div class="model-options">
+                    <button class="model-option-btn active" data-model="gpt4o">
+                        <i class="fas fa-robot"></i>
+                        <div class="model-info">
+                            <span class="model-name">GPT-4o</span>
+                            <span class="model-desc">OpenAI · Paling Cerdas</span>
+                        </div>
+                    </button>
+                    <button class="model-option-btn" data-model="gemini">
+                        <i class="fas fa-gem"></i>
+                        <div class="model-info">
+                            <span class="model-name">Gemini Flash</span>
+                            <span class="model-desc">Google · Cepat & Gratis</span>
+                        </div>
+                    </button>
+                    <button class="model-option-btn" data-model="search">
+                        <i class="fas fa-globe"></i>
+                        <div class="model-info">
+                            <span class="model-name">Web Search</span>
+                            <span class="model-desc">AI + Pencarian Internet</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
             
             <div class="sidebar-footer">
-                <div>v1.0 · Yuzz Ofc</div>
+                <div>v2.0 · Yuzz Ofc</div>
             </div>
         </aside>
         
         <!-- Menu Dropdown -->
         <div class="menu-dropdown" id="menuDropdown">
             <div class="menu-item" id="clearAllBtn">
-                <i class="fas fa-trash-alt"></i> Hapus Semua
+                <i class="fas fa-trash-alt"></i> Hapus Semua Percakapan
             </div>
+            <div class="menu-divider"></div>
             <div class="menu-item" id="aboutBtn">
-                <i class="fas fa-info-circle"></i> Tentang
+                <i class="fas fa-info-circle"></i> Tentang Youz AI
             </div>
         </div>
         
@@ -52,43 +101,88 @@
                     </button>
                     <div class="chat-info">
                         <h2 id="chatTitle">Youz AI</h2>
-                        <span class="model-badge" id="modelBadge">
-                            <i class="fab fa-openai"></i> OpenAI
+                        <span class="time-badge" id="timeBadge">
+                            <i class="far fa-clock"></i> <span id="currentTime"></span>
                         </span>
                     </div>
                 </div>
-                <div class="model-selector" id="modelSelector">
-                    <button class="model-btn active" data-model="openai">
-                        <i class="fab fa-openai"></i> OpenAI
-                    </button>
-                    <button class="model-btn" data-model="gemini">
-                        <i class="fas fa-gem"></i> Gemini
-                    </button>
+                <div class="header-right">
+                    <span class="model-indicator" id="modelIndicator">
+                        <i class="fas fa-robot"></i> GPT-4o
+                    </span>
                 </div>
             </header>
             
             <div class="chat-messages" id="chatMessages">
                 <div class="empty-state">
-                    <i class="fas fa-robot"></i>
+                    <div class="empty-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
                     <h3>Youz AI</h3>
-                    <p>Asisten AI buatan Yuzz Ofc</p>
+                    <p>Asisten AI cerdas buatan Yuzz Ofc</p>
                     <div class="suggestions">
-                        <button class="suggestion-btn">🤖 Apa itu AI?</button>
-                        <button class="suggestion-btn">✍️ Buat puisi</button>
-                        <button class="suggestion-btn">💡 Tips produktif</button>
+                        <button class="suggestion-btn" data-prompt="📅 Tanggal berapa hari ini?">
+                            <i class="far fa-calendar"></i> Tanggal hari ini?
+                        </button>
+                        <button class="suggestion-btn" data-prompt="⏰ Jam berapa sekarang?">
+                            <i class="far fa-clock"></i> Jam berapa?
+                        </button>
+                        <button class="suggestion-btn" data-prompt="🔍 Cari berita terbaru tentang AI 2026">
+                            <i class="fas fa-newspaper"></i> Berita AI terbaru
+                        </button>
+                        <button class="suggestion-btn" data-prompt="🤖 Apa itu kecerdasan buatan?">
+                            <i class="fas fa-brain"></i> Apa itu AI?
+                        </button>
+                        <button class="suggestion-btn" data-prompt="✍️ Buatkan puisi tentang teknologi">
+                            <i class="fas fa-pen"></i> Buat puisi
+                        </button>
+                        <button class="suggestion-btn" data-prompt="💡 Tips produktif untuk programmer">
+                            <i class="fas fa-lightbulb"></i> Tips produktif
+                        </button>
                     </div>
                 </div>
             </div>
             
             <div class="chat-input-area">
-                <div class="input-container">
-                    <button class="attach-btn" id="attachBtn">
-                        <i class="fas fa-image"></i>
-                    </button>
-                    <textarea id="messageInput" placeholder="Ketik pesan..." rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn">
-                        <i class="fas fa-arrow-up"></i>
-                    </button>
+                <!-- Search Bar Style Input -->
+                <div class="search-input-container">
+                    <div class="input-container">
+                        <button class="attach-btn" id="attachBtn" title="Upload Gambar">
+                            <i class="fas fa-image"></i>
+                        </button>
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Ketik pesan atau cari apa saja..." 
+                            rows="1"
+                            autofocus
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" title="Kirim">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Search Suggestions Dropdown -->
+                    <div class="search-suggestions hidden" id="searchSuggestions">
+                        <div class="suggestions-header">
+                            <i class="fas fa-search"></i> Pencarian
+                        </div>
+                        <div class="suggestion-item" data-query="Berita terbaru hari ini 2026">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Berita terbaru hari ini</span>
+                        </div>
+                        <div class="suggestion-item" data-query="Cuaca Jakarta hari ini">
+                            <i class="fas fa-cloud-sun"></i>
+                            <span>Cuaca Jakarta hari ini</span>
+                        </div>
+                        <div class="suggestion-item" data-query="Apa itu artificial intelligence?">
+                            <i class="fas fa-robot"></i>
+                            <span>Apa itu artificial intelligence?</span>
+                        </div>
+                        <div class="suggestion-item" data-query="Cara membuat website dengan AI">
+                            <i class="fas fa-code"></i>
+                            <span>Cara membuat website dengan AI</span>
+                        </div>
+                    </div>
                 </div>
                 <input type="file" id="imageInput" accept="image/*" style="display: none;">
             </div>
