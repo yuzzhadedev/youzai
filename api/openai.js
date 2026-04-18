@@ -14,25 +14,25 @@ export default async function handler(req, res) {
   const { messages } = req.body;
 
   try {
-    // INI BAGIAN PENTING - URL harus OpenRouter
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://youzai.vercel.app',
+        'HTTP-Referer': 'https://youz-ai.vercel.app',
         'X-Title': 'Youz AI'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free', // Model GRATIS
+        model: 'google/gemini-2.0-flash-exp:free',
         messages: [
           { 
             role: 'system', 
-            content: 'Kamu adalah Youz AI, buatan Yuzz Ofc. Jawab dalam Bahasa Indonesia.' 
+            content: 'Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Jawab dalam Bahasa Indonesia yang santai dan informatif.' 
           },
           ...messages
         ],
-        max_tokens: 1000
+        max_tokens: 1000,
+        temperature: 0.7
       })
     });
 
@@ -44,20 +44,21 @@ export default async function handler(req, res) {
     } catch {
       return res.status(200).json({ 
         success: false, 
-        content: 'Response tidak valid dari OpenRouter.' 
+        content: 'Response dari OpenRouter tidak valid.' 
       });
     }
 
     if (!response.ok) {
       return res.status(200).json({ 
         success: false, 
-        content: `Error: ${data.error?.message || 'Unknown'}` 
+        content: `OpenRouter Error: ${data.error?.message || 'Unknown error'}` 
       });
     }
 
     return res.status(200).json({ 
       success: true, 
-      content: data.choices?.[0]?.message?.content || 'Tidak ada respons.'
+      content: data.choices?.[0]?.message?.content || 'Tidak ada respons.',
+      model: 'openrouter'
     });
 
   } catch (error) {
