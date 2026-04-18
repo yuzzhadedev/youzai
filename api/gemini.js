@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const { messages } = req.body;
 
   try {
-    let prompt = 'Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Kamu selalu menjawab dengan gaya yang santai tapi informatif, menggunakan Bahasa Indonesia yang baik dan benar.\n\n';
+    let prompt = 'Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Jawab dalam Bahasa Indonesia yang baik dan benar.\n\n';
     
     for (const msg of messages) {
       if (msg.role === 'user') {
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
+        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
       })
     });
 
