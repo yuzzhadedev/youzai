@@ -2,34 +2,36 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   
   if (!apiKey) {
     return res.status(200).json({ 
       success: false, 
-      content: 'OpenAI API Key tidak dikonfigurasi.' 
+      content: 'OpenRouter API Key tidak dikonfigurasi.' 
     });
   }
 
   const { messages } = req.body;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://youz-ai.vercel.app', // Ganti dengan domain Anda
+        'X-Title': 'Youz AI'
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'google/gemini-2.0-flash-exp:free', // Model GRATIS
         messages: [
           { 
             role: 'system', 
-            content: 'Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Kamu selalu menjawab dengan gaya yang santai tapi informatif, menggunakan Bahasa Indonesia yang baik dan benar.' 
+            content: 'Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Jawab dalam Bahasa Indonesia yang santai dan informatif.' 
           },
           ...messages
         ],
-        max_tokens: 2000,
+        max_tokens: 1000,
         temperature: 0.7
       })
     });
@@ -42,21 +44,21 @@ export default async function handler(req, res) {
     } catch {
       return res.status(200).json({ 
         success: false, 
-        content: 'Response dari OpenAI tidak valid.' 
+        content: 'Response dari OpenRouter tidak valid.' 
       });
     }
 
     if (!response.ok) {
       return res.status(200).json({ 
         success: false, 
-        content: `OpenAI Error: ${data.error?.message || 'Unknown error'}` 
+        content: `OpenRouter Error: ${data.error?.message || 'Unknown error'}` 
       });
     }
 
     return res.status(200).json({ 
       success: true, 
       content: data.choices?.[0]?.message?.content || 'Tidak ada respons.',
-      model: 'openai'
+      model: data.model || 'openrouter'
     });
 
   } catch (error) {
