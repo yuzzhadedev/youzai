@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         'X-Title': 'Youz AI'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-exp:free',
+        model: 'openai/gpt-4o-2024-11-20',
         messages: [
           { 
             role: 'system', 
