@@ -18,12 +18,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 // ========== DATABASE FILE ==========
 const DB_FILE = path.join(__dirname, 'database.json');
 
-// Inisialisasi database jika belum ada
 if (!fs.existsSync(DB_FILE)) {
     fs.writeFileSync(DB_FILE, JSON.stringify({ conversations: [] }, null, 2));
 }
 
-// Helper functions database
 function readDB() {
     try {
         const data = fs.readFileSync(DB_FILE, 'utf8');
@@ -44,7 +42,7 @@ function writeDB(data) {
     }
 }
 
-// ========== API KEYS DARI .ENV ==========
+// ========== API KEYS ==========
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -53,50 +51,15 @@ console.log('🚀 Youz AI Server Starting...');
 console.log('========================================');
 console.log(`📌 OpenAI API Key : ${OPENAI_API_KEY ? '✅ Tersedia' : '❌ Tidak ada'}`);
 console.log(`📌 Gemini API Key : ${GEMINI_API_KEY ? '✅ Tersedia' : '❌ Tidak ada'}`);
-console.log(`💾 Database       : ${DB_FILE}`);
-console.log(`🌐 Port           : ${PORT}`);
 console.log('========================================\n');
 
 // System prompt
 const SYSTEM_PROMPT = `Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Kamu selalu menjawab dengan gaya yang santai tapi informatif, menggunakan Bahasa Indonesia yang baik dan benar.`;
 
-// ========== HELPER: SAFE FETCH ==========
-async function safeFetch(url, options) {
-    try {
-        const response = await fetch(url, options);
-        const contentType = response.headers.get('content-type') || '';
-        const textResponse = await response.text();
-        
-        if (!response.ok) {
-            try {
-                const errorJson = JSON.parse(textResponse);
-                throw new Error(errorJson.error?.message || `HTTP ${response.status}`);
-            } catch (e) {
-                if (textResponse.includes('<html>')) {
-                    throw new Error(`API Error (${response.status}): Invalid response`);
-                }
-                throw new Error(`API Error (${response.status}): ${textResponse.substring(0, 100)}`);
-            }
-        }
-        
-        try {
-            return JSON.parse(textResponse);
-        } catch (e) {
-            throw new Error('Invalid JSON response from API');
-        }
-    } catch (error) {
-        console.error('❌ Fetch Error:', error.message);
-        throw error;
-    }
-}
-
-// ========== DATABASE API ENDPOINTS ==========
-
-// Get all conversations
+// ========== DATABASE API ==========
 app.get('/api/conversations', (req, res) => {
     try {
         const db = readDB();
-        // Return conversations tanpa messages untuk list (hemat bandwidth)
         const conversations = db.conversations.map(conv => ({
             id: conv.id,
             title: conv.title,
@@ -110,28 +73,23 @@ app.get('/api/conversations', (req, res) => {
     }
 });
 
-// Get single conversation with messages
 app.get('/api/conversations/:id', (req, res) => {
     try {
         const db = readDB();
         const conversation = db.conversations.find(c => c.id === req.params.id);
-        
         if (!conversation) {
             return res.status(404).json({ success: false, error: 'Conversation not found' });
         }
-        
         res.json({ success: true, data: conversation });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Create new conversation
 app.post('/api/conversations', (req, res) => {
     try {
         const db = readDB();
         const { title } = req.body;
-        
         const newConversation = {
             id: uuidv4(),
             title: title || 'Percakapan Baru',
@@ -139,28 +97,23 @@ app.post('/api/conversations', (req, res) => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
-        
         db.conversations.push(newConversation);
         writeDB(db);
-        
         res.json({ success: true, data: newConversation });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Add message to conversation
 app.post('/api/conversations/:id/messages', async (req, res) => {
     try {
         const db = readDB();
         const conversation = db.conversations.find(c => c.id === req.params.id);
-        
         if (!conversation) {
             return res.status(404).json({ success: false, error: 'Conversation not found' });
         }
         
         const { role, content, model, image } = req.body;
-        
         const message = {
             id: uuidv4(),
             role,
@@ -173,39 +126,32 @@ app.post('/api/conversations/:id/messages', async (req, res) => {
         conversation.messages.push(message);
         conversation.updatedAt = new Date().toISOString();
         
-        // Update title jika pesan pertama dari user
         if (conversation.messages.filter(m => m.role === 'user').length === 1 && role === 'user') {
             conversation.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
         }
         
         writeDB(db);
-        
         res.json({ success: true, data: message });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Delete conversation
 app.delete('/api/conversations/:id', (req, res) => {
     try {
         const db = readDB();
         const index = db.conversations.findIndex(c => c.id === req.params.id);
-        
         if (index === -1) {
             return res.status(404).json({ success: false, error: 'Conversation not found' });
         }
-        
         db.conversations.splice(index, 1);
         writeDB(db);
-        
         res.json({ success: true, message: 'Conversation deleted' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Delete all conversations
 app.delete('/api/conversations', (req, res) => {
     try {
         const db = { conversations: [] };
@@ -218,11 +164,14 @@ app.delete('/api/conversations', (req, res) => {
 
 // ========== AI ENDPOINTS ==========
 
-// OpenAI Chat
+// OpenAI Chat - DENGAN FALLBACK
 app.post('/api/openai/chat', async (req, res) => {
     try {
         if (!OPENAI_API_KEY) {
-            return res.status(500).json({ success: false, error: 'OpenAI API Key tidak dikonfigurasi' });
+            return res.json({ 
+                success: false, 
+                error: 'OpenAI API Key tidak dikonfigurasi. Tambahkan di file .env' 
+            });
         }
 
         const { messages } = req.body;
@@ -232,45 +181,91 @@ app.post('/api/openai/chat', async (req, res) => {
             ...messages
         ];
 
-        console.log(`📤 [OpenAI] Sending request...`);
+        console.log('📤 [OpenAI] Mengirim request...');
 
-        const data = await safeFetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: fullMessages,
-                max_tokens: 2000,
-                temperature: 0.7
-            })
-        });
+        // Gunakan fetch dengan timeout
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
 
-        console.log(`✅ [OpenAI] Response received`);
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: fullMessages,
+                    max_tokens: 1000,
+                    temperature: 0.7
+                }),
+                signal: controller.signal
+            });
 
-        res.json({ 
-            success: true, 
-            content: data.choices?.[0]?.message?.content || '(No response)',
-            model: 'openai'
-        });
+            clearTimeout(timeout);
+
+            // Baca response sebagai text dulu untuk debugging
+            const textResponse = await response.text();
+            
+            console.log(`📡 [OpenAI] Status: ${response.status}`);
+            console.log(`📡 [OpenAI] Response preview: ${textResponse.substring(0, 200)}`);
+
+            if (!response.ok) {
+                // Coba parse error
+                try {
+                    const errorJson = JSON.parse(textResponse);
+                    throw new Error(errorJson.error?.message || `HTTP ${response.status}`);
+                } catch (e) {
+                    throw new Error(`OpenAI API Error (${response.status}): ${textResponse.substring(0, 100)}`);
+                }
+            }
+
+            // Parse JSON response
+            const data = JSON.parse(textResponse);
+            
+            console.log('✅ [OpenAI] Response berhasil');
+
+            res.json({ 
+                success: true, 
+                content: data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.',
+                model: 'openai'
+            });
+
+        } catch (fetchError) {
+            clearTimeout(timeout);
+            
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Request timeout (30 detik)');
+            }
+            throw fetchError;
+        }
 
     } catch (error) {
         console.error('❌ [OpenAI] Error:', error.message);
-        res.status(500).json({ success: false, error: error.message });
+        
+        // Kembalikan response error yang valid (bukan throw)
+        res.json({ 
+            success: false, 
+            error: error.message,
+            content: `Maaf, terjadi kesalahan: ${error.message}. Silakan coba lagi.`
+        });
     }
 });
 
-// Gemini Chat
+// Gemini Chat - DENGAN FALLBACK
 app.post('/api/gemini/chat', async (req, res) => {
     try {
         if (!GEMINI_API_KEY) {
-            return res.status(500).json({ success: false, error: 'Gemini API Key tidak dikonfigurasi' });
+            return res.json({ 
+                success: false, 
+                error: 'Gemini API Key tidak dikonfigurasi. Tambahkan di file .env' 
+            });
         }
 
         const { messages } = req.body;
         
+        // Buat prompt dari messages
         let prompt = `${SYSTEM_PROMPT}\n\n`;
         for (const msg of messages) {
             if (msg.role === 'user') {
@@ -281,30 +276,69 @@ app.post('/api/gemini/chat', async (req, res) => {
         }
         prompt += 'Youz AI: ';
 
-        console.log(`📤 [Gemini] Sending request...`);
+        console.log('📤 [Gemini] Mengirim request...');
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
 
-        const data = await safeFetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.7, maxOutputTokens: 2000 }
-            })
-        });
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+                }),
+                signal: controller.signal
+            });
 
-        console.log(`✅ [Gemini] Response received`);
+            clearTimeout(timeout);
 
-        res.json({ 
-            success: true, 
-            content: data.candidates?.[0]?.content?.parts?.[0]?.text || '(No response)',
-            model: 'gemini'
-        });
+            const textResponse = await response.text();
+            
+            console.log(`📡 [Gemini] Status: ${response.status}`);
+            console.log(`📡 [Gemini] Response preview: ${textResponse.substring(0, 200)}`);
+
+            if (!response.ok) {
+                try {
+                    const errorJson = JSON.parse(textResponse);
+                    throw new Error(errorJson.error?.message || `HTTP ${response.status}`);
+                } catch (e) {
+                    throw new Error(`Gemini API Error (${response.status}): ${textResponse.substring(0, 100)}`);
+                }
+            }
+
+            const data = JSON.parse(textResponse);
+            
+            console.log('✅ [Gemini] Response berhasil');
+
+            const content = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Maaf, tidak ada respons.';
+
+            res.json({ 
+                success: true, 
+                content: content,
+                model: 'gemini'
+            });
+
+        } catch (fetchError) {
+            clearTimeout(timeout);
+            
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Request timeout (30 detik)');
+            }
+            throw fetchError;
+        }
 
     } catch (error) {
         console.error('❌ [Gemini] Error:', error.message);
-        res.status(500).json({ success: false, error: error.message });
+        
+        res.json({ 
+            success: false, 
+            error: error.message,
+            content: `Maaf, terjadi kesalahan: ${error.message}. Silakan coba lagi.`
+        });
     }
 });
 
@@ -312,43 +346,80 @@ app.post('/api/gemini/chat', async (req, res) => {
 app.post('/api/gemini/vision', async (req, res) => {
     try {
         if (!GEMINI_API_KEY) {
-            return res.status(500).json({ success: false, error: 'Gemini API Key tidak dikonfigurasi' });
+            return res.json({ 
+                success: false, 
+                error: 'Gemini API Key tidak dikonfigurasi.' 
+            });
         }
 
         const { imageData, prompt } = req.body;
         
         if (!imageData) {
-            return res.status(400).json({ success: false, error: 'No image data' });
+            return res.json({ success: false, error: 'Tidak ada gambar' });
         }
 
-        console.log(`📤 [Gemini Vision] Analyzing image...`);
+        console.log('📤 [Gemini Vision] Menganalisis gambar...');
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
         const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
         
-        const data = await safeFetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        { text: prompt || 'Deskripsikan gambar ini dalam Bahasa Indonesia.' },
-                        { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
-                    ]
-                }]
-            })
-        });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30000);
 
-        console.log(`✅ [Gemini Vision] Analysis complete`);
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt || 'Deskripsikan gambar ini dalam Bahasa Indonesia.' },
+                            { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
+                        ]
+                    }]
+                }),
+                signal: controller.signal
+            });
 
-        res.json({ 
-            success: true, 
-            content: data.candidates?.[0]?.content?.parts?.[0]?.text || '(Cannot analyze image)'
-        });
+            clearTimeout(timeout);
+
+            const textResponse = await response.text();
+            
+            console.log(`📡 [Gemini Vision] Status: ${response.status}`);
+
+            if (!response.ok) {
+                try {
+                    const errorJson = JSON.parse(textResponse);
+                    throw new Error(errorJson.error?.message || `HTTP ${response.status}`);
+                } catch (e) {
+                    throw new Error(`Gemini Vision Error (${response.status})`);
+                }
+            }
+
+            const data = JSON.parse(textResponse);
+            
+            console.log('✅ [Gemini Vision] Analisis selesai');
+
+            const content = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Tidak dapat menganalisis gambar.';
+
+            res.json({ 
+                success: true, 
+                content: content 
+            });
+
+        } catch (fetchError) {
+            clearTimeout(timeout);
+            throw fetchError;
+        }
 
     } catch (error) {
         console.error('❌ [Gemini Vision] Error:', error.message);
-        res.status(500).json({ success: false, error: error.message });
+        
+        res.json({ 
+            success: false, 
+            error: error.message,
+            content: `Gagal menganalisis gambar: ${error.message}`
+        });
     }
 });
 
@@ -364,6 +435,49 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Test endpoint untuk cek API Key
+app.get('/api/test-keys', async (req, res) => {
+    const results = {
+        openai: { status: 'unknown', message: '' },
+        gemini: { status: 'unknown', message: '' }
+    };
+    
+    // Test OpenAI
+    if (OPENAI_API_KEY) {
+        try {
+            const response = await fetch('https://api.openai.com/v1/models', {
+                headers: { 'Authorization': `Bearer ${OPENAI_API_KEY}` }
+            });
+            results.openai = {
+                status: response.ok ? 'ok' : 'error',
+                message: response.ok ? 'API Key valid' : `HTTP ${response.status}`
+            };
+        } catch (e) {
+            results.openai = { status: 'error', message: e.message };
+        }
+    } else {
+        results.openai = { status: 'missing', message: 'API Key tidak ada' };
+    }
+    
+    // Test Gemini
+    if (GEMINI_API_KEY) {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`;
+            const response = await fetch(url);
+            results.gemini = {
+                status: response.ok ? 'ok' : 'error',
+                message: response.ok ? 'API Key valid' : `HTTP ${response.status}`
+            };
+        } catch (e) {
+            results.gemini = { status: 'error', message: e.message };
+        }
+    } else {
+        results.gemini = { status: 'missing', message: 'API Key tidak ada' };
+    }
+    
+    res.json(results);
+});
+
 // Serve Frontend
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -372,7 +486,8 @@ app.get('*', (req, res) => {
 // Start Server
 app.listen(PORT, () => {
     console.log('\n========================================');
-    console.log(`✨ Youz AI Server running at http://localhost:${PORT}`);
+    console.log(`✨ Youz AI Server berjalan di http://localhost:${PORT}`);
+    console.log(`🔍 Test API Keys: http://localhost:${PORT}/api/test-keys`);
     console.log(`💊 Health Check: http://localhost:${PORT}/api/health`);
     console.log('========================================\n');
 });
