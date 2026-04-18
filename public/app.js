@@ -25,81 +25,126 @@ const aboutBtn = document.getElementById('aboutBtn');
 // ========== API CALLS ==========
 const API = {
     async getConversations() {
-        const res = await fetch('/api/conversations');
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch('/api/conversations');
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('getConversations error:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     async getConversation(id) {
-        const res = await fetch(`/api/conversations/${id}`);
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch(`/api/conversations/${id}`);
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('getConversation error:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     async createConversation(title) {
-        const res = await fetch('/api/conversations', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title })
-        });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch('/api/conversations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title })
+            });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('createConversation error:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     async addMessage(convId, message) {
-        const res = await fetch(`/api/conversations/${convId}/messages`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(message)
-        });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch(`/api/conversations/${convId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(message)
+            });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('addMessage error:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     async deleteConversation(id) {
-        const res = await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('deleteConversation error:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     async deleteAllConversations() {
-        const res = await fetch('/api/conversations', { method: 'DELETE' });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch('/api/conversations', { method: 'DELETE' });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('deleteAllConversations error:', error);
+            return { success: false, error: error.message };
+        }
     },
     
     async chatOpenAI(messages) {
-        const res = await fetch('/api/openai/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages })
-        });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch('/api/openai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages })
+            });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('chatOpenAI error:', error);
+            return { success: false, error: error.message, content: 'Gagal terhubung ke server.' };
+        }
     },
     
     async chatGemini(messages) {
-        const res = await fetch('/api/gemini/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ messages })
-        });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch('/api/gemini/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages })
+            });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('chatGemini error:', error);
+            return { success: false, error: error.message, content: 'Gagal terhubung ke server.' };
+        }
     },
     
     async analyzeImage(imageData, prompt) {
-        const res = await fetch('/api/gemini/vision', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageData, prompt })
-        });
-        const data = await res.json();
-        return data;
+        try {
+            const res = await fetch('/api/gemini/vision', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageData, prompt })
+            });
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('analyzeImage error:', error);
+            return { success: false, error: error.message, content: 'Gagal menganalisis gambar.' };
+        }
     }
 };
 
-// ========== RENDER ==========
+// ========== RENDER FUNCTIONS ==========
 async function loadConversations() {
     const result = await API.getConversations();
     if (result.success) {
@@ -109,15 +154,15 @@ async function loadConversations() {
 }
 
 function renderSidebar() {
-    if (conversations.length === 0) {
-        conversationList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary);">Belum ada percakapan</div>';
+    if (!conversations || conversations.length === 0) {
+        conversationList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 14px;">Belum ada percakapan</div>';
         return;
     }
     
     conversationList.innerHTML = conversations.map(conv => `
         <li class="conv-item ${conv.id === activeConversationId ? 'active' : ''}" data-id="${conv.id}">
             <i class="far fa-comment"></i>
-            <span class="conv-title">${conv.title || 'Percakapan Baru'}</span>
+            <span class="conv-title">${escapeHtml(conv.title || 'Percakapan Baru')}</span>
             <i class="far fa-trash-alt delete-conv" data-id="${conv.id}"></i>
         </li>
     `).join('');
@@ -146,6 +191,7 @@ async function switchConversation(id) {
         renderSidebar();
     }
     
+    // Close sidebar on mobile
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
     }
@@ -159,9 +205,10 @@ function renderMessages(messages) {
                 <h3>Youz AI</h3>
                 <p>Asisten AI buatan Yuzz Ofc</p>
                 <div class="suggestions">
-                    <button class="suggestion-btn" onclick="setInput('🤖 Apa itu AI?')">🤖 Apa itu AI?</button>
-                    <button class="suggestion-btn" onclick="setInput('✍️ Buat puisi')">✍️ Buat puisi</button>
-                    <button class="suggestion-btn" onclick="setInput('💡 Tips produktif')">💡 Tips produktif</button>
+                    <button class="suggestion-btn" onclick="window.setInput('🤖 Apa itu AI?')">🤖 Apa itu AI?</button>
+                    <button class="suggestion-btn" onclick="window.setInput('✍️ Buat puisi tentang senja')">✍️ Buat puisi</button>
+                    <button class="suggestion-btn" onclick="window.setInput('💡 Tips produktif sehari-hari')">💡 Tips produktif</button>
+                    <button class="suggestion-btn" onclick="window.setInput('👤 Siapa Yuzz Ofc?')">👤 Siapa Yuzz Ofc?</button>
                 </div>
             </div>
         `;
@@ -175,19 +222,21 @@ function renderMessages(messages) {
 function createMessageHTML(msg) {
     const isUser = msg.role === 'user';
     const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
-    const modelLabel = msg.model ? ` (${msg.model === 'openai' ? 'OpenAI' : 'Gemini'})` : '';
+    const modelLabel = msg.model ? `<span style="font-size: 10px; opacity: 0.6; margin-left: 8px;">${msg.model === 'openai' ? 'OpenAI' : 'Gemini'}</span>` : '';
     
     let content = escapeHtml(msg.content);
     if (msg.image) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     
+    const errorClass = msg.isError ? 'error' : '';
+    
     return `
-        <div class="message ${msg.role} ${msg.isError ? 'error' : ''}">
+        <div class="message ${msg.role} ${errorClass}">
             <div class="message-avatar">${avatarIcon}</div>
             <div class="message-content">
                 ${content}
-                ${!isUser && msg.model ? `<div style="font-size: 11px; margin-top: 8px; opacity: 0.6;">${modelLabel}</div>` : ''}
+                ${!isUser && msg.model ? modelLabel : ''}
             </div>
         </div>
     `;
@@ -200,10 +249,13 @@ function escapeHtml(text) {
     return div.innerHTML.replace(/\n/g, '<br>');
 }
 
-function setInput(text) {
+// Global function untuk suggestion buttons
+window.setInput = function(text) {
     messageInput.value = text;
     messageInput.focus();
-}
+    messageInput.style.height = 'auto';
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+};
 
 // ========== ACTIONS ==========
 async function createNewChat() {
@@ -216,6 +268,8 @@ async function createNewChat() {
 }
 
 async function deleteConversation(id) {
+    if (!confirm('Hapus percakapan ini?')) return;
+    
     await API.deleteConversation(id);
     await loadConversations();
     
@@ -232,7 +286,12 @@ async function deleteConversation(id) {
 
 async function sendMessage() {
     const text = messageInput.value.trim();
-    if (!text || isProcessing || !activeConversationId) return;
+    if (!text || isProcessing) return;
+    
+    // Jika belum ada percakapan, buat baru
+    if (!activeConversationId) {
+        await createNewChat();
+    }
     
     isProcessing = true;
     sendBtn.disabled = true;
@@ -247,9 +306,11 @@ async function sendMessage() {
     const convResult = await API.getConversation(activeConversationId);
     if (convResult.success) {
         renderMessages(convResult.data.messages);
+        chatTitle.textContent = convResult.data.title || 'Percakapan Baru';
     }
     
     messageInput.value = '';
+    messageInput.style.height = 'auto';
     
     // Show typing indicator
     const typingId = 'typing-' + Date.now();
@@ -269,7 +330,7 @@ async function sendMessage() {
         // Get conversation messages for AI
         const currentConv = await API.getConversation(activeConversationId);
         const messages = currentConv.data.messages
-            .filter(m => m.role !== 'system' && !m.image)
+            .filter(m => !m.image && m.role !== 'system')
             .map(m => ({ role: m.role, content: m.content }));
         
         let aiResponse;
@@ -282,38 +343,41 @@ async function sendMessage() {
         // Remove typing indicator
         document.getElementById(typingId)?.remove();
         
-        if (aiResponse.success) {
-            await API.addMessage(activeConversationId, {
-                role: 'assistant',
-                content: aiResponse.content,
-                model: activeModel
-            });
-        } else {
-            await API.addMessage(activeConversationId, {
-                role: 'assistant',
-                content: `❌ Error: ${aiResponse.error}`,
-                isError: true
-            });
-        }
+        // Gunakan content dari response
+        const responseContent = aiResponse.content || aiResponse.error || 'Maaf, tidak ada respons.';
         
-        // Refresh
+        await API.addMessage(activeConversationId, {
+            role: 'assistant',
+            content: responseContent,
+            model: activeModel,
+            isError: !aiResponse.success
+        });
+        
+        // Refresh messages
         const updated = await API.getConversation(activeConversationId);
         if (updated.success) {
             renderMessages(updated.data.messages);
             chatTitle.textContent = updated.data.title || 'Percakapan Baru';
         }
         
+        // Refresh sidebar untuk update title
         await loadConversations();
+        renderSidebar();
         
     } catch (error) {
         document.getElementById(typingId)?.remove();
+        console.error('Send message error:', error);
+        
         await API.addMessage(activeConversationId, {
             role: 'assistant',
             content: `❌ Error: ${error.message}`,
             isError: true
         });
+        
         const updated = await API.getConversation(activeConversationId);
-        if (updated.success) renderMessages(updated.data.messages);
+        if (updated.success) {
+            renderMessages(updated.data.messages);
+        }
     } finally {
         isProcessing = false;
         sendBtn.disabled = false;
@@ -322,7 +386,12 @@ async function sendMessage() {
 }
 
 async function handleImageUpload(file) {
-    if (!file || !activeConversationId) return;
+    if (!file) return;
+    
+    // Jika belum ada percakapan, buat baru
+    if (!activeConversationId) {
+        await createNewChat();
+    }
     
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -331,14 +400,16 @@ async function handleImageUpload(file) {
         // Add image message
         await API.addMessage(activeConversationId, {
             role: 'user',
-            content: '[Mengunggah gambar...]',
+            content: '📷 Mengunggah gambar...',
             image: imageData
         });
         
         const convResult = await API.getConversation(activeConversationId);
-        if (convResult.success) renderMessages(convResult.data.messages);
+        if (convResult.success) {
+            renderMessages(convResult.data.messages);
+        }
         
-        // Analyze with Gemini
+        // Show typing indicator
         const typingId = 'typing-' + Date.now();
         chatMessages.insertAdjacentHTML('beforeend', `
             <div class="message assistant" id="${typingId}">
@@ -350,33 +421,44 @@ async function handleImageUpload(file) {
                 </div>
             </div>
         `);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
         
         try {
-            const result = await API.analyzeImage(imageData, 'Deskripsikan gambar ini dalam Bahasa Indonesia.');
+            const result = await API.analyzeImage(imageData, 'Deskripsikan gambar ini secara detail dalam Bahasa Indonesia.');
+            
             document.getElementById(typingId)?.remove();
             
-            if (result.success) {
-                await API.addMessage(activeConversationId, {
-                    role: 'assistant',
-                    content: `📷 ${result.content}`,
-                    model: 'gemini'
-                });
-            } else {
-                await API.addMessage(activeConversationId, {
-                    role: 'assistant',
-                    content: `❌ Gagal analisis: ${result.error}`,
-                    isError: true
-                });
-            }
+            const responseContent = result.content || result.error || 'Gagal menganalisis gambar.';
+            
+            await API.addMessage(activeConversationId, {
+                role: 'assistant',
+                content: `📷 ${responseContent}`,
+                model: 'gemini',
+                isError: !result.success
+            });
             
             const updated = await API.getConversation(activeConversationId);
-            if (updated.success) renderMessages(updated.data.messages);
+            if (updated.success) {
+                renderMessages(updated.data.messages);
+            }
             
         } catch (error) {
             document.getElementById(typingId)?.remove();
             console.error('Image analysis error:', error);
+            
+            await API.addMessage(activeConversationId, {
+                role: 'assistant',
+                content: `❌ Gagal menganalisis gambar: ${error.message}`,
+                isError: true
+            });
+            
+            const updated = await API.getConversation(activeConversationId);
+            if (updated.success) {
+                renderMessages(updated.data.messages);
+            }
         }
     };
+    
     reader.readAsDataURL(file);
 }
 
@@ -387,15 +469,20 @@ hamburgerBtn.addEventListener('click', () => {
 
 menuBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    const rect = menuBtn.getBoundingClientRect();
+    menuDropdown.style.top = (rect.bottom + 5) + 'px';
+    menuDropdown.style.left = (rect.left - 180) + 'px';
     menuDropdown.classList.toggle('show');
 });
 
+// Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
     if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
         menuDropdown.classList.remove('show');
     }
 });
 
+// Model selector
 modelBtns.forEach(btn => {
     btn.addEventListener('click', () => {
         modelBtns.forEach(b => b.classList.remove('active'));
@@ -407,10 +494,18 @@ modelBtns.forEach(btn => {
     });
 });
 
-newChatBtn.addEventListener('click', createNewChat);
+// New chat
+newChatBtn.addEventListener('click', async () => {
+    await createNewChat();
+    if (window.innerWidth <= 768) {
+        sidebar.classList.add('closed');
+    }
+});
 
+// Send message
 sendBtn.addEventListener('click', sendMessage);
 
+// Enter to send
 messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -418,11 +513,13 @@ messageInput.addEventListener('keydown', (e) => {
     }
 });
 
+// Auto-resize textarea
 messageInput.addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 120) + 'px';
 });
 
+// Attach image
 attachBtn.addEventListener('click', () => {
     imageInput.click();
 });
@@ -435,8 +532,9 @@ imageInput.addEventListener('change', (e) => {
     }
 });
 
+// Clear all conversations
 clearAllBtn.addEventListener('click', async () => {
-    if (confirm('Hapus semua percakapan?')) {
+    if (confirm('Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.')) {
         await API.deleteAllConversations();
         await loadConversations();
         activeConversationId = null;
@@ -446,12 +544,13 @@ clearAllBtn.addEventListener('click', async () => {
     }
 });
 
+// About
 aboutBtn.addEventListener('click', () => {
-    alert('Youz AI v1.0\n\nAsisten AI dengan dual model: OpenAI & Gemini.\nDibuat oleh Yuzz Ofc.\n\n© 2024 Yuzz Ofc');
+    alert('Youz AI v1.0\n\nAsisten AI dengan dual model:\n• OpenAI GPT-3.5 Turbo\n• Google Gemini 2.0 Flash\n\nDibuat oleh Yuzz Ofc.\n\n© 2024 Yuzz Ofc. All rights reserved.');
     menuDropdown.classList.remove('show');
 });
 
-// Close sidebar on mobile when clicking outside
+// Close sidebar when clicking outside on mobile
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && !sidebar.classList.contains('closed')) {
@@ -460,10 +559,14 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Auto-resize on window
+// Handle window resize
 window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
         sidebar.classList.remove('closed');
+    } else {
+        if (!sidebar.classList.contains('closed')) {
+            // Keep open if user hasn't closed it
+        }
     }
 });
 
@@ -473,17 +576,22 @@ async function init() {
     
     if (conversations.length > 0) {
         activeConversationId = conversations[0].id;
-        switchConversation(activeConversationId);
+        await switchConversation(activeConversationId);
     } else {
-        await createNewChat();
+        // Tampilkan empty state tanpa membuat percakapan
+        renderMessages([]);
     }
     
+    // Set initial model badge
+    modelBadge.innerHTML = '<i class="fab fa-openai"></i> OpenAI';
+    
+    // Close sidebar on mobile by default
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
     }
+    
+    console.log('✅ Youz AI initialized');
 }
 
-// Global function untuk suggestion buttons
-window.setInput = setInput;
-
+// Start app
 init();
