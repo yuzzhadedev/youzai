@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     if (imageData) {
       // Vision Mode - Gunakan Gemini Flash (gratis & support vision)
       requestBody = {
-        model: 'google/gemini-2.0-flash-exp:free',
+        model: 'openai/gpt-4o',
         messages: [
           {
             role: 'user',
