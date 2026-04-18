@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         contents: [{
           parts: [
-            { text: prompt || 'Deskripsikan gambar ini secara detail dalam Bahasa Indonesia.' },
+            { text: prompt || 'Deskripsikan gambar ini dalam Bahasa Indonesia.' },
             { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
           ]
         }]
