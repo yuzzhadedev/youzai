@@ -856,6 +856,94 @@ body {
     display: none !important;
 }
 
+/*  MESSAGE ACTIONS */
+.message-content-wrapper {
+    position: relative;
+}
+
+.message-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.message:hover .message-actions {
+    opacity: 1;
+}
+
+.action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+}
+
+.action-btn:hover {
+    background: var(--bg-input);
+    color: var(--text-primary);
+}
+
+.action-btn.liked {
+    color: var(--success);
+}
+
+.action-btn.liked i {
+    color: var(--success);
+}
+
+.action-btn.disliked {
+    color: var(--danger);
+}
+
+.action-btn.disliked i {
+    color: var(--danger);
+}
+
+.action-btn.copied {
+    color: var(--success);
+}
+
+.action-btn i {
+    font-size: 14px;
+}
+
+/* Feedback indicator */
+.feedback-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: 8px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .message-actions {
+        opacity: 1;
+        flex-wrap: wrap;
+    }
+    
+    .action-btn {
+        padding: 8px 10px;
+    }
+    
+    .action-btn span {
+        display: none;
+    }
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .sidebar {
