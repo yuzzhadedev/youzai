@@ -1,21 +1,13 @@
 {
   "name": "youz-ai",
   "version": "1.0.0",
-  "description": "Youz AI - Dual AI Chat with OpenAI & Gemini",
-  "main": "server.js",
+  "description": "Youz AI - Vercel Ready",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "vercel dev"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "uuid": "^9.0.0"
+    "@vercel/node": "^3.0.0"
   },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  },
-  "author": "Yuzz Ofc",
-  "license": "MIT"
-      }
+  "author": "Yuzz Ofc"
+}
