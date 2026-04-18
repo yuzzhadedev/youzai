@@ -74,7 +74,7 @@ Informasi waktu saat ini:
 Gunakan informasi waktu ini untuk konteks. Berikan jawaban yang akurat, terkini, dan informatif dalam Bahasa Indonesia. Jika mencari berita atau informasi terbaru, gunakan akses internet untuk mendapatkan data real-time. Sertakan sumber informasi jika memungkinkan.`;
       } else {
         // Mode Biasa - Gunakan Gemini Flash (gratis)
-        model = 'google/gemini-2.0-flash-exp:free';
+        model = 'openai/gpt-4o';
         systemPrompt = `Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc.
 
 Informasi waktu saat ini:
