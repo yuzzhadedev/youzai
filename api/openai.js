@@ -32,9 +32,9 @@ export default async function handler(req, res) {
     let requestBody;
 
     if (imageData) {
-      // Vision Mode - Gunakan Gemini Flash (gratis & support vision)
+      // Vision Mode - Gunakan GPT-4o Mini (lebih hemat untuk vision)
       requestBody = {
-        model: 'openai/gpt-4o',
+        model: 'openai/gpt-4o-mini', // ChatGPT Vision
         messages: [
           {
             role: 'user',
@@ -56,26 +56,26 @@ export default async function handler(req, res) {
         temperature: 0.7
       };
     } else {
-      // Text Mode
-      const limitedMessages = messages.slice(-10); // Batasi 10 pesan terakhir
+      // Text Mode - Batasi 10 pesan terakhir untuk menghemat token
+      const limitedMessages = messages.slice(-10);
       
       let systemPrompt;
       let model;
       
       if (enableSearch) {
-        // Web Search Mode - Gunakan Perplexity Online (gratis)
-        model = 'perplexity/llama-3.1-sonar-small-128k-online';
+        // Web Search Mode - Gunakan GPT-4o Search Preview
+        model = 'openai/gpt-4o-search-preview';
         systemPrompt = `Kamu adalah Youz AI, asisten virtual dengan akses internet real-time. Kamu dibuat oleh Developer Yuzz Ofc.
 
 Informasi waktu saat ini:
 - Waktu lokal (Jakarta/WIB): ${currentTime}
 - Hari/Tanggal: ${currentDate}
 
-Gunakan informasi waktu ini untuk konteks. Berikan jawaban yang akurat, terkini, dan informatif dalam Bahasa Indonesia. Jika mencari berita atau informasi terbaru, gunakan akses internet untuk mendapatkan data real-time. Sertakan sumber informasi jika memungkinkan.`;
+Gunakan informasi waktu ini untuk konteks. Berikan jawaban yang akurat, terkini, dan informatif dalam Bahasa Indonesia. Gunakan akses internet untuk mendapatkan data real-time. Sertakan sumber informasi jika memungkinkan.`;
       } else {
-        // Mode Biasa - Gunakan Gemini Flash (gratis)
-        model = 'openai/gpt-4o';
-        systemPrompt = `Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc.
+        // Mode Biasa - Gunakan GPT-4o Mini (paling hemat)
+        model = 'openai/gpt-4o-mini';
+        systemPrompt = `Kamu adalah Youz AI, asisten virtual yang cerdas, ramah, dan membantu. Kamu dibuat oleh Developer Yuzz Ofc. Kamu menggunakan model ChatGPT dari OpenAI.
 
 Informasi waktu saat ini:
 - Waktu lokal (Jakarta/WIB): ${currentTime}
@@ -94,12 +94,11 @@ Gunakan informasi waktu ini jika pengguna bertanya tentang waktu, tanggal, atau 
         temperature: 0.7
       };
 
-      // Aktifkan plugin web search untuk model Perplexity
+      // Aktifkan web search untuk model yang support
       if (enableSearch) {
         requestBody.plugins = [{ 
           id: 'web', 
-          max_results: 5,
-          search_prompt: 'Cari informasi terbaru dan akurat tentang:'
+          max_results: 5 
         }];
       }
     }
@@ -133,15 +132,13 @@ Gunakan informasi waktu ini jika pengguna bertanya tentang waktu, tanggal, atau 
     if (!response.ok) {
       console.error('❌ OpenRouter Error:', data.error);
       
-      // Cek token limit error
       if (data.error?.message?.includes('token') || data.error?.message?.includes('exceeded')) {
         return res.status(200).json({ 
           success: false, 
-          content: '⚠️ Percakapan terlalu panjang. Silakan mulai percakapan baru atau hapus beberapa pesan.' 
+          content: '⚠️ Percakapan terlalu panjang. Silakan mulai percakapan baru.' 
         });
       }
       
-      // Cek kredit habis
       if (data.error?.code === 402) {
         return res.status(200).json({ 
           success: false, 
@@ -159,10 +156,15 @@ Gunakan informasi waktu ini jika pengguna bertanya tentang waktu, tanggal, atau 
     
     console.log(`✅ [OpenRouter] Response diterima (${content.length} karakter)`);
 
+    // Tentukan model label untuk frontend
+    let modelLabel = 'chatgpt';
+    if (imageData) modelLabel = 'vision';
+    else if (enableSearch) modelLabel = 'web-search';
+
     return res.status(200).json({ 
       success: true, 
       content: content,
-      model: enableSearch ? 'web-search' : (imageData ? 'vision' : 'gemini')
+      model: modelLabel
     });
 
   } catch (error) {
