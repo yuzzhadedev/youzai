@@ -1,7 +1,7 @@
 // ========== STATE ==========
 let conversations = [];
 let activeConversationId = null;
-let activeModel = 'openai';
+let activeModel = 'openai'; // 'openai' sekarang = OpenRouter, 'gemini' = Gemini
 let isProcessing = false;
 
 // DOM Elements
@@ -120,7 +120,15 @@ function renderMessages(messages) {
 function createMessageHTML(msg) {
     const isUser = msg.role === 'user';
     const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
-    const modelLabel = msg.model ? `<div style="font-size:11px;margin-top:8px;opacity:0.6;">${msg.model === 'openai' ? 'OpenAI' : 'Gemini'}</div>` : '';
+    
+    let modelLabel = '';
+    if (!isUser && msg.model) {
+        if (msg.model === 'openrouter') {
+            modelLabel = '<div style="font-size:11px;margin-top:8px;opacity:0.6;">OpenRouter</div>';
+        } else if (msg.model === 'gemini') {
+            modelLabel = '<div style="font-size:11px;margin-top:8px;opacity:0.6;">Gemini</div>';
+        }
+    }
     
     let content = escapeHtml(msg.content);
     if (msg.image) {
@@ -172,7 +180,7 @@ function deleteConversation(id) {
 }
 
 // ========== API CALLS ==========
-async function callOpenAI(messages) {
+async function callOpenRouter(messages) {
     const res = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -247,7 +255,7 @@ async function sendMessage() {
             .map(m => ({ role: m.role, content: m.content }));
         
         const response = activeModel === 'openai' 
-            ? await callOpenAI(messages)
+            ? await callOpenRouter(messages)
             : await callGemini(messages);
         
         document.getElementById(typingId)?.remove();
@@ -255,7 +263,7 @@ async function sendMessage() {
         conv.messages.push({
             role: 'assistant',
             content: response.content || 'Maaf, tidak ada respons.',
-            model: activeModel,
+            model: activeModel === 'openai' ? 'openrouter' : 'gemini',
             isError: !response.success
         });
         
@@ -364,9 +372,13 @@ modelBtns.forEach(btn => {
         modelBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         activeModel = btn.dataset.model;
-        modelBadge.innerHTML = activeModel === 'openai' 
-            ? '<i class="fab fa-openai"></i> OpenAI'
-            : '<i class="fas fa-gem"></i> Gemini';
+        
+        // Update badge
+        if (activeModel === 'openai') {
+            modelBadge.innerHTML = '<i class="fas fa-robot"></i> OpenRouter';
+        } else {
+            modelBadge.innerHTML = '<i class="fas fa-gem"></i> Gemini';
+        }
     });
 });
 
@@ -415,7 +427,7 @@ clearAllBtn?.addEventListener('click', () => {
 });
 
 aboutBtn?.addEventListener('click', () => {
-    alert('Youz AI v1.0\n\nAsisten AI dengan dual model:\n• OpenAI GPT-3.5 Turbo\n• Google Gemini 2.0 Flash\n\nDibuat oleh Yuzz Ofc.\n\n© 2024 Yuzz Ofc');
+    alert('Youz AI v1.0\n\nAsisten AI dengan:\n• OpenRouter (Google Gemini Flash - Gratis)\n• Google Gemini 2.0 Flash\n\nDibuat oleh Yuzz Ofc.\n\n© 2024 Yuzz Ofc');
     menuDropdown.classList.remove('show');
 });
 
@@ -444,6 +456,10 @@ function init() {
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
     }
+    
+    // Set default badge
+    modelBadge.innerHTML = '<i class="fas fa-robot"></i> OpenRouter';
+    
     console.log('✅ Youz AI initialized');
 }
 
