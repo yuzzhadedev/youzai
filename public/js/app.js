@@ -567,6 +567,7 @@ async function callAPI(messages, enableSearch = false, imageData = null) {
 // ========== SEND MESSAGE (DIPERBARUI DENGAN FITUR BARU) ==========
 async function sendMessage() {
     const text = messageInput.value.trim();
+    
     // ========== TAMBAHAN: DETEKSI OTOMATIS ==========
     const searchKeywords = ['cari', 'search', 'berita', 'terbaru', 'cuaca', 'harga', 'merek', 'rekomendasi', 'news', 'weather'];
 const generateKeywords = ['generate', 'buatkan', 'gambar', 'image', 'picture', 'foto', 'ilustrasi', 'edit', 'ubah'];
@@ -580,7 +581,25 @@ if (needGenerate) action = 'generate';
 if (needSearch) action = 'search';
 
 // Kirim ke API dengan action
-const response = await callAPI(messages, action, currentDraftImage?.dataURL, text);
+const response = await callAPI(messages, action, currentDraftImage?.dataURL, text)
+    
+    // ========== TAMBAHAN: API CALL DENGAN ACTION ==========
+    async function callAPIWithAction(messages, action, imageData, prompt) {
+    const modelType = activeModel === 'gemini' ? 'gemini' : 'openai';
+    const res = await fetch('/api/youz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            messages, 
+            action, // 'chat', 'search', 'generate'
+            modelType, 
+            imageData, 
+            prompt 
+        })
+    });
+    return await res.json();
+    }
+    
     // ========== FITUR BARU: SUPPORT DRAFT IMAGE ==========
     if ((!text && !currentDraftImage) || isProcessing) return;
     
