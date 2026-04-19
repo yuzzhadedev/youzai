@@ -414,7 +414,7 @@ body {
 }
 
 .chat-header {
-    padding: 10px 16px;
+    padding: 8px 12px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -426,13 +426,13 @@ body {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .hamburger-btn {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -440,21 +440,17 @@ body {
     border: none;
     color: var(--text-secondary);
     cursor: pointer;
-    font-size: 18px;
-}
-
-.hamburger-btn:hover {
-    background: var(--bg-input);
+    font-size: 16px;
 }
 
 .chat-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .chat-info h2 {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
 }
@@ -462,18 +458,18 @@ body {
 .time-badge {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
+    gap: 3px;
+    font-size: 10px;
     color: var(--text-secondary);
     background: var(--bg-input);
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 3px 8px;
+    border-radius: 16px;
     border: 1px solid var(--border);
 }
 
 .time-badge i {
     color: var(--primary);
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .header-right {
@@ -484,15 +480,108 @@ body {
 .model-indicator {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 11px;
+    gap: 3px;
+    font-size: 10px;
     font-weight: 500;
     color: var(--primary);
     background: var(--primary-light);
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 3px 8px;
+    border-radius: 16px;
     border: 1px solid var(--bubble-user-border);
 }
+
+/* Chat Messages - Kurangi padding */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Chat Input - Kurangi padding */
+.chat-input-area {
+    padding: 8px 12px 10px;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+}
+
+.input-container {
+    background: var(--bg-input);
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 4px 6px 4px 10px;
+}
+
+.attach-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#messageInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 8px 4px;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    max-height: 80px;
+    color: var(--text-primary);
+}
+
+#messageInput::placeholder {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.send-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Message - Kurangi margin */
+.message {
+    display: flex;
+    gap: 6px;
+    max-width: 90%;
+}
+
+.message-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.message-content {
+    padding: 8px 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.4;
+    }
 
 /* Chat Messages */
 .chat-messages {
