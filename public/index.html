@@ -22,7 +22,7 @@
                 </button>
             </div>
             
-            <!-- User Section (Login/Logout) -->
+            <!-- User Section -->
             <div class="user-section" id="userSection">
                 <div id="loginBtn" class="login-btn">
                     <i class="fab fa-google"></i> Login dengan Google
@@ -44,26 +44,24 @@
             </button>
             
             <div class="history-label">Riwayat Percakapan</div>
-            <ul class="conversation-list" id="conversationList">
-                <!-- Dynamic content -->
-            </ul>
+            <ul class="conversation-list" id="conversationList"></ul>
             
-            <!-- Model Selector (di sidebar bawah) -->
+            <!-- Model Selector -->
             <div class="model-selector-sidebar">
                 <div class="model-selector-label">Pilih Model AI</div>
                 <div class="model-options">
                     <button class="model-option-btn active" data-model="gpt4o">
                         <i class="fas fa-robot"></i>
                         <div class="model-info">
-                            <span class="model-name">GPT-4o</span>
-                            <span class="model-desc">OpenAI · Paling Cerdas</span>
+                            <span class="model-name">ChatGPT</span>
+                            <span class="model-desc">OpenAI · GPT-4o Mini</span>
                         </div>
                     </button>
                     <button class="model-option-btn" data-model="gemini">
                         <i class="fas fa-gem"></i>
                         <div class="model-info">
-                            <span class="model-name">Gemini Flash</span>
-                            <span class="model-desc">Google · Cepat & Gratis</span>
+                            <span class="model-name">Gemini 2.5 Flash</span>
+                            <span class="model-desc">Google · Reasoning Canggih</span>
                         </div>
                     </button>
                     <button class="model-option-btn" data-model="search">
@@ -77,7 +75,7 @@
             </div>
             
             <div class="sidebar-footer">
-                <div>v2.0 · Yuzz Ofc</div>
+                <div>v2.5 · Yuzz Ofc</div>
             </div>
         </aside>
         
@@ -108,7 +106,7 @@
                 </div>
                 <div class="header-right">
                     <span class="model-indicator" id="modelIndicator">
-                        <i class="fas fa-robot"></i> GPT-4o
+                        <i class="fas fa-robot"></i> ChatGPT
                     </span>
                 </div>
             </header>
@@ -133,18 +131,33 @@
                         <button class="suggestion-btn" data-prompt="🤖 Apa itu kecerdasan buatan?">
                             <i class="fas fa-brain"></i> Apa itu AI?
                         </button>
+                        <button class="suggestion-btn" data-prompt="🎨 Generate gambar pemandangan">
+                            <i class="fas fa-paint-brush"></i> Generate gambar
+                        </button>
                         <button class="suggestion-btn" data-prompt="✍️ Buatkan puisi tentang teknologi">
                             <i class="fas fa-pen"></i> Buat puisi
-                        </button>
-                        <button class="suggestion-btn" data-prompt="💡 Tips produktif untuk programmer">
-                            <i class="fas fa-lightbulb"></i> Tips produktif
                         </button>
                     </div>
                 </div>
             </div>
             
+            <!-- Image Draft Preview -->
+            <div class="image-draft-container hidden" id="imageDraftContainer">
+                <div class="image-draft" id="imageDraft">
+                    <div class="image-draft-preview">
+                        <img id="draftImage" src="" alt="Draft">
+                    </div>
+                    <div class="image-draft-info">
+                        <div class="image-draft-name" id="draftFileName"></div>
+                        <div class="image-draft-size" id="draftFileSize"></div>
+                    </div>
+                    <button class="image-draft-remove" id="removeDraftBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
             <div class="chat-input-area">
-                <!-- Search Bar Style Input -->
                 <div class="search-input-container">
                     <div class="input-container">
                         <button class="attach-btn" id="attachBtn" title="Upload Gambar">
@@ -152,7 +165,7 @@
                         </button>
                         <textarea 
                             id="messageInput" 
-                            placeholder="Ketik pesan atau cari apa saja..." 
+                            placeholder="Ketik pesan atau prompt gambar..." 
                             rows="1"
                             autofocus
                         ></textarea>
@@ -161,7 +174,7 @@
                         </button>
                     </div>
                     
-                    <!-- Search Suggestions Dropdown -->
+                    <!-- Search Suggestions -->
                     <div class="search-suggestions hidden" id="searchSuggestions">
                         <div class="suggestions-header">
                             <i class="fas fa-search"></i> Pencarian
@@ -178,9 +191,9 @@
                             <i class="fas fa-robot"></i>
                             <span>Apa itu artificial intelligence?</span>
                         </div>
-                        <div class="suggestion-item" data-query="Cara membuat website dengan AI">
-                            <i class="fas fa-code"></i>
-                            <span>Cara membuat website dengan AI</span>
+                        <div class="suggestion-item" data-query="Generate gambar pemandangan sunset">
+                            <i class="fas fa-paint-brush"></i>
+                            <span>Generate gambar pemandangan sunset</span>
                         </div>
                     </div>
                 </div>
@@ -191,4 +204,4 @@
     
     <script src="/js/app.js"></script>
 </body>
-</html>
+    </html>
