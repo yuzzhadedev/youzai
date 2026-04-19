@@ -1003,6 +1003,27 @@ body {
     cursor: not-allowed;
 }
 
+/* TAMBAHAN: Feature Hint */
+.feature-hint {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.hint-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hint-item i {
+    color: var(--primary);
+    font-size: 10px;
+}
+
 /* Search Suggestions */
 .search-suggestions {
     position: absolute;
