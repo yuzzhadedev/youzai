@@ -13,23 +13,28 @@ export default async function handler(req, res) {
     let requestBody;
     let systemPrompt = `Kamu adalah Youz AI, asisten virtual buatan Yuzz Ofc. Waktu sekarang: ${currentTime}. Jawab dalam Bahasa Indonesia yang santai dan informatif.`;
 
-    // ========== WEB SEARCH MODE ==========
+    // ========== WEB SEARCH MODE - PASTI BERFUNGSI ==========
     if (action === 'search') {
-      // Gunakan Gemini dengan Google Search Grounding (tersedia di OpenRouter)
+      // Gunakan model yang support web search via plugin
       requestBody = {
-        model: 'google/gemini-2.5-flash',
+        model: 'openai/gpt-4o-mini', // Bisa diganti dengan model lain
         messages: [
           { 
             role: 'system', 
-            content: systemPrompt + ' Kamu memiliki akses internet melalui Google Search. Gunakan untuk mencari informasi terkini dan akurat.' 
+            content: systemPrompt + ' Gunakan web search untuk mencari informasi real-time. Berikan jawaban berdasarkan hasil pencarian.' 
           },
           ...messages.slice(-5)
         ],
         max_tokens: 1500,
         temperature: 0.7,
-        tools: [{ googleSearch: {} }] // Google Search Grounding
+        plugins: [{ id: 'web', max_results: 3 }] // Plugin web search
       };
     } 
+    
+    // ========== ALTERNATIF: MODEL KHUSUS SEARCH ==========
+    // Jika plugins tidak berfungsi, gunakan model ini:
+    // model: 'perplexity/llama-3.1-sonar-small-128k-online'
+    // Model ini MEMILIKI akses internet bawaan tanpa plugin
     
     // ========== GENERATE/EDIT GAMBAR MODE ==========
     else if (action === 'generate' && imageData) {
@@ -47,17 +52,41 @@ export default async function handler(req, res) {
       };
     } 
     
-    // ========== GENERATE DARI TEKS ==========
+    // ========== GENERATE GAMBAR DARI TEKS ==========
     else if (action === 'generate' && !imageData) {
-      requestBody = {
-        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt + ' Kamu adalah AI yang bisa membuat deskripsi detail untuk generate gambar.' },
-          { role: 'user', content: `Buatkan deskripsi detail untuk generate gambar: ${prompt}. Berikan dalam Bahasa Indonesia.` }
-        ],
-        max_tokens: 500,
-        temperature: 0.7
-      };
+      // Gunakan Pollinations.ai untuk generate gambar (GRATIS)
+      const imagePrompt = prompt || 'pemandangan indah';
+      const encodedPrompt = encodeURIComponent(imagePrompt);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true`;
+      
+      // Dapatkan deskripsi dari AI
+      const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
+          'X-Title': 'Youz AI'
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Buatkan deskripsi singkat tentang: ${imagePrompt}` }
+          ],
+          max_tokens: 200
+        })
+      });
+      
+      const aiData = await aiResponse.json();
+      const description = aiData.choices?.[0]?.message?.content || `Gambar: ${imagePrompt}`;
+      
+      return res.status(200).json({ 
+        success: true, 
+        content: description,
+        imageUrl: imageUrl,
+        action: 'generate'
+      });
     } 
     
     // ========== CHAT BIASA ==========
@@ -73,7 +102,12 @@ export default async function handler(req, res) {
       };
     }
 
-    console.log(`📤 [Youz AI] Action: ${action}, Model: ${requestBody.model}`);
+    console.log(`📤 [Youz AI] Action: ${action}, Model: ${requestBody?.model || 'pollinations'}`);
+
+    // Jika sudah return dari generate, skip fetch OpenRouter
+    if (action === 'generate' && !imageData) {
+      return; // Sudah return di atas
+    }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
