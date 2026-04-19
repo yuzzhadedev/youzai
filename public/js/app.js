@@ -5,6 +5,8 @@ let activeModel = 'gpt4o'; // 'gpt4o', 'gemini', 'search'
 let isProcessing = false;
 let currentUser = null;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
+let webSearchEnabled = true;
+let generateImageEnabled = true;
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
 
@@ -565,6 +567,20 @@ async function callAPI(messages, enableSearch = false, imageData = null) {
 // ========== SEND MESSAGE (DIPERBARUI DENGAN FITUR BARU) ==========
 async function sendMessage() {
     const text = messageInput.value.trim();
+    // ========== TAMBAHAN: DETEKSI OTOMATIS ==========
+    const searchKeywords = ['cari', 'search', 'berita', 'terbaru', 'cuaca', 'harga', 'merek', 'rekomendasi', 'news', 'weather'];
+const generateKeywords = ['generate', 'buatkan', 'gambar', 'image', 'picture', 'foto', 'ilustrasi', 'edit', 'ubah'];
+
+const needSearch = searchKeywords.some(k => text.toLowerCase().includes(k));
+const needGenerate = generateKeywords.some(k => text.toLowerCase().includes(k)) || currentDraftImage;
+
+// Tentukan action
+let action = 'chat';
+if (needGenerate) action = 'generate';
+if (needSearch) action = 'search';
+
+// Kirim ke API dengan action
+const response = await callAPI(messages, action, currentDraftImage?.dataURL, text);
     // ========== FITUR BARU: SUPPORT DRAFT IMAGE ==========
     if ((!text && !currentDraftImage) || isProcessing) return;
     
