@@ -66,6 +66,7 @@ const profileEmail = document.getElementById('profileEmail');
 const saveProfileBtn = document.getElementById('saveProfileBtn');
 const clearAllDataBtn = document.getElementById('clearAllDataBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
+const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
 
 // Language state
 let currentLanguage = localStorage.getItem('youz_language') || 'id';
@@ -452,12 +453,26 @@ function updateModelIndicator() {
 }
 
 modelOptionBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        modelOptionBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeModel = btn.dataset.model;
-        updateModelIndicator();
+    btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
+});
+
+function setActiveModel(model, persist = true) {
+    const normalizedModel = ['gpt4o', 'gemini', 'search'].includes(model) ? model : 'gpt4o';
+    activeModel = normalizedModel;
+    modelOptionBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.model === activeModel);
     });
+    settingsModelBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.model === activeModel);
+    });
+    updateModelIndicator();
+    if (persist) {
+        localStorage.setItem('youz_model', activeModel);
+    }
+}
+
+settingsModelBtns.forEach(btn => {
+    btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
 });
 
 // ========== API CALLS ==========
@@ -1055,6 +1070,7 @@ window.addEventListener('resize', () => {
 function init() {
     checkUserFromURL();
     loadFromStorage();
+    setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     activeConversationId = conversations[0]?.id;
     renderSidebar();
     if (activeConversationId) {
@@ -1068,7 +1084,6 @@ function init() {
     
     updateCurrentTime();
     setInterval(updateCurrentTime, 1000);
-    updateModelIndicator();
     
     const savedTheme = localStorage.getItem('youz_theme') || 'system';
     if (savedTheme === 'light') {
