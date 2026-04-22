@@ -1700,7 +1700,7 @@ body {
     }
     
     .sidebar {
-        padding-bottom: env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
     }
 }
 
