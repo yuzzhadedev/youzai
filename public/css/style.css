@@ -53,9 +53,10 @@ body {
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    padding: 16px 12px;
+    padding: 16px 12px 12px;
     transition: transform 0.3s;
     overflow-y: auto;
+    gap: 2px;
 }
 
 .sidebar.closed {
@@ -236,6 +237,23 @@ body {
     flex: 1;
     overflow-y: auto;
     margin-bottom: 12px;
+    padding-right: 2px;
+}
+
+.conversation-list::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.conversation-list::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:hover,
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
 }
 
 .conv-item {
@@ -323,6 +341,12 @@ body {
     border-radius: 10px;
     cursor: pointer;
     width: 100%;
+    transition: border-color 0.15s, transform 0.15s, background 0.15s;
+}
+
+.model-option-btn:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
 }
 
 .model-option-btn i {
@@ -1261,6 +1285,70 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 12px;
+}
+
+.settings-model-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.settings-model-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.15s;
+    text-align: left;
+}
+
+.settings-model-btn:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.settings-model-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.settings-model-btn i {
+    width: 24px;
+    text-align: center;
+    color: var(--primary);
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.settings-model-btn[data-model="gemini"] i {
+    color: var(--secondary);
+}
+
+.settings-model-btn[data-model="search"] i {
+    color: var(--success);
+}
+
+.settings-model-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.settings-model-name {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.settings-model-desc {
+    color: var(--text-secondary);
+    font-size: 11px;
 }
 
 .theme-options {
