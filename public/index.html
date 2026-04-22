@@ -74,8 +74,21 @@
                 </div>
             </div>
             
+            <!-- TAMBAHAN: Sidebar Links -->
+            <div class="sidebar-links">
+                <a href="#" class="sidebar-link" id="settingsBtn">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <a href="#" class="sidebar-link" id="profileBtn">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+                <a href="#" class="sidebar-link" id="logoutSidebarBtn">
+                    <i class="fas fa-sign-out-alt"></i> Log out
+                </a>
+            </div>
+            
             <div class="sidebar-footer">
-                <div>v2.5 · Yuzz Ofc</div>
+                <div>v2.8 · Yuzz Ofc</div>
             </div>
         </aside>
         
@@ -108,6 +121,10 @@
                     <span class="model-indicator" id="modelIndicator">
                         <i class="fas fa-robot"></i> ChatGPT
                     </span>
+                    <!-- TAMBAHAN: Header New Chat Button -->
+                    <button class="header-new-chat-btn" id="headerNewChatBtn" title="Percakapan Baru">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
             </header>
             
@@ -165,7 +182,7 @@
                         </button>
                         <textarea 
                             id="messageInput" 
-                            placeholder="Ketik pesan atau prompt gambar..." 
+                            placeholder="Message Youz AI..." 
                             rows="1"
                             autofocus
                         ></textarea>
@@ -198,7 +215,7 @@
                     </div>
                 </div>
                 
-                <!-- TAMBAHAN: Feature Hint -->
+                <!-- Feature Hint -->
                 <div class="feature-hint" id="featureHint">
                     <span class="hint-item"><i class="fas fa-globe"></i> Search</span>
                     <span class="hint-item"><i class="fas fa-paint-brush"></i> Generate</span>
@@ -210,6 +227,82 @@
         </main>
     </div>
     
+    <!-- TAMBAHAN: Settings Modal -->
+    <div class="settings-modal hidden" id="settingsModal">
+        <div class="settings-overlay" id="settingsOverlay"></div>
+        <div class="settings-container">
+            <div class="settings-header">
+                <h2 id="settingsTitle">Settings</h2>
+                <button class="settings-close-btn" id="settingsCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="settings-tabs">
+                <button class="settings-tab active" data-tab="general" id="tabGeneral">General</button>
+                <button class="settings-tab" data-tab="profile" id="tabProfile">Profile</button>
+                <button class="settings-tab" data-tab="data" id="tabData">Data</button>
+            </div>
+            
+            <!-- Tab Content: General -->
+            <div class="settings-content" id="generalContent">
+                <div class="settings-section">
+                    <h3 id="themeTitle">Theme</h3>
+                    <div class="theme-options">
+                        <button class="theme-btn active" data-theme="light" id="themeLight">
+                            <i class="fas fa-sun"></i> <span id="lightText">Light</span>
+                        </button>
+                        <button class="theme-btn" data-theme="dark" id="themeDark">
+                            <i class="fas fa-moon"></i> <span id="darkText">Dark</span>
+                        </button>
+                        <button class="theme-btn" data-theme="system" id="themeSystem">
+                            <i class="fas fa-desktop"></i> <span id="systemText">System</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3 id="languageTitle">Language</h3>
+                    <select class="language-select" id="languageSelect">
+                        <option value="id">Bahasa Indonesia</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Tab Content: Profile -->
+            <div class="settings-content hidden" id="profileContent">
+                <div class="settings-section">
+                    <h3 id="profileInfoTitle">Profile Information</h3>
+                    <div class="profile-form">
+                        <div class="form-group">
+                            <label id="nameLabel">Name</label>
+                            <input type="text" id="profileName" placeholder="Your name" value="">
+                        </div>
+                        <div class="form-group">
+                            <label id="emailLabel">Email</label>
+                            <input type="email" id="profileEmail" placeholder="Your email" value="" disabled>
+                        </div>
+                        <button class="save-profile-btn" id="saveProfileBtn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab Content: Data -->
+            <div class="settings-content hidden" id="dataContent">
+                <div class="settings-section">
+                    <h3 id="dataManagementTitle">Data Management</h3>
+                    <button class="danger-btn" id="clearAllDataBtn">
+                        <i class="fas fa-trash-alt"></i> Clear All Conversations
+                    </button>
+                    <button class="danger-btn" id="exportDataBtn">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="/js/app.js"></script>
 </body>
-</html>
+    </html>
