@@ -23,12 +23,12 @@ export default async function handler(req, res) {
       if (modelType === 'gemini') {
         model = 'google/gemini-2.5-flash';
         systemPrompt = `Kamu adalah Youz AI (Yuzz Ofc). Gunakan Google Gemini 2.5 Flash. Waktu: ${currentTime}. Jawab dalam Bahasa Indonesia.`;
-        if (enableSearch) requestBody.tools = [{ googleSearch: {} }];
       } else {
-        model = enableSearch ? 'perplexity/llama-3.1-sonar-small-128k-online' : 'openai/gpt-4o-mini';
+        model = enableSearch ? 'openai/gpt-4o-mini' : 'google/gemini-2.5-flash';
         systemPrompt = `Kamu adalah Youz AI (Yuzz Ofc). Waktu: ${currentTime}. Jawab dalam Bahasa Indonesia.`;
       }
       requestBody = { model, messages: [{ role: 'system', content: systemPrompt }, ...limitedMessages], max_tokens: enableSearch ? 1500 : 1000, temperature: 0.7 };
+      if (modelType === 'gemini' && enableSearch) requestBody.tools = [{ googleSearch: {} }];
       if (modelType !== 'gemini' && enableSearch) requestBody.plugins = [{ id: 'web', max_results: 5 }];
     }
 
