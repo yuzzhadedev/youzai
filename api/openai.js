@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     let requestBody;
     if (imageData) {
       requestBody = {
-        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4o-mini',
+        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4.1',
         messages: [{ role: 'user', content: [{ type: 'text', text: prompt || 'Deskripsikan atau edit gambar ini.' }, { type: 'image_url', image_url: { url: imageData } }] }],
         max_tokens: 800, temperature: 0.7
       };
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
         model = 'google/gemini-2.5-flash';
         systemPrompt = `Kamu adalah Youz AI (Yuzz Ofc). Gunakan Google Gemini 2.5 Flash. Waktu: ${currentTime}. Jawab dalam Bahasa Indonesia.`;
       } else {
-        model = enableSearch ? 'openai/gpt-4o-mini' : 'google/gemini-2.5-flash';
+        model = enableSearch ? 'openai/gpt-4.1' : 'google/gemini-2.5-flash';
         systemPrompt = `Kamu adalah Youz AI (Yuzz Ofc). Waktu: ${currentTime}. Jawab dalam Bahasa Indonesia.`;
       }
       requestBody = { model, messages: [{ role: 'system', content: systemPrompt }, ...limitedMessages], max_tokens: enableSearch ? 1500 : 1000, temperature: 0.7 };
