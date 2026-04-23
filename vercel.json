@@ -7,6 +7,8 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/", "destination": "/public/index.html" },
+    { "source": "/login", "destination": "/public/login.html" },
+    { "source": "/registrasi", "destination": "/public/login.html" },
     { "source": "/(.*)", "destination": "/public/$1" }
   ],
   "headers": [
