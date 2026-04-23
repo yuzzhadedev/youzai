@@ -36,13 +36,17 @@ export default async function handler(req, res) {
     
     const userData = await userRes.json();
     
-    // Set cookie with user info (httpOnly for security)
+    // Set cookie with user info
     const userInfo = {
       id: userData.id,
       email: userData.email,
       name: userData.name,
       picture: userData.picture
     };
+
+    const encodedCookieUser = encodeURIComponent(JSON.stringify(userInfo));
+    const secureFlag = process.env.VERCEL_URL ? ' Secure;' : '';
+    res.setHeader('Set-Cookie', `youz_user=${encodedCookieUser}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax;${secureFlag}`);
     
     // Redirect to frontend with user data
     const encodedUser = encodeURIComponent(JSON.stringify(userInfo));
