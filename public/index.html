@@ -64,13 +64,6 @@
                             <span class="model-desc">Google · Reasoning Canggih</span>
                         </div>
                     </button>
-                    <button class="model-option-btn" data-model="search">
-                        <i class="fas fa-globe"></i>
-                        <div class="model-info">
-                            <span class="model-name">Web Search</span>
-                            <span class="model-desc">AI + Pencarian Internet</span>
-                        </div>
-                    </button>
                 </div>
             </div>
             
@@ -79,12 +72,22 @@
                 <a href="#" class="sidebar-link" id="settingsBtn">
                     <i class="fas fa-cog"></i> Settings
                 </a>
-                <a href="#" class="sidebar-link" id="profileBtn">
+                <a href="#" class="sidebar-link requires-auth" id="profileBtn">
                     <i class="fas fa-user"></i> Profile
                 </a>
-                <a href="#" class="sidebar-link" id="logoutSidebarBtn">
+                <a href="#" class="sidebar-link requires-auth danger" id="logoutSidebarBtn">
                     <i class="fas fa-sign-out-alt"></i> Log out
                 </a>
+            </div>
+
+            <div class="sidebar-auth-links" id="sidebarAuthLinks">
+                <a href="/login" class="sidebar-auth-link">
+                    <i class="fas fa-right-to-bracket"></i> Login
+                </a>
+                <a href="/registrasi" class="sidebar-auth-link">
+                    <i class="fas fa-user-plus"></i> Registrasi
+                </a>
+                <div class="sidebar-auth-note">Bisa pakai Email, Password, atau Google</div>
             </div>
             
             <div class="sidebar-footer">
@@ -264,15 +267,28 @@
                                 <span class="settings-model-desc">Google · Reasoning Canggih</span>
                             </div>
                         </button>
-                        <button class="settings-model-btn" data-model="search">
-                            <i class="fas fa-globe"></i>
-                            <div class="settings-model-info">
-                                <span class="settings-model-name">Web Search</span>
-                                <span class="settings-model-desc">AI + Pencarian Internet</span>
-                            </div>
-                        </button>
                     </div>
                 </div>
+                <div class="settings-section">
+                    <h3>Fitur Sistem</h3>
+                    <div class="feature-settings">
+                        <label class="feature-toggle">
+                            <div class="feature-toggle-info">
+                                <span>Web Search</span>
+                                <small>Aktifkan pencarian internet otomatis saat pertanyaan butuh data terbaru.</small>
+                            </div>
+                            <input type="checkbox" id="webSearchToggle" checked>
+                        </label>
+                        <label class="feature-toggle">
+                            <div class="feature-toggle-info">
+                                <span>Generate Image</span>
+                                <small>Izinkan AI membuat gambar dari prompt teks.</small>
+                            </div>
+                            <input type="checkbox" id="generateImageToggle" checked>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
                     <h3 id="themeTitle">Theme</h3>
                     <div class="theme-options">
                         <button class="theme-btn active" data-theme="light" id="themeLight">
