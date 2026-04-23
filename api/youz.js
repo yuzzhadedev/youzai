@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     if (action === 'search') {
       // Gunakan model yang support web search via plugin
       requestBody = {
-        model: 'openai/gpt-4o-mini', // Bisa diganti dengan model lain
+        model: 'openai/gpt-4.1', // Bisa diganti dengan model lain
         messages: [
           { 
             role: 'system', 
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     // ========== GENERATE/EDIT GAMBAR MODE ==========
     else if (action === 'generate' && imageData) {
       requestBody = {
-        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4o-mini',
+        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4.1',
         messages: [{
           role: 'user',
           content: [
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     // ========== CHAT BIASA ==========
     else {
       requestBody = {
-        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4o-mini',
+        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4.1',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages.slice(-10)
