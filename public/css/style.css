@@ -360,10 +360,6 @@ body {
     color: var(--secondary);
 }
 
-.model-option-btn[data-model="search"] i {
-    color: var(--success);
-}
-
 .model-option-btn.active {
     border-color: var(--primary);
     background: var(--primary-light);
@@ -421,12 +417,45 @@ body {
 
 /* Sidebar Footer */
 .sidebar-footer {
-    margin-top: auto;
+    margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
     text-align: center;
     font-size: 11px;
     color: var(--text-muted);
+}
+
+.sidebar-auth-links {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-auth-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 11px;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-decoration: none;
+    background: var(--bg-input);
+}
+
+.sidebar-auth-link:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.sidebar-auth-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 0 2px;
 }
 
 /* ===== MENU DROPDOWN ===== */
@@ -1329,10 +1358,6 @@ body {
     color: var(--secondary);
 }
 
-.settings-model-btn[data-model="search"] i {
-    color: var(--success);
-}
-
 .settings-model-info {
     display: flex;
     flex-direction: column;
@@ -1349,6 +1374,47 @@ body {
 .settings-model-desc {
     color: var(--text-secondary);
     font-size: 11px;
+}
+
+.feature-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.feature-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-input);
+    padding: 12px;
+}
+
+.feature-toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.feature-toggle-info span {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.feature-toggle-info small {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.feature-toggle input[type="checkbox"] {
+    width: 40px;
+    height: 22px;
+    accent-color: var(--primary);
+    cursor: pointer;
 }
 
 .theme-options {
