@@ -24,18 +24,27 @@
             
             <!-- User Section -->
             <div class="user-section" id="userSection">
-                <div id="loginBtn" class="login-btn">
-                    <i class="fab fa-google"></i> Login dengan Google
-                </div>
                 <div id="userProfile" class="user-profile hidden">
                     <img id="userAvatar" src="" alt="Avatar" class="user-avatar-img">
                     <div class="user-info">
                         <span id="userName"></span>
                         <span id="userEmail"></span>
                     </div>
-                    <button id="logoutBtn" class="logout-btn" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button id="userMenuBtn" class="user-menu-btn" title="Menu Akun">
+                        <i class="fas fa-ellipsis-h"></i>
                     </button>
+                    </button>
+                    <div class="user-menu-dropdown hidden" id="userMenuDropdown">
+                        <button class="user-menu-item" id="userSettingsBtn">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                        <button class="user-menu-item" id="userProfileBtn">
+                            <i class="fas fa-user"></i> Profile
+                        </button>
+                        <button class="user-menu-item danger" id="userLogoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Log out
+                        </button>
+                    </div>
                 </div>
             </div>
             
