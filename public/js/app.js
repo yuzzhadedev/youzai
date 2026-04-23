@@ -1,7 +1,7 @@
 // ========== STATE ==========
 let conversations = [];
 let activeConversationId = null;
-let activeModel = 'gpt4o'; // 'gpt4o', 'gemini', 'search'
+let activeModel = 'gpt4o'; // 'gpt4o', 'gemini'
 let isProcessing = false;
 let currentUser = null;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
@@ -67,6 +67,10 @@ const saveProfileBtn = document.getElementById('saveProfileBtn');
 const clearAllDataBtn = document.getElementById('clearAllDataBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
 const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
+const webSearchToggle = document.getElementById('webSearchToggle');
+const generateImageToggle = document.getElementById('generateImageToggle');
+const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
+const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
 // Language state
 let currentLanguage = localStorage.getItem('youz_language') || 'id';
@@ -139,12 +143,16 @@ function updateUserUI() {
     if (currentUser) {
         loginBtn.classList.add('hidden');
         userProfile.classList.remove('hidden');
+        sidebarAuthLinks?.classList.add('hidden');
+        sidebarAuthRequiredLinks.forEach(link => link.classList.remove('hidden'));
         userAvatar.src = currentUser.picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'User') + '&background=3b82f6&color=fff';
         userName.textContent = currentUser.name || 'User';
         userEmail.textContent = currentUser.email || '';
     } else {
         loginBtn.classList.remove('hidden');
         userProfile.classList.add('hidden');
+        sidebarAuthLinks?.classList.remove('hidden');
+        sidebarAuthRequiredLinks.forEach(link => link.classList.add('hidden'));
     }
 }
 
@@ -267,7 +275,9 @@ function createMessageElement(msg, index) {
     if (msg.image) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
-    
+    if (msg.generatedImage) {
+        content += `<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div>`;
+    }
     let feedbackIndicator = '';
     if (msg.feedback === 'like') {
         feedbackIndicator = '<span class="feedback-indicator"><i class="fas fa-thumbs-up"></i> Disukai</span>';
@@ -444,8 +454,7 @@ function updateModelIndicator() {
         'openrouter': '<i class="fas fa-robot"></i> <span>OpenRouter</span>',
         'gpt4o': '<i class="fas fa-robot"></i> <span>ChatGPT</span>',
         'openai': '<i class="fab fa-openai"></i> <span>OpenAI</span>',
-        'gemini': '<i class="fas fa-gem"></i> <span>Gemini</span>',
-        'search': '<i class="fas fa-globe"></i> <span>Web Search</span>'
+        'gemini': '<i class="fas fa-gem"></i> <span>Gemini</span>'
     };
     if (modelIndicator) {
         modelIndicator.innerHTML = indicators[activeModel] || indicators['gpt4o'];
@@ -457,12 +466,13 @@ modelOptionBtns.forEach(btn => {
 });
 
 function setActiveModel(model, persist = true) {
-    const normalizedModel = ['gpt4o', 'gemini', 'search'].includes(model) ? model : 'gpt4o';
+    const normalizedModel = ['gpt4o', 'gemini'].includes(model) ? model : 'gpt4o';
     activeModel = normalizedModel;
     modelOptionBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
-    });
-    settingsModelBtns.forEach(btn => {
+});
+
+settingsModelBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
     });
     updateModelIndicator();
@@ -476,11 +486,11 @@ settingsModelBtns.forEach(btn => {
 });
 
 // ========== API CALLS ==========
-async function callOpenRouter(messages, enableSearch = false) {
+async function callOpenRouter(messages, enableSearch = false, modelType = 'openai') {
     const res = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, enableSearch })
+        body: JSON.stringify({ messages, enableSearch, modelType })
     });
     return await res.json();
 }
@@ -526,6 +536,22 @@ async function callAPIWithAction(messages, action, imageData, prompt) {
         })
     });
     return await res.json();
+}
+
+function shouldGenerateImageFromPrompt(text) {
+    const lowered = (text || '').toLowerCase();
+    const imageKeywords = ['generate gambar', 'buat gambar', 'bikin gambar', 'gambar ', 'image ', 'create image', 'buatkan ilustrasi', 'ilustrasi'];
+    return imageKeywords.some(keyword => lowered.includes(keyword));
+}
+
+function shouldUseWebSearchFromPrompt(text) {
+    const lowered = (text || '').toLowerCase();
+    const searchKeywords = [
+        'cari', 'search', 'berita', 'terbaru', 'update', 'hari ini',
+        'cuaca', 'harga', 'merek', 'rekomendasi', 'news', 'weather',
+        'trend', 'tren', 'rilis', 'release', 'review'
+    ];
+    return searchKeywords.some(keyword => lowered.includes(keyword));
 }
 
 // ========== IMAGE DRAFT ==========
@@ -648,19 +674,20 @@ async function sendMessage() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
     try {
-        const messages = conv.messages
-            .filter(m => !m.image)
-            .map(m => ({ role: m.role, content: m.content }));
-        
-        const searchKeywords = ['cari', 'search', 'berita', 'terbaru', 'cuaca', 'harga', 'merek', 'rekomendasi', 'news', 'weather'];
-        const needSearch = searchKeywords.some(k => text.toLowerCase().includes(k));
-        const enableSearch = (activeModel === 'search') || needSearch;
+        const messages = conv.messages.map(m => ({ role: m.role, content: m.content }));
+        const needSearch = shouldUseWebSearchFromPrompt(text);
+        const enableSearch = webSearchEnabled && needSearch;
+        const generateImageRequest = generateImageEnabled && (!userMessage.image && shouldGenerateImageFromPrompt(text));
         
         let response;
-        if (activeModel === 'gemini') {
+        if (userMessage.image) {
+            response = await callAPIWithAction(messages, 'generate', userMessage.image, text || 'Deskripsikan atau edit gambar ini.');
+        } else if (generateImageRequest) {
+            response = await callAPIWithAction(messages, 'generate', null, text);
+        } else if (activeModel === 'gemini' && !enableSearch) {
             response = await callGeminiAPI(messages);
         } else {
-            response = await callOpenRouter(messages, enableSearch);
+            response = await callOpenRouter(messages, enableSearch, activeModel === 'gemini' ? 'gemini' : 'openai');
         }
         
         document.getElementById(loadingId)?.remove();
@@ -669,10 +696,13 @@ async function sendMessage() {
             id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
             role: 'assistant',
             content: '',
-            model: enableSearch ? 'web-search' : (userMessage.image ? 'vision' : (activeModel === 'gemini' ? 'gemini' : 'chatgpt')),
+            model: (generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : (activeModel === 'gemini' ? 'gemini' : 'chatgpt')),
             isError: !response.success,
             feedback: null
         };
+        if (response.imageUrl) {
+            aiMessage.generatedImage = response.imageUrl;
+        }
         
         conv.messages.push(aiMessage);
         conv.updatedAt = new Date().toISOString();
@@ -917,7 +947,7 @@ clearAllBtn?.addEventListener('click', () => {
 });
 
 aboutBtn?.addEventListener('click', () => {
-    alert('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.5 Flash\n• Web Search Mode\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
+     alert('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.5 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
     menuDropdown.classList.remove('show');
 });
 
@@ -998,6 +1028,16 @@ languageSelect?.addEventListener('change', (e) => {
     applyLanguage(e.target.value);
 });
 
+webSearchToggle?.addEventListener('change', (e) => {
+    webSearchEnabled = e.target.checked;
+    localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
+});
+
+generateImageToggle?.addEventListener('change', (e) => {
+    generateImageEnabled = e.target.checked;
+    localStorage.setItem('youz_image_generate_enabled', generateImageEnabled ? '1' : '0');
+});
+
 saveProfileBtn?.addEventListener('click', () => {
     if (currentUser) {
         currentUser.name = profileName.value;
@@ -1070,6 +1110,11 @@ window.addEventListener('resize', () => {
 function init() {
     checkUserFromURL();
     loadFromStorage();
+    webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
+    generateImageEnabled = localStorage.getItem('youz_image_generate_enabled') !== '0';
+    setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
+    if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
+    if (generateImageToggle) generateImageToggle.checked = generateImageEnabled;
     setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     activeConversationId = conversations[0]?.id;
     renderSidebar();
