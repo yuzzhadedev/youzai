@@ -71,10 +71,6 @@ const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
 const webSearchToggle = document.getElementById('webSearchToggle');
 const generateImageToggle = document.getElementById('generateImageToggle');
 const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
-const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
-const webSearchToggle = document.getElementById('webSearchToggle');
-const generateImageToggle = document.getElementById('generateImageToggle');
-const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
 const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
 // Language state
