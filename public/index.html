@@ -22,10 +22,6 @@
             </div>
 
             <div class="user-section" id="userSection">
-                <a id="loginBtn" class="login-btn" href="/api/auth/login">
-                    <i class="fab fa-google"></i> Login dengan Google
-                </a>
-
                 <div id="userProfile" class="user-profile hidden">
                     <img id="userAvatar" src="" alt="Avatar" class="user-avatar-img">
                     <div class="user-info">
@@ -56,31 +52,11 @@
             <div class="history-label">Riwayat Percakapan</div>
             <ul class="conversation-list" id="conversationList"></ul>
 
-            <div class="model-selector-sidebar">
-                <div class="model-selector-label">Pilih Model AI</div>
-                <div class="model-options">
-                    <button class="model-option-btn active" data-model="gpt4o" type="button">
-                        <i class="fas fa-robot"></i>
-                        <div class="model-info">
-                            <span class="model-name">ChatGPT</span>
-                            <span class="model-desc">OpenAI · GPT-4o Mini</span>
-                        </div>
-                    </button>
-                    <button class="model-option-btn" data-model="gemini" type="button">
-                        <i class="fas fa-gem"></i>
-                        <div class="model-info">
-                            <span class="model-name">Gemini 2.5 Flash</span>
-                            <span class="model-desc">Google · Reasoning Canggih</span>
-                        </div>
-                    </button>
-                    <button class="model-option-btn" data-model="search" type="button">
-                        <i class="fas fa-globe"></i>
-                        <div class="model-info">
-                            <span class="model-name">Web Search</span>
-                            <span class="model-desc">AI + Pencarian Internet</span>
-                        </div>
-                    </button>
-                </div>
+                <div id="sidebarAuthLinks" class="sidebar-auth-links">
+                <a href="/login" class="sidebar-auth-link cta">
+                    <i class="fas fa-right-to-bracket"></i> Masuk / Daftar
+                </a>
+                <div class="sidebar-auth-note">Login untuk sinkronisasi profil & riwayat.</div>
             </div>
 
             <div id="sidebarAuthLinks" class="sidebar-auth-links">
@@ -186,7 +162,7 @@
                         <button class="attach-btn" id="attachBtn" type="button" title="Upload Gambar" aria-label="Upload gambar">
                             <i class="fas fa-image"></i>
                         </button>
-                        <textarea id="messageInput" placeholder="Ketik pesan atau prompt gambar..." rows="1" autofocus></textarea>
+                        <textarea id="messageInput" placeholder="Message YouzAi..." rows="1" autofocus></textarea>
                         <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
                             <i class="fas fa-arrow-up"></i>
                         </button>
