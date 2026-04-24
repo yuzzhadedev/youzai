@@ -566,15 +566,6 @@ async function callGeminiAPI(messages) {
     return await res.json();
 }
 
-async function callGeminiVision(imageData) {
-    const res = await fetch('/api/vision', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageData, prompt: 'Deskripsikan gambar ini dalam Bahasa Indonesia.' })
-    });
-    return await res.json();
-}
-
 async function callAPIWithAction(messages, action, imageData, prompt) {
     const modelType = activeModel === 'gemini' ? 'gemini' : 'openai';
     const res = await fetch('/api/youz', {
@@ -593,7 +584,7 @@ async function callAPIWithAction(messages, action, imageData, prompt) {
 
 function shouldGenerateImageFromPrompt(text) {
     const lowered = (text || '').toLowerCase();
-    const imageKeywords = ['generate gambar', 'buat gambar', 'bikin gambar', 'gambar ', 'image ', 'create image', 'buatkan ilustrasi', 'ilustrasi'];
+    const imageKeywords = ['generate gambar', 'buat gambar', 'bikin gambar', 'gambar ', 'image ', 'create image', 'buatkan ilustrasi', 'ilustrasi','buatkan gambar';
     return imageKeywords.some(keyword => lowered.includes(keyword));
 }
 
@@ -658,16 +649,6 @@ async function typeWriterEffect(el, text, speed = 20) {
         }
         type();
     });
-}
-
-async function callAPI(messages, enableSearch = false, imageData = null) {
-    const modelType = activeModel === 'gemini' ? 'gemini' : 'openai';
-    const res = await fetch('/api/openai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, enableSearch, modelType, imageData, prompt: imageData ? 'Deskripsikan atau edit gambar ini.' : null })
-    });
-    return await res.json();
 }
 
 // ========== SEND MESSAGE ==========
@@ -942,9 +923,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-loginBtn?.addEventListener('click', login);
-logoutBtn?.addEventListener('click', logout);
-
 newChatBtn?.addEventListener('click', () => {
     createNewConversation();
     switchConversation(activeConversationId);
@@ -1005,18 +983,6 @@ aboutBtn?.addEventListener('click', () => {
 });
 
 // ========== SETTINGS MODAL EVENTS ==========
-settingsBtn?.addEventListener('click', (e) => {
-    e.preventDefault();
-    settingsModal.classList.remove('hidden');
-    sidebar.classList.add('closed');
-    
-    if (currentUser) {
-        profileName.value = currentUser.name || '';
-        profileEmail.value = currentUser.email || '';
-    }
-    
-    languageSelect.value = currentLanguage;
-});
 
 settingsCloseBtn?.addEventListener('click', () => {
     settingsModal.classList.add('hidden');
@@ -1129,23 +1095,58 @@ exportDataBtn?.addEventListener('click', () => {
     URL.revokeObjectURL(url);
 });
 
-profileBtn?.addEventListener('click', (e) => {
+userProfileBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     if (currentUser) {
-        settingsModal.classList.remove('hidden');
-        sidebar.classList.add('closed');
-        tabProfile.click();
+        openSettings('profile');
+        toggleUserMenu(false);
     } else {
         alert(currentLanguage === 'id' ? 'Silakan login terlebih dahulu.' : 'Please login first.');
     }
 });
 
-logoutSidebarBtn?.addEventListener('click', (e) => {
+userLogoutBtn?.addEventListener('click', (e) => {
     e.preventDefault();
+    toggleUserMenu(false);
     logout();
 });
 
+userSettingsBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openSettings('general');
+    toggleUserMenu(false);
+});
+
+userMenuBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleUserMenu();
+});
+
+scrollBottomBtn?.addEventListener('click', () => {
+    chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+});
+
+chatMessages?.addEventListener('touchstart', () => {
+    isTouchingChat = true;
+    updateScrollBottomVisibility();
+});
+
+chatMessages?.addEventListener('touchend', () => {
+    isTouchingChat = false;
+    clearTimeout(scrollPauseTimer);
+    scrollPauseTimer = setTimeout(updateScrollBottomVisibility, 180);
+});
+
+chatMessages?.addEventListener('scroll', () => {
+    clearTimeout(scrollPauseTimer);
+    scrollPauseTimer = setTimeout(updateScrollBottomVisibility, isTouchingChat ? 220 : 120);
+});
+
 document.addEventListener('click', (e) => {
+    if (userMenuDropdown && !userMenuDropdown.contains(e.target) && e.target !== userMenuBtn) {
+        toggleUserMenu(false);
+    }
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && !sidebar.classList.contains('closed')) {
             sidebar.classList.add('closed');
@@ -1160,8 +1161,9 @@ window.addEventListener('resize', () => {
 });
 
 // ========== INIT ==========
-function init() {
+async function init() {
     checkUserFromURL();
+    await syncUserFromServer();
     loadFromStorage();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     generateImageEnabled = localStorage.getItem('youz_image_generate_enabled') !== '0';
@@ -1176,6 +1178,7 @@ function init() {
     } else {
         renderMessages([]);
     }
+    updateScrollBottomVisibility();
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
     }
