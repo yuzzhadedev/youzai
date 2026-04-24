@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login · Youz AI</title>
+  <style>
+    body { margin: 0; font-family: Inter, Arial, sans-serif; background: #0f172a; color: #e2e8f0; }
+    .wrap { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+    .card { width: 100%; max-width: 420px; background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 18px; }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    p { margin: 0 0 16px; color: #94a3b8; font-size: 14px; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .tab { border: 1px solid #334155; border-radius: 10px; background: #0b1220; color: #cbd5e1; padding: 10px; cursor: pointer; }
+    .tab.active { border-color: #3b82f6; color: #fff; background: #1e293b; }
+    .form { display: none; gap: 10px; }
+    .form.active { display: grid; }
+    input { border: 1px solid #334155; border-radius: 10px; padding: 11px 12px; background: #0b1220; color: #fff; }
+    button, .google { border: none; border-radius: 10px; padding: 11px 12px; cursor: pointer; font-weight: 600; }
+    .primary { background: #2563eb; color: #fff; }
+    .google { display: block; text-align: center; text-decoration: none; background: #fff; color: #111827; }
+    .muted { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 10px; }
+    .home { color: #93c5fd; text-decoration: none; font-size: 13px; display: inline-block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Login / Registrasi</h1>
+      <p>Masuk dengan Email + Password, atau Google.</p>
+      <div class="tabs">
+        <button class="tab active" id="tabLogin">Login</button>
+        <button class="tab" id="tabRegister">Registrasi</button>
+      </div>
+
+      <form class="form active" id="loginForm">
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <button class="primary" type="submit">Login</button>
+      </form>
+
+      <form class="form" id="registerForm">
+        <input type="text" placeholder="Nama" required>
+        <input type="email" placeholder="Email" required>
+        <input type="password" placeholder="Password" required>
+        <button class="primary" type="submit">Registrasi</button>
+      </form>
+
+      <p class="muted">atau</p>
+      <a class="google" href="/api/auth/login">Lanjutkan dengan Google</a>
+      <a class="home" href="/">← Kembali ke chat</a>
+    </div>
+  </div>
+  <script>
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    function switchTab(isLogin) {
+      tabLogin.classList.toggle('active', isLogin);
+      tabRegister.classList.toggle('active', !isLogin);
+      loginForm.classList.toggle('active', isLogin);
+      registerForm.classList.toggle('active', !isLogin);
+    }
+    tabLogin.onclick = () => switchTab(true);
+    tabRegister.onclick = () => switchTab(false);
+    loginForm.onsubmit = registerForm.onsubmit = (e) => {
+      e.preventDefault();
+      alert('Backend email/password belum diaktifkan. Gunakan login Google sementara.');
+    };
+  </script>
+</body>
+</html>
