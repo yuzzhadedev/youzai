@@ -15,19 +15,19 @@
     },
     {
       "source": "/login",
-      "destination": "/login.html"
+      "destination": "/public/login/index.html"
     },
     {
       "source": "/login/(.*)",
-      "destination": "/login.html"
+      "destination": "/public/login/index.html"
     },
     {
       "source": "/registrasi",
-      "destination": "/login.html"
+      "destination": "/public/login/index.html"
     },
     {
       "source": "/registrasi/(.*)",
-      "destination": "/login.html"
+      "destination": "/public/login/index.html"
     },
     {
       "source": "/(.*)",
