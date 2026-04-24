@@ -10,61 +10,70 @@
 </head>
 <body>
     <div class="app">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <div class="logo-icon">Y</div>
                     <span class="logo-text">Youz AI</span>
                 </div>
-                <button class="menu-btn" id="menuBtn">
+                <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu">
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
             </div>
-            
-            <!-- User Section -->
+
             <div class="user-section" id="userSection">
-                <div id="loginBtn" class="login-btn">
+                <a id="loginBtn" class="login-btn" href="/api/auth/login">
                     <i class="fab fa-google"></i> Login dengan Google
-                </div>
+                </a>
+
                 <div id="userProfile" class="user-profile hidden">
                     <img id="userAvatar" src="" alt="Avatar" class="user-avatar-img">
                     <div class="user-info">
                         <span id="userName"></span>
                         <span id="userEmail"></span>
                     </div>
-                    <button id="logoutBtn" class="logout-btn" title="Logout">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button id="userMenuBtn" class="user-menu-btn" type="button" title="Menu Pengguna" aria-label="Menu pengguna">
+                        <i class="fas fa-ellipsis-v"></i>
                     </button>
+                    <div id="userMenuDropdown" class="user-menu-dropdown hidden">
+                        <button id="userProfileBtn" class="user-menu-item" type="button">
+                            <i class="fas fa-user"></i> Profil
+                        </button>
+                        <button id="userSettingsBtn" class="user-menu-item" type="button">
+                            <i class="fas fa-cog"></i> Pengaturan
+                        </button>
+                        <button id="userLogoutBtn" class="user-menu-item danger" type="button">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-            <button class="new-chat-btn" id="newChatBtn">
+
+            <button class="new-chat-btn" id="newChatBtn" type="button">
                 <i class="fas fa-plus"></i> Percakapan Baru
             </button>
-            
+
             <div class="history-label">Riwayat Percakapan</div>
             <ul class="conversation-list" id="conversationList"></ul>
-            
-            <!-- Model Selector -->
+
             <div class="model-selector-sidebar">
                 <div class="model-selector-label">Pilih Model AI</div>
                 <div class="model-options">
-                    <button class="model-option-btn active" data-model="gpt4o">
+                    <button class="model-option-btn active" data-model="gpt4o" type="button">
                         <i class="fas fa-robot"></i>
                         <div class="model-info">
                             <span class="model-name">ChatGPT</span>
                             <span class="model-desc">OpenAI · GPT-4o Mini</span>
                         </div>
                     </button>
-                    <button class="model-option-btn" data-model="gemini">
+                    <button class="model-option-btn" data-model="gemini" type="button">
                         <i class="fas fa-gem"></i>
                         <div class="model-info">
                             <span class="model-name">Gemini 2.5 Flash</span>
                             <span class="model-desc">Google · Reasoning Canggih</span>
                         </div>
                     </button>
-                    <button class="model-option-btn" data-model="search">
+                    <button class="model-option-btn" data-model="search" type="button">
                         <i class="fas fa-globe"></i>
                         <div class="model-info">
                             <span class="model-name">Web Search</span>
@@ -73,13 +82,22 @@
                     </button>
                 </div>
             </div>
-            
+
+            <div id="sidebarAuthLinks" class="sidebar-auth-links">
+                <a href="/login" class="sidebar-auth-link cta">
+                    <i class="fas fa-right-to-bracket"></i> Masuk / Daftar
+                </a>
+                <a href="/api/auth/login" class="sidebar-auth-link">
+                    <i class="fab fa-google"></i> Login dengan Google
+                </a>
+                <div class="sidebar-auth-note">Login untuk sinkronisasi profil & riwayat.</div>
+            </div>
+
             <div class="sidebar-footer">
-                <div>v2.5 · Yuzz Ofc</div>
+                <div>v2.8 · Yuzz Ofc</div>
             </div>
         </aside>
-        
-        <!-- Menu Dropdown -->
+
         <div class="menu-dropdown" id="menuDropdown">
             <div class="menu-item" id="clearAllBtn">
                 <i class="fas fa-trash-alt"></i> Hapus Semua Percakapan
@@ -89,12 +107,11 @@
                 <i class="fas fa-info-circle"></i> Tentang Youz AI
             </div>
         </div>
-        
-        <!-- Main Chat -->
+
         <main class="main">
             <header class="chat-header">
                 <div class="header-left">
-                    <button class="hamburger-btn" id="hamburgerBtn">
+                    <button class="hamburger-btn" id="hamburgerBtn" type="button" aria-label="Buka sidebar">
                         <i class="fas fa-bars"></i>
                     </button>
                     <div class="chat-info">
@@ -108,9 +125,12 @@
                     <span class="model-indicator" id="modelIndicator">
                         <i class="fas fa-robot"></i> ChatGPT
                     </span>
+                    <button class="header-new-chat-btn" id="headerNewChatBtn" type="button" title="Percakapan Baru" aria-label="Percakapan baru">
+                        <i class="fas fa-pen-to-square"></i>
+                    </button>
                 </div>
             </header>
-            
+
             <div class="chat-messages" id="chatMessages">
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -119,29 +139,32 @@
                     <h3>Youz AI</h3>
                     <p>Asisten AI cerdas buatan Yuzz Ofc</p>
                     <div class="suggestions">
-                        <button class="suggestion-btn" data-prompt="📅 Tanggal berapa hari ini?">
+                        <button class="suggestion-btn" data-prompt="📅 Tanggal berapa hari ini?" type="button">
                             <i class="far fa-calendar"></i> Tanggal hari ini?
                         </button>
-                        <button class="suggestion-btn" data-prompt="⏰ Jam berapa sekarang?">
+                        <button class="suggestion-btn" data-prompt="⏰ Jam berapa sekarang?" type="button">
                             <i class="far fa-clock"></i> Jam berapa?
                         </button>
-                        <button class="suggestion-btn" data-prompt="🔍 Cari berita terbaru tentang AI 2026">
+                        <button class="suggestion-btn" data-prompt="🔍 Cari berita terbaru tentang AI 2026" type="button">
                             <i class="fas fa-newspaper"></i> Berita AI terbaru
                         </button>
-                        <button class="suggestion-btn" data-prompt="🤖 Apa itu kecerdasan buatan?">
+                        <button class="suggestion-btn" data-prompt="🤖 Apa itu kecerdasan buatan?" type="button">
                             <i class="fas fa-brain"></i> Apa itu AI?
                         </button>
-                        <button class="suggestion-btn" data-prompt="🎨 Generate gambar pemandangan">
+                        <button class="suggestion-btn" data-prompt="🎨 Generate gambar pemandangan" type="button">
                             <i class="fas fa-paint-brush"></i> Generate gambar
                         </button>
-                        <button class="suggestion-btn" data-prompt="✍️ Buatkan puisi tentang teknologi">
+                        <button class="suggestion-btn" data-prompt="✍️ Buatkan puisi tentang teknologi" type="button">
                             <i class="fas fa-pen"></i> Buat puisi
                         </button>
                     </div>
                 </div>
             </div>
-            
-            <!-- Image Draft Preview -->
+
+            <button class="scroll-bottom-btn hidden" id="scrollBottomBtn" type="button" title="Scroll ke bawah" aria-label="Scroll ke bawah">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+
             <div class="image-draft-container hidden" id="imageDraftContainer">
                 <div class="image-draft" id="imageDraft">
                     <div class="image-draft-preview">
@@ -151,30 +174,24 @@
                         <div class="image-draft-name" id="draftFileName"></div>
                         <div class="image-draft-size" id="draftFileSize"></div>
                     </div>
-                    <button class="image-draft-remove" id="removeDraftBtn">
+                    <button class="image-draft-remove" id="removeDraftBtn" type="button" aria-label="Hapus draft gambar">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             </div>
-            
+
             <div class="chat-input-area">
                 <div class="search-input-container">
                     <div class="input-container">
-                        <button class="attach-btn" id="attachBtn" title="Upload Gambar">
+                        <button class="attach-btn" id="attachBtn" type="button" title="Upload Gambar" aria-label="Upload gambar">
                             <i class="fas fa-image"></i>
                         </button>
-                        <textarea 
-                            id="messageInput" 
-                            placeholder="Ketik pesan atau prompt gambar..." 
-                            rows="1"
-                            autofocus
-                        ></textarea>
-                        <button class="send-btn" id="sendBtn" title="Kirim">
+                        <textarea id="messageInput" placeholder="Ketik pesan atau prompt gambar..." rows="1" autofocus></textarea>
+                        <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
                             <i class="fas fa-arrow-up"></i>
                         </button>
                     </div>
-                    
-                    <!-- Search Suggestions -->
+
                     <div class="search-suggestions hidden" id="searchSuggestions">
                         <div class="suggestions-header">
                             <i class="fas fa-search"></i> Pencarian
@@ -197,19 +214,124 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- TAMBAHAN: Feature Hint -->
+
                 <div class="feature-hint" id="featureHint">
                     <span class="hint-item"><i class="fas fa-globe"></i> Search</span>
                     <span class="hint-item"><i class="fas fa-paint-brush"></i> Generate</span>
                     <span class="hint-item"><i class="fas fa-edit"></i> Edit</span>
                 </div>
-                
+
                 <input type="file" id="imageInput" accept="image/*" style="display: none;">
             </div>
         </main>
     </div>
-    
+
+    <div class="settings-modal hidden" id="settingsModal">
+        <div class="settings-overlay" id="settingsOverlay"></div>
+        <div class="settings-container">
+            <div class="settings-header">
+                <h2 id="settingsTitle">Pengaturan</h2>
+                <button class="settings-close-btn" id="settingsCloseBtn" type="button" aria-label="Tutup pengaturan">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="settings-tabs">
+                <button class="settings-tab active" id="tabGeneral" type="button">Umum</button>
+                <button class="settings-tab" id="tabProfile" type="button">Profil</button>
+                <button class="settings-tab" id="tabData" type="button">Data</button>
+            </div>
+
+            <div class="settings-content" id="generalContent">
+                <div class="settings-section">
+                    <h3>Pilih Model AI</h3>
+                    <div class="settings-model-options">
+                        <button class="settings-model-btn active" data-model="gpt4o" type="button">
+                            <i class="fas fa-robot"></i>
+                            <div class="settings-model-info">
+                                <span class="settings-model-name">ChatGPT</span>
+                                <span class="settings-model-desc">OpenAI · GPT-4o Mini</span>
+                            </div>
+                        </button>
+                        <button class="settings-model-btn" data-model="gemini" type="button">
+                            <i class="fas fa-gem"></i>
+                            <div class="settings-model-info">
+                                <span class="settings-model-name">Gemini 2.5 Flash</span>
+                                <span class="settings-model-desc">Google · Reasoning Canggih</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Fitur</h3>
+                    <div class="feature-settings">
+                        <label class="feature-toggle">
+                            <div class="feature-toggle-info">
+                                <span>Web Search</span>
+                                <small>Izinkan AI memakai pencarian internet.</small>
+                            </div>
+                            <input type="checkbox" id="webSearchToggle" checked>
+                        </label>
+                        <label class="feature-toggle">
+                            <div class="feature-toggle-info">
+                                <span>Generate Image</span>
+                                <small>Izinkan AI membuat gambar dari prompt.</small>
+                            </div>
+                            <input type="checkbox" id="generateImageToggle" checked>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 id="themeTitle">Tema</h3>
+                    <div class="theme-options">
+                        <button class="theme-btn" id="themeLight" type="button"><i class="fas fa-sun"></i><span id="lightText">Terang</span></button>
+                        <button class="theme-btn" id="themeDark" type="button"><i class="fas fa-moon"></i><span id="darkText">Gelap</span></button>
+                        <button class="theme-btn" id="themeSystem" type="button"><i class="fas fa-desktop"></i><span id="systemText">Sistem</span></button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3 id="languageTitle">Bahasa</h3>
+                    <select class="language-select" id="languageSelect">
+                        <option value="id">Indonesia</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="settings-content hidden" id="profileContent">
+                <div class="settings-section">
+                    <h3 id="profileInfoTitle">Informasi Profil</h3>
+                    <div class="profile-form">
+                        <div class="form-group">
+                            <label id="nameLabel" for="profileName">Nama</label>
+                            <input type="text" id="profileName" placeholder="Nama kamu">
+                        </div>
+                        <div class="form-group">
+                            <label id="emailLabel" for="profileEmail">Email</label>
+                            <input type="email" id="profileEmail" placeholder="Email" disabled>
+                        </div>
+                        <button class="save-profile-btn" id="saveProfileBtn" type="button">Simpan Perubahan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-content hidden" id="dataContent">
+                <div class="settings-section">
+                    <h3 id="dataManagementTitle">Manajemen Data</h3>
+                    <button class="danger-btn" id="clearAllDataBtn" type="button">
+                        <i class="fas fa-trash-alt"></i> Hapus Semua Percakapan
+                    </button>
+                    <button class="danger-btn" id="exportDataBtn" type="button">
+                        <i class="fas fa-download"></i> Ekspor Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/app.js"></script>
 </body>
 </html>
