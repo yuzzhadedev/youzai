@@ -43,9 +43,17 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: false, content: `❌ Error: ${data.error?.message || 'Unknown'}` });
     }
     const content = data.choices?.[0]?.message?.content || 'Tidak ada respons.';
+    const rawSources = data.citations || data.sources || data.choices?.[0]?.message?.citations || data.choices?.[0]?.message?.annotations || [];
+    const sources = (Array.isArray(rawSources) ? rawSources : [])
+      .map((source) => ({
+        title: source.title || source.name || source.url || 'Sumber',
+        url: source.url || source.link || source.uri || '',
+        snippet: source.snippet || source.text || source.description || ''
+      }))
+      .filter((source) => source.url);
     let modelLabel = modelType === 'gemini' ? 'gemini' : 'chatgpt';
     if (enableSearch) modelLabel = 'web-search'; else if (imageData) modelLabel = 'vision';
-    return res.status(200).json({ success: true, content, model: modelLabel });
+    return res.status(200).json({ success: true, content, model: modelLabel, sources });
   } catch (error) {
     return res.status(200).json({ success: false, content: `Kesalahan server: ${error.message}` });
   }
