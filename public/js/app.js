@@ -175,6 +175,7 @@ function updateUserUI() {
         userProfile.classList.add('hidden');
         sidebarAuthLinks?.classList.remove('hidden');
         userMenuDropdown?.classList.add('hidden');
+        sidebarAuthRequiredLinks.forEach(link => link.classList.add('hidden'));
     }
 }
 
@@ -580,7 +581,7 @@ async function callAPIWithAction(messages, action, imageData, prompt) {
 
 function shouldGenerateImageFromPrompt(text) {
     const lowered = (text || '').toLowerCase();
-    const imageKeywords = ['generate gambar', 'buat gambar', 'bikin gambar', 'gambar ', 'image ', 'create image', 'buatkan ilustrasi', 'ilustrasi','buatkan gambar';
+    const imageKeywords = ['generate gambar', 'buat gambar', 'bikin gambar', 'gambar ', 'image ', 'create image', 'buatkan ilustrasi', 'ilustrasi','buatkan gambar'];
     return imageKeywords.some(keyword => lowered.includes(keyword));
 }
 
