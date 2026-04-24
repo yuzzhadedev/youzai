@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Login · Youz AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-start: #0f172a;
+      --bg-end: #1e1b4b;
+      --card-bg: rgba(17, 24, 39, 0.95);
+      --card-border: rgba(59, 130, 246, 0.15);
+      --input-bg: #0b1120;
+      --input-border: #334155;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --success: #10b981;
+      --error: #ef4444;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+      animation: bgPulse 15s ease-in-out infinite;
+      z-index: 0;
+    }
+
+    @keyframes bgPulse {
+      0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+      50% { transform: translate(-5%, -5%) scale(1.05); opacity: 1; }
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo */
+    .logo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .logo-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      object-fit: cover;
+      display: block;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+    }
+
+    .logo-fallback {
+      display: none;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      border-radius: 20px;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .logo-text {
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(to right, #ffffff, #a5b4fc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-badge {
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--primary);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-left: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    /* Card */
+    .card {
+      width: 100%;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 20px;
+      background: var(--input-bg);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--input-border);
+    }
+
+    .tab {
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .tab:hover:not(.active) {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--text-primary);
+    }
+
+    /* Forms */
+    .form {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form.active { display: flex; }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      border: 1.5px solid var(--input-border);
+      border-radius: 10px;
+      padding: 11px 14px 11px 38px;
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    input::placeholder { color: #475569; }
+
+    .forgot-link {
+      text-align: right;
+      margin-top: -6px;
+    }
+
+    .forgot-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .forgot-link a:hover { text-decoration: underline; }
+
+    .password-hint {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Buttons */
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-google {
+      background: white;
+      color: #1e293b;
+      text-decoration: none;
+    }
+
+    .btn-google:hover {
+      background: #f8fafc;
+      border: 1.5px solid var(--primary);
+    }
+
+    .btn-google i { color: #4285f4; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin: 16px 0;
+      gap: 10px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--input-border);
+    }
+
+    /* Footer */
+    .footer-links {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+    }
+
+    .back-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .back-link:hover { color: var(--primary); }
+
+    .terms {
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+
+    .terms a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .terms a:hover { text-decoration: underline; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 40px;
+      padding: 12px 20px;
+      color: white;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      animation: slideUp 0.3s ease;
+    }
+
+    .toast.hidden { display: none; }
+    .toast.success i { color: var(--success); }
+    .toast.error i { color: var(--error); }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 20px 16px; }
+      .logo-image { width: 64px; height: 64px; }
+      .logo-text { font-size: 20px; }
+      h1 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <img 
+        class="logo-image" 
+        src="/logo.png" 
+        alt="Youz AI Logo"
+        onerror="this.style.display='none';document.getElementById('fallbackLogo').style.display='flex';"
+      >
+      <div class="logo-fallback" id="fallbackLogo">Y</div>
+      <div style="display:flex;align-items:center;">
+        <span class="logo-text">Youz AI</span>
+        <span class="logo-badge">BETA</span>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="card">
+      <h1>Selamat Datang</h1>
+      <p class="subtitle">Login atau buat akun untuk melanjutkan ke Youz AI</p>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" id="tabLogin">Login</button>
+        <button class="tab" id="tabRegister">Registrasi</button>
+      </div>
+
+      <!-- Login Form -->
+      <form class="form active" id="loginForm">
+        <div class="input-group">
+          <i class="far fa-envelope"></i>
+          <input type="email" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" placeholder="Password" required>
+        </div>
+        <div class="forgot-link">
+          <a href="#" id="forgotPassword">Lupa password?</a>
+        </div>
+        <button class="btn btn-primary" type="submit">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form class="form" id="registerForm">
+        <div class="input-group">
+          <i class="far fa-user"></i>
+          <input type="text" placeholder="Nama lengkap" required>
+        </div>
+        <div class="input-group">
+          <i class="far fa-envelope"></i>
+          <input type="email" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" placeholder="Password" required>
+        </div>
+        <p class="password-hint">Minimal 8 karakter, kombinasi huruf & angka</p>
+        <button class="btn btn-primary" type="submit">
+          <i class="fas fa-user-plus"></i> Buat Akun
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">atau</div>
+
+      <!-- Google Login -->
+      <a class="btn btn-google" href="/api/auth/login">
+        <i class="fab fa-google"></i> Lanjutkan dengan Google
+      </a>
+
+      <!-- Footer -->
+      <div class="footer-links">
+        <a class="back-link" href="/"><i class="fas fa-arrow-left"></i> Kembali ke chat</a>
+        <div class="terms"><a href="#">Privasi</a> · <a href="#">Syarat</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden">
+    <i class="fas fa-info-circle"></i>
+    <span id="toastMessage"></span>
+  </div>
+
+  <script>
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    function switchTab(isLogin) {
+      tabLogin.classList.toggle('active', isLogin);
+      tabRegister.classList.toggle('active', !isLogin);
+      loginForm.classList.toggle('active', isLogin);
+      registerForm.classList.toggle('active', !isLogin);
+    }
+    tabLogin.onclick = () => switchTab(true);
+    tabRegister.onclick = () => switchTab(false);
+
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const icon = toast.querySelector('i');
+      toast.querySelector('#toastMessage').textContent = msg;
+      toast.classList.remove('hidden', 'success', 'error');
+      toast.classList.add(type);
+      icon.className = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+      setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
+    document.getElementById('forgotPassword').onclick = (e) => {
+      e.preventDefault();
+      showToast('Fitur reset password akan segera hadir.');
+    };
+
+    loginForm.onsubmit = registerForm.onsubmit = (e) => {
+      e.preventDefault();
+      showToast('Backend email/password sedang dikembangkan. Gunakan Google Login.');
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('user')) {
+      const user = JSON.parse(decodeURIComponent(urlParams.get('user')));
+      localStorage.setItem('youz_user', JSON.stringify(user));
+      showToast('Login berhasil!', 'success');
+      setTimeout(() => { window.location.href = '/'; }, 1000);
+    } else if (urlParams.get('error')) {
+      showToast('Login gagal. Silakan coba lagi.', 'error');
+    }
+  </script>
+</body>
+</html>
