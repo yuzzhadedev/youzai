@@ -77,30 +77,14 @@
             </div>
             
             <!-- TAMBAHAN: Sidebar Links -->
-            <div class="sidebar-links">
-                <a href="#" class="sidebar-link" id="settingsBtn">
-                    <i class="fas fa-cog"></i> Settings
+           <div class="sidebar-auth-links" id="sidebarAuthLinks">
+                <a href="/login" class="sidebar-auth-link cta">
+                    <i class="fas fa-right-to-bracket"></i> Login / Registrasi
                 </a>
-                <a href="#" class="sidebar-link requires-auth" id="profileBtn">
-                    <i class="fas fa-user"></i> Profile
-                </a>
-                <a href="#" class="sidebar-link requires-auth danger" id="logoutSidebarBtn">
-                    <i class="fas fa-sign-out-alt"></i> Log out
-                </a>
-            </div>
-
-            <div class="sidebar-auth-links" id="sidebarAuthLinks">
-                <a href="/login" class="sidebar-auth-link">
-                    <i class="fas fa-right-to-bracket"></i> Login
-                </a>
-                <a href="/registrasi" class="sidebar-auth-link">
-                    <i class="fas fa-user-plus"></i> Registrasi
-                </a>
-                <div class="sidebar-auth-note">Bisa pakai Email, Password, atau Google</div>
             </div>
             
             <div class="sidebar-footer">
-                <div>v2.8 · Yuzz Ofc</div>
+                <div>v1.0 · Yuzz Ofc</div>
             </div>
         </aside>
         
@@ -169,6 +153,9 @@
                     </div>
                 </div>
             </div>
+            <button class="scroll-bottom-btn hidden" id="scrollBottomBtn" title="Gulir ke bawah">
+                <i class="fas fa-arrow-down"></i>
+            </button>
             
             <!-- Image Draft Preview -->
             <div class="image-draft-container hidden" id="imageDraftContainer">
