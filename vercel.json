@@ -15,19 +15,19 @@
     },
     {
       "source": "/login",
-      "destination": "/public/login.html"
+      "destination": "/login.html"
     },
     {
       "source": "/login/(.*)",
-      "destination": "/public/login.html"
+      "destination": "/login.html"
     },
     {
       "source": "/registrasi",
-      "destination": "/public/login.html"
+      "destination": "/login.html"
     },
     {
       "source": "/registrasi/(.*)",
-      "destination": "/public/login.html"
+      "destination": "/login.html"
     },
     {
       "source": "/(.*)",
@@ -36,9 +36,6 @@
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
-      "headers": [
-        {
           "key": "Access-Control-Allow-Origin",
           "value": "*"
         },
