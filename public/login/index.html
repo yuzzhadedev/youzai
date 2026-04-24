@@ -31,9 +31,9 @@
       color: var(--text-primary);
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 20px;
+      padding: 10px 20px 20px;
       position: relative;
       overflow-x: hidden;
     }
@@ -72,16 +72,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
+      margin-top: 6px;
     }
 
     .logo-image {
       width: 80px;
       height: 80px;
-      border-radius: 20px;
+      border-radius: 0;
       object-fit: cover;
       display: block;
-      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+      box-shadow: none;
     }
 
     .logo-fallback {
@@ -370,7 +371,7 @@
     <div class="logo-section">
       <img 
         class="logo-image" 
-        src="/public/login/logo.png" 
+        src="/login/logo.png"  
         alt="Youz AI Logo"
         onerror="this.style.display='none';document.getElementById('fallbackLogo').style.display='flex';"
       >
@@ -396,11 +397,11 @@
       <form class="form active" id="loginForm">
         <div class="input-group">
           <i class="far fa-envelope"></i>
-          <input type="email" placeholder="Email" required>
+          <input type="email" name="email" placeholder="Email" required>
         </div>
         <div class="input-group">
           <i class="fas fa-lock"></i>
-          <input type="password" placeholder="Password" required>
+          <input type="password" name="password" placeholder="Password" required>
         </div>
         <div class="forgot-link">
           <a href="#" id="forgotPassword">Lupa password?</a>
@@ -414,15 +415,15 @@
       <form class="form" id="registerForm">
         <div class="input-group">
           <i class="far fa-user"></i>
-          <input type="text" placeholder="Nama lengkap" required>
+          <input type="text" name="name" placeholder="Nama lengkap" required>
         </div>
         <div class="input-group">
           <i class="far fa-envelope"></i>
-          <input type="email" placeholder="Email" required>
+          <input type="email" name="email" placeholder="Email" required>
         </div>
         <div class="input-group">
           <i class="fas fa-lock"></i>
-          <input type="password" placeholder="Password" required>
+          <input type="password" name="password" placeholder="Password" required>
         </div>
         <p class="password-hint">Minimal 8 karakter, kombinasi huruf & angka</p>
         <button class="btn btn-primary" type="submit">
@@ -431,7 +432,7 @@
       </form>
 
       <!-- Divider -->
-      <div class="divider">atau</div>
+      <div class="divider">opsional</div>
 
       <!-- Google Login -->
       <a class="btn btn-google" href="/api/auth/login">
@@ -482,9 +483,36 @@
       showToast('Fitur reset password akan segera hadir.');
     };
 
-    loginForm.onsubmit = registerForm.onsubmit = (e) => {
+    loginForm.onsubmit = async (e) => {
       e.preventDefault();
-      showToast('Backend email/password sedang dikembangkan. Gunakan Google Login.');
+      const fd = new FormData(loginForm);
+      const payload = { email: fd.get('email'), password: fd.get('password') };
+      const res = await fetch('/api/auth/email-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) return showToast(data.message || 'Login gagal.', 'error');
+      localStorage.setItem('youz_user', JSON.stringify(data.user));
+      showToast('Login berhasil!', 'success');
+      setTimeout(() => { window.location.href = '/'; }, 700);
+    };
+
+    registerForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const fd = new FormData(registerForm);
+      const payload = { name: fd.get('name'), email: fd.get('email'), password: fd.get('password') };
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) return showToast(data.message || 'Registrasi gagal.', 'error');
+      localStorage.setItem('youz_user', JSON.stringify(data.user));
+      showToast('Registrasi berhasil!', 'success');
+      setTimeout(() => { window.location.href = '/'; }, 700);
     };
 
     const urlParams = new URLSearchParams(window.location.search);
