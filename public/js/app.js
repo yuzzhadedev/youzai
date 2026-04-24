@@ -25,16 +25,20 @@ const imageInput = document.getElementById('imageInput');
 const newChatBtn = document.getElementById('newChatBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
 const aboutBtn = document.getElementById('aboutBtn');
-const loginBtn = document.getElementById('loginBtn');
 const userProfile = document.getElementById('userProfile');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const userEmail = document.getElementById('userEmail');
-const logoutBtn = document.getElementById('logoutBtn');
+const userMenuBtn = document.getElementById('userMenuBtn');
+const userMenuDropdown = document.getElementById('userMenuDropdown');
+const userSettingsBtn = document.getElementById('userSettingsBtn');
+const userProfileBtn = document.getElementById('userProfileBtn');
+const userLogoutBtn = document.getElementById('userLogoutBtn');
 const currentTimeSpan = document.getElementById('currentTime');
 const searchSuggestions = document.getElementById('searchSuggestions');
 const modelOptionBtns = document.querySelectorAll('.model-option-btn');
 const modelIndicator = document.getElementById('modelIndicator');
+const scrollBottomBtn = document.getElementById('scrollBottomBtn');
 // ========== FITUR BARU: DOM ELEMENTS TAMBAHAN ==========
 const imageDraftContainer = document.getElementById('imageDraftContainer');
 const draftImage = document.getElementById('draftImage');
@@ -45,9 +49,6 @@ const removeDraftBtn = document.getElementById('removeDraftBtn');
 const headerNewChatBtn = document.getElementById('headerNewChatBtn');
 
 // ========== TAMBAHAN: SIDEBAR LINKS & SETTINGS ==========
-const settingsBtn = document.getElementById('settingsBtn');
-const profileBtn = document.getElementById('profileBtn');
-const logoutSidebarBtn = document.getElementById('logoutSidebarBtn');
 const settingsModal = document.getElementById('settingsModal');
 const settingsOverlay = document.getElementById('settingsOverlay');
 const settingsCloseBtn = document.getElementById('settingsCloseBtn');
@@ -70,10 +71,16 @@ const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
 const webSearchToggle = document.getElementById('webSearchToggle');
 const generateImageToggle = document.getElementById('generateImageToggle');
 const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
+const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
+const webSearchToggle = document.getElementById('webSearchToggle');
+const generateImageToggle = document.getElementById('generateImageToggle');
+const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
 const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
 // Language state
 let currentLanguage = localStorage.getItem('youz_language') || 'id';
+let isTouchingChat = false;
+let scrollPauseTimer = null;
 
 // ========== LOCALSTORAGE DATABASE ==========
 function loadFromStorage() {
@@ -139,25 +146,40 @@ function checkUserFromURL() {
     }
 }
 
+async function syncUserFromServer() {
+    try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data?.authenticated && data.user) {
+            currentUser = data.user;
+            localStorage.setItem('youz_user', JSON.stringify(currentUser));
+            updateUserUI();
+            return;
+        }
+        if (!localStorage.getItem('youz_user')) {
+            currentUser = null;
+            updateUserUI();
+        }
+    } catch (error) {
+        console.warn('Auth sync skipped:', error?.message || error);
+    }
+}
+
 function updateUserUI() {
-    if (currentUser) {
-        loginBtn.classList.add('hidden');
+    if (currentUser) { 
         userProfile.classList.remove('hidden');
+        sidebarAuthLinks?.classList.add('hidden');
+        userMenuDropdown?.classList.add('hidden');
         sidebarAuthLinks?.classList.add('hidden');
         sidebarAuthRequiredLinks.forEach(link => link.classList.remove('hidden'));
         userAvatar.src = currentUser.picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'User') + '&background=3b82f6&color=fff';
         userName.textContent = currentUser.name || 'User';
         userEmail.textContent = currentUser.email || '';
     } else {
-        loginBtn.classList.remove('hidden');
         userProfile.classList.add('hidden');
         sidebarAuthLinks?.classList.remove('hidden');
-        sidebarAuthRequiredLinks.forEach(link => link.classList.add('hidden'));
+        userMenuDropdown?.classList.add('hidden');
     }
-}
-
-function login() {
-    window.location.href = '/api/auth/login';
 }
 
 function logout() {
@@ -170,6 +192,36 @@ function logout() {
     renderSidebar();
     renderMessages([]);
     window.location.href = '/api/auth/logout';
+}
+
+function toggleUserMenu(forceShow = null) {
+    if (!userMenuDropdown || !currentUser) return;
+    const nextShow = forceShow === null ? userMenuDropdown.classList.contains('hidden') : forceShow;
+    userMenuDropdown.classList.toggle('hidden', !nextShow);
+}
+
+function updateScrollBottomVisibility() {
+    if (!chatMessages || !scrollBottomBtn) return;
+    const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+    const shouldShow = distanceFromBottom > 140 && !isTouchingChat;
+    scrollBottomBtn.classList.toggle('hidden', !shouldShow);
+}
+
+function openSettings(defaultTab = 'general') {
+    settingsModal.classList.remove('hidden');
+    sidebar.classList.add('closed');
+    if (currentUser) {
+        profileName.value = currentUser.name || '';
+        profileEmail.value = currentUser.email || '';
+    }
+    languageSelect.value = currentLanguage;
+    if (defaultTab === 'profile') {
+        tabProfile?.click();
+    } else if (defaultTab === 'data') {
+        tabData?.click();
+    } else {
+        tabGeneral?.click();
+    }
 }
 
 // ========== RENDER ==========
@@ -278,6 +330,7 @@ function createMessageElement(msg, index) {
     if (msg.generatedImage) {
         content += `<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div>`;
     }
+    
     let feedbackIndicator = '';
     if (msg.feedback === 'like') {
         feedbackIndicator = '<span class="feedback-indicator"><i class="fas fa-thumbs-up"></i> Disukai</span>';
