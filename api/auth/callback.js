@@ -7,7 +7,9 @@ export default async function handler(req, res) {
   
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = `${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/auth/callback`;
+  const host = req.headers['x-forwarded-host'] || req.headers.host || process.env.VERCEL_URL || 'localhost:3000';
+  const proto = req.headers['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${proto}://${host}/api/auth/callback`;
   
   try {
     // Exchange code for token
