@@ -1175,7 +1175,6 @@ body {
     background: var(--bg-input);
 }
 
-@@ -304,60 +298,60 @@ body {
 .conv-title {
     flex: 1;
     white-space: nowrap;
