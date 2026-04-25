@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
-    "check": "node --check public/js/app.js && node --check api/openai.js && node --check api/youz.js && node --check api/auth/callback.js"
+     "check": "node -e \"const {execFileSync}=require('node:child_process'); const {join}=require('node:path'); const {readdirSync}=require('node:fs'); const root=process.cwd(); const walk=(dir)=>readdirSync(dir,{withFileTypes:true}).flatMap((ent)=>{const abs=join(dir,ent.name); if(ent.isDirectory()){if(ent.name==='node_modules'||ent.name==='.git') return []; return walk(abs);} return abs.endsWith('.js')?[abs]:[];}); for(const file of walk(root)){execFileSync(process.execPath,['--check',file],{stdio:'inherit'});} \""
   },
   "dependencies": {
     "@vercel/node": "^3.0.0"
