@@ -1237,7 +1237,7 @@ body {
     font-weight: 600;
 }
 
-@@ -561,63 +555,62 @@ body {
+.chat-messages::-webkit-scrollbar {
     width: 4px;
 }
 
@@ -1307,9 +1307,23 @@ body {
     padding: 8px 12px;
     background: var(--bg-sidebar);
     border: 1px solid var(--border);
-@@ -708,54 +701,59 @@ body {
-    border-color: #fecaca;
-    color: #991b1b;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+
+.suggestion-btn:hover {
+    background: var(--bg-input);
+    border-color: var(--primary);
+}
+
+.suggestion-btn i {
+    color: var(--primary);
 }
 
 .message-image {
@@ -1368,7 +1382,8 @@ body {
 
 .action-btn.liked {
     color: var(--success);
-@@ -1034,50 +1032,119 @@ body {
+}
+    
 .send-btn {
     width: 32px;
     height: 32px;
