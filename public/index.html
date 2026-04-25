@@ -14,35 +14,10 @@
             <div class="sidebar-header">
                 <div class="logo">
                     <img class="logo-image" src="/login/logo.png" alt="Youz AI Logo">
-                    <span class="logo-text">Youz AI</span>
                 </div>
                 <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu">
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
-            </div>
-
-            <div class="user-section" id="userSection">
-                <div id="userProfile" class="user-profile hidden">
-                    <img id="userAvatar" src="" alt="Avatar" class="user-avatar-img">
-                    <div class="user-info">
-                        <span id="userName"></span>
-                        <span id="userEmail"></span>
-                    </div>
-                    <button id="userMenuBtn" class="user-menu-btn" type="button" title="Menu Pengguna" aria-label="Menu pengguna">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div id="userMenuDropdown" class="user-menu-dropdown hidden">
-                        <button id="userProfileBtn" class="user-menu-item" type="button">
-                            <i class="fas fa-user"></i> Profil
-                        </button>
-                        <button id="userSettingsBtn" class="user-menu-item" type="button">
-                            <i class="fas fa-cog"></i> Pengaturan
-                        </button>
-                        <button id="userLogoutBtn" class="user-menu-item danger" type="button">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <button class="new-chat-btn" id="newChatBtn" type="button">
@@ -52,15 +27,41 @@
             <div class="history-label">Riwayat Percakapan</div>
             <ul class="conversation-list" id="conversationList"></ul>
 
+            <div class="sidebar-bottom">
+                <div class="user-section" id="userSection">
+                    <div id="userProfile" class="user-profile hidden">
+                        <img id="userAvatar" src="" alt="Avatar" class="user-avatar-img">
+                        <div class="user-info">
+                            <span id="userName"></span>
+                            <span id="userEmail"></span>
+                        </div>
+                        <button id="userMenuBtn" class="user-menu-btn" type="button" title="Menu Pengguna" aria-label="Menu pengguna">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div id="userMenuDropdown" class="user-menu-dropdown hidden">
+                            <button id="userProfileBtn" class="user-menu-item" type="button">
+                                <i class="fas fa-user"></i> Profil
+                            </button>
+                            <button id="userSettingsBtn" class="user-menu-item" type="button">
+                                <i class="fas fa-cog"></i> Pengaturan
+                            </button>
+                            <button id="userLogoutBtn" class="user-menu-item danger" type="button">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="sidebarAuthLinks" class="sidebar-auth-links">
-                <a href="/login" class="sidebar-auth-link cta">
-                    <i class="fas fa-right-to-bracket"></i> Masuk / Daftar
-                </a>
-                <div class="sidebar-auth-note">Login untuk sinkronisasi profil & riwayat.</div>
-            </div>
+                    <a href="/login" class="sidebar-auth-link cta">
+                        <i class="fas fa-right-to-bracket"></i> Masuk / Daftar
+                    </a>
+                    <div class="sidebar-auth-note">Login untuk sinkronisasi profil & riwayat.</div>
+                </div>
 
             <div class="sidebar-footer">
-                <div>v2.8 · Yuzz Ofc</div>
+                    <div>v2.8 · Yuzz Ofc</div>
+                </div>
             </div>
         </aside>
 
@@ -222,14 +223,14 @@
                     <h3>Pilih Model AI</h3>
                     <div class="settings-model-options">
                         <button class="settings-model-btn active" data-model="gpt4o" type="button">
-                            <i class="fas fa-robot"></i>
+                            <img class="model-logo" src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI Logo">
                             <div class="settings-model-info">
                                 <span class="settings-model-name">ChatGPT</span>
                                 <span class="settings-model-desc">OpenAI · GPT-4o Mini</span>
                             </div>
                         </button>
                         <button class="settings-model-btn" data-model="gemini" type="button">
-                            <i class="fas fa-gem"></i>
+                            <img class="model-logo" src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini Logo">
                             <div class="settings-model-info">
                                 <span class="settings-model-name">Gemini 2.5 Flash</span>
                                 <span class="settings-model-desc">Google · Reasoning Canggih</span>
