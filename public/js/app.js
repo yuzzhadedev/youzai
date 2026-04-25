@@ -7,6 +7,7 @@ let currentUser = null;
 let abortController = null;
 let autoScrollDuringTyping = true;
 let activeSources = [];
+let typingAbortRequested = false;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
 let generateImageEnabled = true;
@@ -86,7 +87,7 @@ let scrollPauseTimer = null;
 
 // ========== LOCALSTORAGE DATABASE ==========
 function loadFromStorage() {
-    const saved = localStorage.getItem('youz_ai_conversations');
+    const saved = localStorage.getItem(getConversationStorageKey());
     if (saved) {
         try {
             conversations = JSON.parse(saved);
@@ -100,7 +101,12 @@ function loadFromStorage() {
 }
 
 function saveToStorage() {
-    localStorage.setItem('youz_ai_conversations', JSON.stringify(conversations));
+    localStorage.setItem(getConversationStorageKey(), JSON.stringify(conversations));
+}
+
+function getConversationStorageKey() {
+    const userKey = currentUser?.email || currentUser?.id || 'guest';
+    return `youz_ai_conversations_${String(userKey).toLowerCase()}`;
 }
 
 function createNewConversation() {
@@ -187,13 +193,12 @@ function updateUserUI() {
 
 function logout() {
     localStorage.removeItem('youz_user');
-    localStorage.removeItem('youz_ai_conversations');
     currentUser = null;
-    conversations = [];
     updateUserUI();
-    createNewConversation();
+    loadFromStorage();
+    activeConversationId = conversations[0]?.id;
     renderSidebar();
-    renderMessages([]);
+    if (activeConversationId) switchConversation(activeConversationId);
     window.location.href = '/api/auth/logout';
 }
 
@@ -224,7 +229,7 @@ function setProcessingUI(processing) {
     sendBtn.innerHTML = processing ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-arrow-up"></i>';
 }
 
-function openSourcesSheet(sources = []) {
+function openSourcesSheet(sources = [], focusIndex = 0) {
     if (!sourcesList || !sourcesSheet) return;
     activeSources = sources;
     sourcesList.innerHTML = !sources.length
@@ -236,6 +241,10 @@ function openSourcesSheet(sources = []) {
             </div>
         `).join('');
     sourcesSheet.classList.remove('hidden');
+    const sourceItems = sourcesList.querySelectorAll('.source-item');
+    if (sourceItems[focusIndex]) {
+        sourceItems[focusIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 function closeSourcesSheet() {
@@ -356,9 +365,9 @@ function createMessageElement(msg, index) {
     messageDiv.dataset.messageIndex = index;
     messageDiv.dataset.messageId = msg.id || `msg-${Date.now()}-${index}`;
     
-    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<img src="/login/logo.png" alt="Youz AI">';
     
-    let content = escapeHtml(msg.content);
+    let content = renderMessageContent(msg.content, msg.sources || []);
     if (msg.image) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
@@ -379,6 +388,15 @@ function createMessageElement(msg, index) {
             <div class="message-content" id="msg-content-${index}">
                 ${content}
             </div>
+            ${!isUser && msg.sources?.length ? `
+                <div class="message-citations-inline">
+                    ${(msg.sources || []).slice(0, 6).map((source, sourceIndex) => `
+                        <button class="source-chip" type="button" data-source-index="${sourceIndex}" title="${escapeHtml(source.title || source.url || 'Sumber')}">
+                            ${escapeHtml(source.title || source.url || `Sumber ${sourceIndex + 1}`)}
+                        </button>
+                    `).join('')}
+                </div>
+            ` : ''}
             ${!isUser && !msg.isError ? `
                 <div class="message-actions">
                     <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content || '')}" title="Salin" ${msg.isComplete === false ? 'disabled' : ''}>
@@ -422,6 +440,18 @@ function createMessageElement(msg, index) {
         
         const sourcesBtn = messageDiv.querySelector('.sources-btn');
         sourcesBtn?.addEventListener('click', () => openSourcesSheet(msg.sources || []));
+        messageDiv.querySelectorAll('.source-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const sourceIndex = Number(chip.dataset.sourceIndex || 0);
+                openSourcesSheet(msg.sources || [], sourceIndex);
+            });
+        });
+        messageDiv.querySelectorAll('.inline-source-ref').forEach(ref => {
+            ref.addEventListener('click', () => {
+                const sourceIndex = Math.max(0, Number(ref.dataset.sourceIndex || 1) - 1);
+                openSourcesSheet(msg.sources || [], sourceIndex);
+            });
+        });
     }
     
     return messageDiv;
@@ -432,6 +462,28 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML.replace(/\n/g, '<br>');
+}
+
+function parseSimpleMarkdown(text) {
+    if (!text) return '';
+    let rendered = escapeHtml(text);
+    rendered = rendered.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    rendered = rendered.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    rendered = rendered.replace(/__(.+?)__/g, '<strong>$1</strong>');
+    rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
+    rendered = rendered.replace(/\[(\d+)\]/g, '<button type="button" class="inline-source-ref" data-source-index="$1">[$1]</button>');
+    return rendered;
+}
+
+function renderMessageContent(text, sources = []) {
+    const richText = parseSimpleMarkdown(text);
+    if (!Array.isArray(sources) || !sources.length) return richText;
+    const sourceFooter = `<div class="message-sources-footer">${sources.map((source, idx) => `
+        <button type="button" class="source-chip" data-source-index="${idx}" title="${escapeHtml(source.title || source.url || 'Sumber')}">
+            ${idx + 1}. ${escapeHtml(source.title || source.url || 'Sumber')}
+        </button>
+    `).join('')}</div>`;
+    return `${richText}${sourceFooter}`;
 }
 
 // ========== MESSAGE ACTIONS ==========
@@ -547,9 +599,9 @@ function updateCurrentTime() {
 function updateModelIndicator() {
     const indicators = {
         'openrouter': '<i class="fas fa-robot"></i> <span>OpenRouter</span>',
-        'gpt4o': '<i class="fas fa-robot"></i> <span>ChatGPT</span>',
-        'openai': '<i class="fab fa-openai"></i> <span>OpenAI</span>',
-        'gemini': '<i class="fas fa-gem"></i> <span>Gemini</span>'
+        'gpt4o': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>ChatGPT</span>',
+        'openai': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>OpenAI</span>',
+        'gemini': '<img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini"><span>Gemini</span>'
     };
     if (modelIndicator) {
         modelIndicator.innerHTML = indicators[activeModel] || indicators['gpt4o'];
@@ -683,8 +735,13 @@ async function typeWriterEffect(el, text, speed = 20) {
     let i = 0;
     return new Promise(resolve => {
         function type() {
+            if (typingAbortRequested) {
+                resolve();
+                return;
+            }
             if (i < text.length) {
-                el.innerHTML += text.charAt(i);
+                const partial = text.slice(0, i + 1);
+                el.innerHTML = renderMessageContent(partial);
                 i++;
                 if (autoScrollDuringTyping) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -702,6 +759,8 @@ async function typeWriterEffect(el, text, speed = 20) {
 async function sendMessage() {
     console.log('📤 sendMessage called');
     if (isProcessing && abortController) {
+        typingAbortRequested = true;
+        clearTimeout(typingTimeout);
         abortController.abort();
         return;
     }
@@ -722,6 +781,7 @@ async function sendMessage() {
     if (!conv) return;
     
     isProcessing = true;
+    typingAbortRequested = false;
     abortController = new AbortController();
     setProcessingUI(true);
     searchSuggestions.classList.add('hidden');
@@ -802,7 +862,7 @@ async function sendMessage() {
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content, 20);
-            aiMessage.content = response.content;
+            aiMessage.content = typingAbortRequested ? `${contentEl.textContent}\n\n⏹️ Respons dihentikan.` : response.content;
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';
             if (contentEl) contentEl.innerHTML = escapeHtml(aiMessage.content);
@@ -814,12 +874,18 @@ async function sendMessage() {
     } catch (error) {
         document.getElementById(loadingId)?.remove();
         if (error.name === 'AbortError') {
-            conv.messages.push({
-                id: 'msg-' + Date.now(),
-                role: 'assistant',
-                content: '⏹️ Respons dihentikan.',
-                isComplete: true
-            });
+            const lastAssistant = conv.messages[conv.messages.length - 1];
+            if (lastAssistant?.role === 'assistant' && lastAssistant.isComplete === false) {
+                lastAssistant.content = `${lastAssistant.content || ''}\n\n⏹️ Respons dihentikan.`;
+                lastAssistant.isComplete = true;
+            } else {
+                conv.messages.push({
+                    id: 'msg-' + Date.now(),
+                    role: 'assistant',
+                    content: '⏹️ Respons dihentikan.',
+                    isComplete: true
+                });
+            }
             saveToStorage();
             renderMessages(conv.messages);
             return;
