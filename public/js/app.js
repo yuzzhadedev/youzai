@@ -4,6 +4,9 @@ let activeConversationId = null;
 let activeModel = 'gpt4o'; // 'gpt4o', 'gemini'
 let isProcessing = false;
 let currentUser = null;
+let abortController = null;
+let autoScrollDuringTyping = true;
+let activeSources = [];
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
 let generateImageEnabled = true;
@@ -45,6 +48,9 @@ const draftImage = document.getElementById('draftImage');
 const draftFileName = document.getElementById('draftFileName');
 const draftFileSize = document.getElementById('draftFileSize');
 const removeDraftBtn = document.getElementById('removeDraftBtn');
+const sourcesSheet = document.getElementById('sourcesSheet');
+const sourcesBackdrop = document.getElementById('sourcesBackdrop');
+const sourcesList = document.getElementById('sourcesList');
 // ========== TAMBAHAN: HEADER NEW CHAT BUTTON ==========
 const headerNewChatBtn = document.getElementById('headerNewChatBtn');
 
@@ -204,6 +210,38 @@ function updateScrollBottomVisibility() {
     scrollBottomBtn.classList.toggle('hidden', !shouldShow);
 }
 
+function shouldStickToBottom() {
+    if (!chatMessages) return true;
+    const distance = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+    return distance < 120;
+}
+
+function setProcessingUI(processing) {
+    if (!sendBtn) return;
+    sendBtn.classList.toggle('stop', processing);
+    sendBtn.title = processing ? 'Stop' : 'Kirim';
+    sendBtn.setAttribute('aria-label', processing ? 'Stop' : 'Kirim');
+    sendBtn.innerHTML = processing ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-arrow-up"></i>';
+}
+
+function openSourcesSheet(sources = []) {
+    if (!sourcesList || !sourcesSheet) return;
+    activeSources = sources;
+    sourcesList.innerHTML = !sources.length
+        ? '<p>Tidak ada sumber.</p>'
+        : sources.map((source) => `
+            <div class="source-item">
+                <a href="${source.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.title || source.url)}</a>
+                <p>${escapeHtml(source.snippet || source.url)}</p>
+            </div>
+        `).join('');
+    sourcesSheet.classList.remove('hidden');
+}
+
+function closeSourcesSheet() {
+    sourcesSheet?.classList.add('hidden');
+}
+
 function openSettings(defaultTab = 'general') {
     settingsModal.classList.remove('hidden');
     sidebar.classList.add('closed');
@@ -267,7 +305,7 @@ function renderMessages(messages) {
         chatMessages.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">
-                    <i class="fas fa-robot"></i>
+                    <img src="/login/logo.png" alt="Youz AI Logo">
                 </div>
                 <h3>Youz AI</h3>
                 <p>Asisten AI cerdas buatan Yuzz Ofc</p>
@@ -314,7 +352,7 @@ function renderMessages(messages) {
 function createMessageElement(msg, index) {
     const isUser = msg.role === 'user';
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${msg.role} ${msg.isError ? 'error' : ''}`;
+    messageDiv.className = `message ${msg.role} ${msg.isError ? 'error' : ''} ${msg.isComplete === false ? 'pending' : ''}`;
     messageDiv.dataset.messageIndex = index;
     messageDiv.dataset.messageId = msg.id || `msg-${Date.now()}-${index}`;
     
@@ -325,7 +363,7 @@ function createMessageElement(msg, index) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     if (msg.generatedImage) {
-        content += `<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div>`;
+        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div>`;
     }
     
     let feedbackIndicator = '';
@@ -343,21 +381,25 @@ function createMessageElement(msg, index) {
             </div>
             ${!isUser && !msg.isError ? `
                 <div class="message-actions">
-                    <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content)}" title="Salin">
+                    <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content || '')}" title="Salin" ${msg.isComplete === false ? 'disabled' : ''}>
                         <i class="far fa-copy"></i>
                         <span>Salin</span>
                     </button>
-                    <button class="action-btn like-btn ${msg.feedback === 'like' ? 'liked' : ''}" data-index="${index}" title="Suka">
+                    <button class="action-btn like-btn ${msg.feedback === 'like' ? 'liked' : ''}" data-index="${index}" title="Suka" ${msg.isComplete === false ? 'disabled' : ''}>
                         <i class="far fa-thumbs-up"></i>
                         <span>Suka</span>
                     </button>
-                    <button class="action-btn dislike-btn ${msg.feedback === 'dislike' ? 'disliked' : ''}" data-index="${index}" title="Tidak Suka">
+                    <button class="action-btn dislike-btn ${msg.feedback === 'dislike' ? 'disliked' : ''}" data-index="${index}" title="Tidak Suka" ${msg.isComplete === false ? 'disabled' : ''}>
                         <i class="far fa-thumbs-down"></i>
                         <span>Tidak Suka</span>
                     </button>
-                    <button class="action-btn regenerate-btn" data-index="${index}" title="Respon Ulang">
+                    <button class="action-btn regenerate-btn" data-index="${index}" title="Respon Ulang" ${msg.isComplete === false ? 'disabled' : ''}>
                         <i class="fas fa-redo-alt"></i>
                         <span>Ulang</span>
+                    </button>
+                    <button class="action-btn sources-btn ${msg.sources?.length ? 'has-sources' : ''}" data-index="${index}" title="Sumber" ${(!msg.sources?.length || msg.isComplete === false) ? 'disabled' : ''}>
+                        <i class="fas fa-link"></i>
+                        <span>Sumber</span>
                     </button>
                     ${feedbackIndicator}
                 </div>
@@ -365,7 +407,7 @@ function createMessageElement(msg, index) {
         </div>
     `;
     
-    if (!isUser && !msg.isError) {
+    if (!isUser && !msg.isError && msg.isComplete !== false) {
         const copyBtn = messageDiv.querySelector('.copy-btn');
         copyBtn.addEventListener('click', () => copyMessage(msg.content, copyBtn));
         
@@ -377,6 +419,9 @@ function createMessageElement(msg, index) {
         
         const regenerateBtn = messageDiv.querySelector('.regenerate-btn');
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
+        
+        const sourcesBtn = messageDiv.querySelector('.sources-btn');
+        sourcesBtn?.addEventListener('click', () => openSourcesSheet(msg.sources || []));
     }
     
     return messageDiv;
@@ -536,11 +581,12 @@ settingsModelBtns.forEach(btn => {
 });
 
 // ========== API CALLS ==========
-async function callOpenRouter(messages, enableSearch = false, modelType = 'openai') {
+async function callOpenRouter(messages, enableSearch = false, modelType = 'openai', signal) {
     const res = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, enableSearch, modelType })
+        body: JSON.stringify({ messages, enableSearch, modelType }),
+        signal
     });
     return await res.json();
 }
@@ -554,16 +600,17 @@ async function callOpenRouterVision(imageData, prompt) {
     return await res.json();
 }
 
-async function callGeminiAPI(messages) {
+async function callGeminiAPI(messages, signal) {
     const res = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages })
+        body: JSON.stringify({ messages }),
+        signal
     });
     return await res.json();
 }
 
-async function callAPIWithAction(messages, action, imageData, prompt) {
+async function callAPIWithAction(messages, action, imageData, prompt, signal) {
     const modelType = activeModel === 'gemini' ? 'gemini' : 'openai';
     const res = await fetch('/api/youz', {
         method: 'POST',
@@ -573,8 +620,9 @@ async function callAPIWithAction(messages, action, imageData, prompt) {
             action,
             modelType, 
             imageData, 
-            prompt 
-        })
+            prompt
+        }),
+        signal 
     });
     return await res.json();
 }
@@ -638,7 +686,9 @@ async function typeWriterEffect(el, text, speed = 20) {
             if (i < text.length) {
                 el.innerHTML += text.charAt(i);
                 i++;
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                if (autoScrollDuringTyping) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
                 typingTimeout = setTimeout(type, speed);
             } else {
                 resolve();
@@ -651,6 +701,10 @@ async function typeWriterEffect(el, text, speed = 20) {
 // ========== SEND MESSAGE ==========
 async function sendMessage() {
     console.log('📤 sendMessage called');
+    if (isProcessing && abortController) {
+        abortController.abort();
+        return;
+    }
     
     const text = messageInput.value.trim();
     console.log('📝 Message:', text);
@@ -668,7 +722,8 @@ async function sendMessage() {
     if (!conv) return;
     
     isProcessing = true;
-    sendBtn.disabled = true;
+    abortController = new AbortController();
+    setProcessingUI(true);
     searchSuggestions.classList.add('hidden');
     
     const userMessage = {
@@ -694,11 +749,12 @@ async function sendMessage() {
     clearImageDraft();
     
     const loadingId = 'loading-' + Date.now();
+    const previewImageGeneration = generateImageEnabled && shouldGenerateImageFromPrompt(text);
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant" id="${loadingId}">
             <div class="message-avatar"><i class="fas fa-robot"></i></div>
             <div class="message-content">
-                <div class="thinking-indicator"><i class="fas fa-spinner fa-pulse"></i><span>Thinking...</span></div>
+                <div class="thinking-indicator"><i class="fas fa-spinner fa-pulse"></i><span>${previewImageGeneration ? 'Membuat gambar...' : 'Thinking...'}</span></div>
             </div>
         </div>
     `);
@@ -712,13 +768,13 @@ async function sendMessage() {
         
         let response;
         if (userMessage.image) {
-            response = await callAPIWithAction(messages, 'generate', userMessage.image, text || 'Deskripsikan atau edit gambar ini.');
+            response = await callAPIWithAction(messages, 'generate', userMessage.image, text || 'Deskripsikan atau edit gambar ini.', abortController.signal);
         } else if (generateImageRequest) {
-            response = await callAPIWithAction(messages, 'generate', null, text);
+            response = await callAPIWithAction(messages, 'generate', null, text, abortController.signal);
         } else if (activeModel === 'gemini' && !enableSearch) {
-            response = await callGeminiAPI(messages);
+            response = await callGeminiAPI(messages, abortController.signal);
         } else {
-            response = await callOpenRouter(messages, enableSearch, activeModel === 'gemini' ? 'gemini' : 'openai');
+            response = await callOpenRouter(messages, enableSearch, activeModel === 'gemini' ? 'gemini' : 'openai', abortController.signal);
         }
         
         document.getElementById(loadingId)?.remove();
@@ -729,7 +785,9 @@ async function sendMessage() {
             content: '',
             model: (generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : (activeModel === 'gemini' ? 'gemini' : 'chatgpt')),
             isError: !response.success,
-            feedback: null
+            feedback: null,
+            sources: response.sources || [],
+            isComplete: false
         };
         if (response.imageUrl) {
             aiMessage.generatedImage = response.imageUrl;
@@ -742,27 +800,43 @@ async function sendMessage() {
         
         const contentEl = document.getElementById(`msg-content-${conv.messages.length - 1}`);
         if (contentEl && response.success) {
+            autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content, 20);
             aiMessage.content = response.content;
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';
             if (contentEl) contentEl.innerHTML = escapeHtml(aiMessage.content);
         }
+        aiMessage.isComplete = true;
         saveToStorage();
+        renderMessages(conv.messages);
         
     } catch (error) {
         document.getElementById(loadingId)?.remove();
+        if (error.name === 'AbortError') {
+            conv.messages.push({
+                id: 'msg-' + Date.now(),
+                role: 'assistant',
+                content: '⏹️ Respons dihentikan.',
+                isComplete: true
+            });
+            saveToStorage();
+            renderMessages(conv.messages);
+            return;
+        }
         conv.messages.push({
             id: 'msg-' + Date.now(),
             role: 'assistant',
             content: `❌ Error: ${error.message}`,
-            isError: true
+            isError: true,
+            isComplete: true
         });
         saveToStorage();
         renderMessages(conv.messages);
     } finally {
         isProcessing = false;
-        sendBtn.disabled = false;
+        abortController = null;
+        setProcessingUI(false);
         messageInput.focus();
     }
 }
@@ -937,6 +1011,7 @@ headerNewChatBtn?.addEventListener('click', () => {
 });
 
 sendBtn?.addEventListener('click', sendMessage);
+sourcesBackdrop?.addEventListener('click', closeSourcesSheet);
 
 messageInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1136,6 +1211,7 @@ chatMessages?.addEventListener('touchend', () => {
 });
 
 chatMessages?.addEventListener('scroll', () => {
+    autoScrollDuringTyping = shouldStickToBottom();
     clearTimeout(scrollPauseTimer);
     scrollPauseTimer = setTimeout(updateScrollBottomVisibility, isTouchingChat ? 220 : 120);
 });
@@ -1154,6 +1230,12 @@ document.addEventListener('click', (e) => {
 window.addEventListener('resize', () => {
     if (window.innerWidth > 768) {
         sidebar.classList.remove('closed');
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeSourcesSheet();
     }
 });
 
@@ -1176,6 +1258,7 @@ async function init() {
         renderMessages([]);
     }
     updateScrollBottomVisibility();
+    setProcessingUI(false);
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
     }
