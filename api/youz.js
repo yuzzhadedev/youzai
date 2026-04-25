@@ -54,37 +54,62 @@ export default async function handler(req, res) {
     
     // ========== GENERATE GAMBAR DARI TEKS ==========
     else if (action === 'generate' && !imageData) {
-      // Gunakan Pollinations.ai untuk generate gambar (GRATIS)
       const imagePrompt = prompt || 'pemandangan indah';
-      const encodedPrompt = encodeURIComponent(imagePrompt);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true`;
-      
-      // Dapatkan deskripsi dari AI
-      const aiResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      if (modelType === 'gemini' && process.env.GEMINI_API_KEY) {
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `Buat satu gambar dengan prompt berikut: ${imagePrompt}` }] }],
+            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+          })
+        });
+        const geminiData = await geminiResponse.json();
+        const parts = geminiData.candidates?.[0]?.content?.parts || [];
+        const imagePart = parts.find((part) => part.inlineData?.mimeType?.startsWith('image/'));
+        const textPart = parts.find((part) => part.text);
+        if (!geminiResponse.ok || !imagePart?.inlineData?.data) {
+          return res.status(200).json({ success: false, content: `Gemini image error: ${geminiData.error?.message || 'Tidak bisa membuat gambar.'}` });
+        }
+        const imageUrl = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+        return res.status(200).json({
+          success: true,
+          content: textPart?.text || `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`,
+          imageUrl,
+          action: 'generate'
+        });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(200).json({
+          success: false,
+          content: 'OPENAI_API_KEY belum diatur untuk generate gambar ChatGPT. Gunakan model Gemini atau set API key.'
+        });
+      }
+      const openaiResponse = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
-          'X-Title': 'Youz AI'
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Buatkan deskripsi singkat tentang: ${imagePrompt}` }
-          ],
-          max_tokens: 200
+          model: 'gpt-image-1',
+          prompt: imagePrompt,
+          size: '1024x1024'
         })
       });
-      
-      const aiData = await aiResponse.json();
-      const description = aiData.choices?.[0]?.message?.content || `Gambar: ${imagePrompt}`;
-      
-      return res.status(200).json({ 
-        success: true, 
-        content: description,
-        imageUrl: imageUrl,
+      const openaiData = await openaiResponse.json();
+      if (!openaiResponse.ok) {
+        return res.status(200).json({ success: false, content: `OpenAI image error: ${openaiData.error?.message || 'Gagal generate gambar.'}` });
+      }
+      const imageBase64 = openaiData.data?.[0]?.b64_json;
+      if (!imageBase64) {
+        return res.status(200).json({ success: false, content: 'OpenAI tidak mengembalikan gambar.' });
+      }
+      return res.status(200).json({
+        success: true,
+        content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`,
+        imageUrl: `data:image/png;base64,${imageBase64}`,
         action: 'generate'
       });
     } 
@@ -102,7 +127,7 @@ export default async function handler(req, res) {
       };
     }
 
-    console.log(`📤 [Youz AI] Action: ${action}, Model: ${requestBody?.model || 'pollinations'}`);
+    console.log(`📤 [Youz AI] Action: ${action}, Model: ${requestBody?.model || modelType}`);
 
     // Jika sudah return dari generate, skip fetch OpenRouter
     if (action === 'generate' && !imageData) {
