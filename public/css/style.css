@@ -78,8 +78,8 @@ body {
 }
 
 .logo-image {
-    width: 48px;
-    height: 48px;
+    width: 86px;
+    height: 56px;
     object-fit: contain;
     border-radius: 12px;
 }
@@ -171,7 +171,8 @@ body {
 .user-menu-dropdown {
     position: absolute;
     right: 0;
-    top: calc(100% + 8px);
+    top: auto;
+    bottom: calc(100% + 8px);
     background: #2f3238;
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -246,6 +247,7 @@ body {
     list-style: none;
     flex: 1;
     min-height: 120px;
+    min-height: 0;
     overflow-y: auto;
     margin-bottom: 12px;
     padding-right: 2px;
@@ -319,7 +321,11 @@ body {
 /* Sidebar Footer */
 .sidebar-bottom {
     margin-top: auto;
-    }
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-sidebar);
+    padding-top: 8px;
+}
 
 .sidebar-footer {
     padding-top: 12px;
@@ -584,8 +590,8 @@ body {
 }
 
 .empty-icon {
-    width: 82px;
-    height: 82px;
+    width: 108px;
+    height: 108px;
     margin: 0 auto 16px;
     display: flex;
     align-items: center;
@@ -659,8 +665,8 @@ body {
 }
 
 .message-avatar {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -719,6 +725,12 @@ body {
     background: rgba(15, 23, 42, 0.08);
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12px;
+}
+
+.message-content a {
+    color: var(--primary-dark);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 .message-citations-inline,
@@ -1692,8 +1704,8 @@ body {
     }
     
     .message-avatar {
-        width: 26px;
-        height: 26px;
+        width: 32px;
+        height: 32px;
         font-size: 11px;
     }
     
@@ -1711,8 +1723,8 @@ body {
     }
     
     .empty-icon {
-        width: 60px;
-        height: 60px;
+        width: 84px;
+        height: 84px;
     }
     
     .empty-state h3 {
