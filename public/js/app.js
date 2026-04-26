@@ -367,7 +367,7 @@ function createMessageElement(msg, index) {
     
     const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<img src="/login/logo.png" alt="Youz AI">';
     
-    let content = renderMessageContent(msg.content, msg.sources || []);
+    let content = renderMessageContent(msg.content);
     if (msg.image) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
@@ -392,7 +392,8 @@ function createMessageElement(msg, index) {
                 <div class="message-citations-inline">
                     ${(msg.sources || []).slice(0, 6).map((source, sourceIndex) => `
                         <button class="source-chip" type="button" data-source-index="${sourceIndex}" title="${escapeHtml(source.title || source.url || 'Sumber')}">
-                            ${escapeHtml(source.title || source.url || `Sumber ${sourceIndex + 1}`)}
+                            <img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">
+                            <span>${escapeHtml(source.title || source.url || `Sumber ${sourceIndex + 1}`)}</span>
                         </button>
                     `).join('')}
                 </div>
@@ -513,15 +514,18 @@ function mergeSources(primary = [], fallback = []) {
     return Array.from(merged.values());
 }
 
-function renderMessageContent(text, sources = []) {
+function getSourceFaviconUrl(url) {
+    try {
+        const host = new URL(url).hostname;
+        return `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(host)}`;
+    } catch {
+        return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+    }
+}
+
+function renderMessageContent(text) {
     const richText = parseSimpleMarkdown(text);
-    if (!Array.isArray(sources) || !sources.length) return richText;
-    const sourceFooter = `<div class="message-sources-footer">${sources.map((source, idx) => `
-        <button type="button" class="source-chip" data-source-index="${idx}" title="${escapeHtml(source.title || source.url || 'Sumber')}">
-            ${idx + 1}. ${escapeHtml(source.title || source.url || 'Sumber')}
-        </button>
-    `).join('')}</div>`;
-    return `${richText}${sourceFooter}`;
+    return richText;
 }
 
 // ========== MESSAGE ACTIONS ==========
@@ -862,7 +866,10 @@ async function sendMessage(options = {}) {
         <div class="message assistant" id="${loadingId}">
             <div class="message-avatar"><i class="fas fa-robot"></i></div>
             <div class="message-content">
-                <div class="thinking-indicator"><i class="fas fa-spinner fa-pulse"></i><span>${previewImageGeneration ? 'Membuat gambar...' : 'Thinking...'}</span></div>
+                <div class="thinking-indicator">
+                    <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                    <span>${previewImageGeneration ? 'Membuat gambar...' : 'Thinking...'}</span>
+                </div>
             </div>
         </div>
     `);
@@ -1164,7 +1171,7 @@ clearAllBtn?.addEventListener('click', () => {
 });
 
 aboutBtn?.addEventListener('click', () => {
-     alert('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.5 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
+    alert('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
     menuDropdown.classList.remove('show');
 });
 
@@ -1205,29 +1212,26 @@ tabData?.addEventListener('click', () => {
     profileContent.classList.add('hidden');
 });
 
-themeLight?.addEventListener('click', () => {
-    themeLight.classList.add('active');
-    themeDark.classList.remove('active');
-    themeSystem.classList.remove('active');
-    document.documentElement.setAttribute('data-theme', 'light');
-    localStorage.setItem('youz_theme', 'light');
-});
+function setThemePreference(theme, persist = true) {
+    const selected = ['light', 'dark', 'system'].includes(theme) ? theme : 'system';
+    themeLight?.classList.toggle('active', selected === 'light');
+    themeDark?.classList.toggle('active', selected === 'dark');
+    themeSystem?.classList.toggle('active', selected === 'system');
 
-themeDark?.addEventListener('click', () => {
-    themeDark.classList.add('active');
-    themeLight.classList.remove('active');
-    themeSystem.classList.remove('active');
-    document.documentElement.setAttribute('data-theme', 'dark');
-    localStorage.setItem('youz_theme', 'dark');
-});
+if (selected === 'system') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        document.documentElement.setAttribute('data-theme', selected);
+}
 
-themeSystem?.addEventListener('click', () => {
-    themeSystem.classList.add('active');
-    themeLight.classList.remove('active');
-    themeDark.classList.remove('active');
-    document.documentElement.removeAttribute('data-theme');
-    localStorage.setItem('youz_theme', 'system');
-});
+if (persist) {
+        localStorage.setItem('youz_theme', selected);
+    }
+}
+
+themeLight?.addEventListener('click', () => setThemePreference('light'));
+themeDark?.addEventListener('click', () => setThemePreference('dark'));
+themeSystem?.addEventListener('click', () => setThemePreference('system'));
 
 languageSelect?.addEventListener('change', (e) => {
     applyLanguage(e.target.value);
@@ -1381,15 +1385,7 @@ async function init() {
     setInterval(updateCurrentTime, 1000);
     
     const savedTheme = localStorage.getItem('youz_theme') || 'system';
-    if (savedTheme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-        if (themeLight) themeLight.classList.add('active');
-    } else if (savedTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        if (themeDark) themeDark.classList.add('active');
-    } else {
-        if (themeSystem) themeSystem.classList.add('active');
-    }
+    setThemePreference(savedTheme, false);
     
     const savedLang = localStorage.getItem('youz_language') || 'id';
     applyLanguage(savedLang);
