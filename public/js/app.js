@@ -396,6 +396,7 @@ function createMessageElement(msg, index) {
                             <span>${escapeHtml(source.title || source.url || `Sumber ${sourceIndex + 1}`)}</span>
                         </button>
                     `).join('')}
+                    <span class="source-inline-label">Sumber</span>
                 </div>
             ` : ''}
             ${!isUser && !msg.isError ? `
@@ -416,10 +417,6 @@ function createMessageElement(msg, index) {
                         <i class="fas fa-redo-alt"></i>
                         <span>Ulang</span>
                     </button>
-                    <button class="action-btn sources-btn ${msg.sources?.length ? 'has-sources' : ''}" data-index="${index}" title="Sumber" ${(!msg.sources?.length || msg.isComplete === false) ? 'disabled' : ''}>
-                        <i class="fas fa-link"></i>
-                        <span>Sumber</span>
-                    </button>
                     ${feedbackIndicator}
                 </div>
             ` : ''}
@@ -439,8 +436,6 @@ function createMessageElement(msg, index) {
         const regenerateBtn = messageDiv.querySelector('.regenerate-btn');
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
         
-        const sourcesBtn = messageDiv.querySelector('.sources-btn');
-        sourcesBtn?.addEventListener('click', () => openSourcesSheet(msg.sources || []));
         messageDiv.querySelectorAll('.source-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const sourceIndex = Number(chip.dataset.sourceIndex || 0);
