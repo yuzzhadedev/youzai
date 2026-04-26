@@ -467,12 +467,50 @@ function escapeHtml(text) {
 function parseSimpleMarkdown(text) {
     if (!text) return '';
     let rendered = escapeHtml(text);
+    rendered = rendered.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     rendered = rendered.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     rendered = rendered.replace(/\*(.+?)\*/g, '<em>$1</em>');
     rendered = rendered.replace(/__(.+?)__/g, '<strong>$1</strong>');
     rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
     rendered = rendered.replace(/\[(\d+)\]/g, '<button type="button" class="inline-source-ref" data-source-index="$1">[$1]</button>');
     return rendered;
+}
+
+function normalizeSources(sources = []) {
+    return (Array.isArray(sources) ? sources : [])
+        .map((source) => ({
+            title: source?.title || source?.name || source?.url || 'Sumber',
+            url: source?.url || source?.link || source?.uri || '',
+            snippet: source?.snippet || source?.text || source?.description || ''
+        }))
+        .filter((source) => /^https?:\/\//i.test(source.url));
+}
+
+function extractSourcesFromText(text = '') {
+    const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)]+)/gi;
+    const uniqueMap = new Map();
+    let match;
+    while ((match = linkPattern.exec(text)) !== null) {
+        const title = (match[1] || '').trim();
+        const url = (match[2] || match[3] || '').trim();
+        if (!/^https?:\/\//i.test(url)) continue;
+        if (!uniqueMap.has(url)) {
+            uniqueMap.set(url, {
+                title: title || new URL(url).hostname.replace(/^www\./, ''),
+                url,
+                snippet: 'Terdeteksi dari tautan yang ditulis di jawaban AI.'
+            });
+        }
+    }
+    return Array.from(uniqueMap.values());
+}
+
+function mergeSources(primary = [], fallback = []) {
+    const merged = new Map();
+    [...normalizeSources(primary), ...normalizeSources(fallback)].forEach((source) => {
+        if (!merged.has(source.url)) merged.set(source.url, source);
+    });
+    return Array.from(merged.values());
 }
 
 function renderMessageContent(text, sources = []) {
@@ -544,8 +582,10 @@ async function regenerateResponse(messageIndex) {
     conv.messages.splice(messageIndex, 1);
     saveToStorage();
     renderMessages(conv.messages);
-    messageInput.value = userMessage.content;
-    await sendMessage();
+    await sendMessage({
+        forcedText: userMessage.content || '',
+        forcedImageData: userMessage.image || null
+    });
 }
 
 // ========== ACTIONS ==========
@@ -756,7 +796,7 @@ async function typeWriterEffect(el, text, speed = 20) {
 }
 
 // ========== SEND MESSAGE ==========
-async function sendMessage() {
+async function sendMessage(options = {}) {
     console.log('📤 sendMessage called');
     if (isProcessing && abortController) {
         typingAbortRequested = true;
@@ -765,10 +805,12 @@ async function sendMessage() {
         return;
     }
     
-    const text = messageInput.value.trim();
+    const forcedText = typeof options.forcedText === 'string' ? options.forcedText : null;
+    const forcedImageData = options.forcedImageData || null;
+    const text = (forcedText ?? messageInput.value).trim();
     console.log('📝 Message:', text);
     
-    if ((!text && !currentDraftImage) || isProcessing) {
+    if ((!text && !currentDraftImage && !forcedImageData) || isProcessing) {
         console.log('❌ Blocked: no text or isProcessing');
         return;
     }
@@ -789,9 +831,13 @@ async function sendMessage() {
     const userMessage = {
         id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
         role: 'user',
-        content: text || (currentDraftImage ? '📷 Edit/generate gambar' : '')
+        content: text || ((currentDraftImage || forcedImageData) ? '📷 Edit/generate gambar' : '')
     };
-    if (currentDraftImage) userMessage.image = currentDraftImage.dataURL;
+    if (forcedImageData) {
+        userMessage.image = forcedImageData;
+    } else if (currentDraftImage) {
+        userMessage.image = currentDraftImage.dataURL;
+    }
     
     conv.messages.push(userMessage);
     
@@ -804,8 +850,10 @@ async function sendMessage() {
     renderMessages(conv.messages);
     renderSidebar();
     
-    messageInput.value = '';
-    messageInput.style.height = 'auto';
+    if (forcedText === null) {
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+    }
     clearImageDraft();
     
     const loadingId = 'loading-' + Date.now();
@@ -846,7 +894,7 @@ async function sendMessage() {
             model: (generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : (activeModel === 'gemini' ? 'gemini' : 'chatgpt')),
             isError: !response.success,
             feedback: null,
-            sources: response.sources || [],
+            sources: mergeSources(response.sources || [], extractSourcesFromText(response.content || '')),
             isComplete: false
         };
         if (response.imageUrl) {
