@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     // ========== GENERATE/EDIT GAMBAR MODE ==========
     else if (action === 'generate' && imageData) {
       requestBody = {
-        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4.1',
+        model: modelType === 'gemini' ? 'google/gemini-2.0-flash-001' : 'openai/gpt-4.1',
         messages: [{
           role: 'user',
           content: [
@@ -56,25 +56,24 @@ export default async function handler(req, res) {
     else if (action === 'generate' && !imageData) {
       const imagePrompt = prompt || 'pemandangan indah';
       if (modelType === 'gemini' && process.env.GEMINI_API_KEY) {
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+        const imagenResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${process.env.GEMINI_API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `Buat satu gambar dengan prompt berikut: ${imagePrompt}` }] }],
-            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+            instances: [{ prompt: imagePrompt }],
+            parameters: { sampleCount: 1 }
           })
         });
-        const geminiData = await geminiResponse.json();
-        const parts = geminiData.candidates?.[0]?.content?.parts || [];
-        const imagePart = parts.find((part) => part.inlineData?.mimeType?.startsWith('image/'));
-        const textPart = parts.find((part) => part.text);
-        if (!geminiResponse.ok || !imagePart?.inlineData?.data) {
-          return res.status(200).json({ success: false, content: `Gemini image error: ${geminiData.error?.message || 'Tidak bisa membuat gambar.'}` });
+        const imagenData = await imagenResponse.json();
+        const prediction = imagenData?.predictions?.[0] || {};
+        const imageBase64 = prediction?.bytesBase64Encoded || prediction?.image?.bytesBase64Encoded || '';
+        if (!imagenResponse.ok || !imageBase64) {
+          return res.status(200).json({ success: false, content: `Imagen error: ${imagenData.error?.message || 'Tidak bisa membuat gambar.'}` });
         }
-        const imageUrl = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+        const imageUrl = `data:image/png;base64,${imageBase64}`;
         return res.status(200).json({
           success: true,
-          content: textPart?.text || `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`,
+          content: `Gambar berhasil dibuat dengan Imagen untuk prompt: ${imagePrompt}`,
           imageUrl,
           action: 'generate'
         });
@@ -117,7 +116,7 @@ export default async function handler(req, res) {
     // ========== CHAT BIASA ==========
     else {
       requestBody = {
-        model: modelType === 'gemini' ? 'google/gemini-2.5-flash' : 'openai/gpt-4.1',
+        model: modelType === 'gemini' ? 'google/gemini-2.0-flash-001' : 'openai/gpt-4.1',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages.slice(-10)
