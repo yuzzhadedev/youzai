@@ -805,6 +805,15 @@ body {
     gap: 6px;
 }
 
+.source-inline-label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-left: 4px;
+}
+
 .source-chip img {
     width: 14px;
     height: 14px;
