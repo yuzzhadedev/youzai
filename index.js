@@ -5,9 +5,7 @@ export default function handler(req, res) {
     author: 'Yuzz Ofc',
     endpoints: {
       health: '/api/health',
-      openai: '/api/openai',
-      gemini: '/api/gemini',
-      vision: '/api/vision'
+      youz: '/api/youz'
     }
   });
 }
