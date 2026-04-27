@@ -1995,3 +1995,43 @@ body {
         font-size: 16px;
     }
 }
+
+.quota-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    background: var(--bg-input);
+}
+
+.quota-badge.premium {
+    color: #7c3aed;
+    border-color: #c4b5fd;
+    background: #f5f3ff;
+}
+
+.source-logo-stack {
+    display: inline-flex;
+    margin-right: 2px;
+}
+
+.source-logo-stack img {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid var(--bg-sidebar);
+    margin-right: -5px;
+}
+
+.source-item a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.source-item a img {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
