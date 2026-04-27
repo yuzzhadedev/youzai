@@ -1,3 +1,4 @@
+import { consumeQuota, resolveUserKey, getQuotaSnapshot } from './_db.js';
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -6,10 +7,22 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(200).json({ success: false, content: 'OpenRouter API Key tidak dikonfigurasi.' });
 
   const { messages, imageData, prompt, enableSearch, modelType = 'openai' } = req.body;
+  
+  const userContext = req.body?.userContext || {};
+  const userKey = resolveUserKey(req, userContext);
   const now = new Date();
   const currentTime = now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long' });
 
   try {
+
+    const quota = consumeQuota({ userKey, type: 'chat', amount: 1 });
+  if (!quota.success) {
+    return res.status(200).json({
+      success: false,
+      content: `Limit harian obrolan habis (${quota.limit}/hari). Upgrade Premium untuk 120 chat & 15 image/hari.`,
+      limit: { type: 'chat', ...quota, ...getQuotaSnapshot(userKey) }
+    });
+  }
     let requestBody;
     if (imageData) {
       requestBody = {
@@ -53,7 +66,7 @@ export default async function handler(req, res) {
       .filter((source) => source.url);
     let modelLabel = modelType === 'gemini' ? 'gemini' : 'chatgpt';
     if (enableSearch) modelLabel = 'web-search'; else if (imageData) modelLabel = 'vision';
-    return res.status(200).json({ success: true, content, model: modelLabel, sources });
+    return res.status(200).json({ success: true, content, model: modelLabel, sources, limit: getQuotaSnapshot(userKey) });
   } catch (error) {
     return res.status(200).json({ success: false, content: `Kesalahan server: ${error.message}` });
   }
