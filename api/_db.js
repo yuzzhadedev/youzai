@@ -1,43 +1,38 @@
-import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const dbPath = process.env.YOUZ_SQLITE_PATH || path.join(process.cwd(), 'data', 'youz.sqlite');
+const dbPath = process.env.YOUZ_DB_PATH || path.join(process.cwd(), 'data', 'youz-db.json');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-const db = globalThis.__youzSqliteDb || new DatabaseSync(dbPath);
 
-globalThis.__youzSqliteDb = db;
+function createDefaultStore() {
+  return {
+    usage_daily: {},
+    premium_users: {},
+    premium_requests: [],
+    chat_history: []
+  };
+}
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS usage_daily (
-    user_key TEXT NOT NULL,
-    usage_date TEXT NOT NULL,
-    chat_count INTEGER NOT NULL DEFAULT 0,
-    image_count INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (user_key, usage_date)
-  );
+function loadStore() {
+  try {
+    if (!fs.existsSync(dbPath)) {
+      const initial = createDefaultStore();
+      fs.writeFileSync(dbPath, JSON.stringify(initial, null, 2));
+      return initial;
+    }
+    const raw = fs.readFileSync(dbPath, 'utf8');
+    return { ...createDefaultStore(), ...(raw ? JSON.parse(raw) : {}) };
+  } catch {
+    return createDefaultStore();
+  }
+}
 
-  CREATE TABLE IF NOT EXISTS premium_users (
-    user_key TEXT PRIMARY KEY,
-    plan_name TEXT NOT NULL DEFAULT 'premium',
-    status TEXT NOT NULL DEFAULT 'active',
-    started_at TEXT NOT NULL,
-    expires_at TEXT NOT NULL,
-    confirmed_by TEXT,
-    updated_at TEXT NOT NULL
-  );
+let store = globalThis.__youzStore || loadStore();
+globalThis.__youzStore = store;
 
-  CREATE TABLE IF NOT EXISTS premium_requests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_key TEXT NOT NULL,
-    name TEXT,
-    email TEXT,
-    method TEXT NOT NULL,
-    notes TEXT,
-    status TEXT NOT NULL DEFAULT 'pending',
-    created_at TEXT NOT NULL
-  );
-`);
+function persistStore() {
+  fs.writeFileSync(dbPath, JSON.stringify(store, null, 2));
+}
 
 const PLAN_LIMITS = {
   free: { chat: 20, image: 3 },
@@ -46,6 +41,10 @@ const PLAN_LIMITS = {
 
 function isoDate() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function usageKey(userKey, date) {
+  return `${userKey}::${date}`;
 }
 
 export function resolveUserKey(req, userContext = {}) {
@@ -58,16 +57,16 @@ export function resolveUserKey(req, userContext = {}) {
 }
 
 export function getUserPlan(userKey) {
+  const row = store.premium_users[userKey];
+  if (!row) return 'free';
   const now = new Date().toISOString();
-  const row = db.prepare(
-    `SELECT plan_name FROM premium_users WHERE user_key = ? AND status = 'active' AND expires_at >= ? LIMIT 1`
-  ).get(userKey, now);
-  return row?.plan_name === 'premium' ? 'premium' : 'free';
+  if (row.status === 'active' && row.expires_at >= now) return row.plan_name === 'premium' ? 'premium' : 'free';
+  return 'free';
 }
 
 export function getUsage(userKey, date = isoDate()) {
-  const row = db.prepare(`SELECT chat_count, image_count FROM usage_daily WHERE user_key = ? AND usage_date = ?`).get(userKey, date);
-  return { chat: row?.chat_count || 0, image: row?.image_count || 0 };
+  const row = store.usage_daily[usageKey(userKey, date)] || { chat_count: 0, image_count: 0 };
+  return { chat: row.chat_count || 0, image: row.image_count || 0 };
 }
 
 export function consumeQuota({ userKey, type, amount = 1 }) {
@@ -80,17 +79,12 @@ export function consumeQuota({ userKey, type, amount = 1 }) {
     return { success: false, plan, usage, limit, remaining: Math.max(0, limit - current), usageDate };
   }
 
-  db.prepare(
-    `INSERT INTO usage_daily (user_key, usage_date, chat_count, image_count)
-      VALUES (?, ?, 0, 0)
-      ON CONFLICT(user_key, usage_date) DO NOTHING`
-  ).run(userKey, usageDate);
-
-  if (type === 'chat') {
-    db.prepare(`UPDATE usage_daily SET chat_count = chat_count + ? WHERE user_key = ? AND usage_date = ?`).run(amount, userKey, usageDate);
-  } else {
-    db.prepare(`UPDATE usage_daily SET image_count = image_count + ? WHERE user_key = ? AND usage_date = ?`).run(amount, userKey, usageDate);
-  }
+  const key = usageKey(userKey, usageDate);
+  const row = store.usage_daily[key] || { chat_count: 0, image_count: 0 };
+  if (type === 'chat') row.chat_count += amount;
+  else row.image_count += amount;
+  store.usage_daily[key] = row;
+  persistStore();
 
   const updated = getUsage(userKey, usageDate);
   return {
@@ -120,26 +114,52 @@ export function getQuotaSnapshot(userKey) {
   };
 }
 
+export function saveConversationTurn({ userKey, conversationId = '', model = 'unknown', action = 'chat', userMessage = '', assistantMessage = '' }) {
+  store.chat_history.push({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    user_key: userKey,
+    conversation_id: conversationId,
+    model,
+    action,
+    user_message: userMessage,
+    assistant_message: assistantMessage,
+    created_at: new Date().toISOString()
+  });
+  if (store.chat_history.length > 5000) {
+    store.chat_history = store.chat_history.slice(-5000);
+  }
+  persistStore();
+}
+
 export function createPremiumRequest({ userKey, name, email, method, notes }) {
   const normalizedMethod = ['qris', 'dana', 'gopay'].includes(method) ? method : 'qris';
   const createdAt = new Date().toISOString();
-  const result = db.prepare(
-    `INSERT INTO premium_requests (user_key, name, email, method, notes, status, created_at)
-     VALUES (?, ?, ?, ?, ?, 'pending', ?)`
-  ).run(userKey, name || '', email || '', normalizedMethod, notes || '', createdAt);
-  return { id: result.lastInsertRowid, status: 'pending', method: normalizedMethod, createdAt };
+  const row = {
+    id: store.premium_requests.length + 1,
+    user_key: userKey,
+    name: name || '',
+    email: email || '',
+    method: normalizedMethod,
+    notes: notes || '',
+    status: 'pending',
+    created_at: createdAt
+  };
+  store.premium_requests.push(row);
+  persistStore();
+  return { id: row.id, status: 'pending', method: normalizedMethod, createdAt };
 }
 
 export function confirmPremium({ userKey, months = 1, admin = 'admin' }) {
   const startedAt = new Date();
   const expiresAt = new Date(startedAt);
   expiresAt.setMonth(expiresAt.getMonth() + months);
-  const nowIso = new Date().toISOString();
-  db.prepare(
-    `INSERT INTO premium_users (user_key, plan_name, status, started_at, expires_at, confirmed_by, updated_at)
-     VALUES (?, 'premium', 'active', ?, ?, ?, ?)
-     ON CONFLICT(user_key) DO UPDATE SET
-      plan_name='premium', status='active', started_at=excluded.started_at,
-      expires_at=excluded.expires_at, confirmed_by=excluded.confirmed_by, updated_at=excluded.updated_at`
-  ).run(userKey, startedAt.toISOString(), expiresAt.toISOString(), admin, nowIso);
+  store.premium_users[userKey] = {
+    plan_name: 'premium',
+    status: 'active',
+    started_at: startedAt.toISOString(),
+    expires_at: expiresAt.toISOString(),
+    confirmed_by: admin,
+    updated_at: new Date().toISOString()
+  };
+  persistStore();
 }
