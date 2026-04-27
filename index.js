@@ -5,7 +5,7 @@ export default function handler(req, res) {
     author: 'Yuzz Ofc',
     endpoints: {
       health: '/api/health',
-      youz: '/api/youz'
+      youz: '/api/youz.js'
     }
   });
 }
