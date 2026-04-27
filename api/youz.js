@@ -1,3 +1,4 @@
+import { consumeQuota, resolveUserKey, getQuotaSnapshot } from './_db.js';
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -6,10 +7,20 @@ export default async function handler(req, res) {
   if (!apiKey) return res.status(200).json({ success: false, content: 'API Key tidak dikonfigurasi.' });
 
   const { messages, action, modelType, imageData, prompt } = req.body;
+  const userContext = req.body?.userContext || {};
+  const userKey = resolveUserKey(req, userContext);
   const now = new Date();
   const currentTime = now.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long' });
 
   try {
+    const quotaType = action === 'generate' ? 'image' : 'chat';
+    const quota = consumeQuota({ userKey, type: quotaType, amount: 1 });
+    if (!quota.success) {
+      const content = quotaType === 'image'
+        ? `Limit harian image generate habis (${quota.limit}/hari). Upgrade Premium untuk 15 image/hari.`
+        : `Limit harian obrolan habis (${quota.limit}/hari). Upgrade Premium untuk 120 chat/hari.`;
+      return res.status(200).json({ success: false, content, limit: { type: quotaType, ...quota, ...getQuotaSnapshot(userKey) } });
+    }
     let requestBody;
     let systemPrompt = `Kamu adalah Youz AI, asisten virtual buatan Yuzz Ofc. Waktu sekarang: ${currentTime}. Jawab dalam Bahasa Indonesia yang santai dan informatif.`;
 
@@ -75,7 +86,8 @@ export default async function handler(req, res) {
           success: true,
           content: `Gambar berhasil dibuat dengan Imagen untuk prompt: ${imagePrompt}`,
           imageUrl,
-          action: 'generate'
+          action: 'generate',
+          limit: getQuotaSnapshot(userKey)
         });
       }
 
@@ -109,7 +121,8 @@ export default async function handler(req, res) {
         success: true,
         content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`,
         imageUrl: `data:image/png;base64,${imageBase64}`,
-        action: 'generate'
+        action: 'generate',
+        limit: getQuotaSnapshot(userKey)
       });
     } 
     
@@ -155,7 +168,7 @@ export default async function handler(req, res) {
     }
 
     const content = data.choices?.[0]?.message?.content || 'Tidak ada respons.';
-    return res.status(200).json({ success: true, content, action });
+    return res.status(200).json({ success: true, content, action, limit: getQuotaSnapshot(userKey) });
 
   } catch (error) {
     return res.status(200).json({ success: false, content: `Kesalahan: ${error.message}` });
