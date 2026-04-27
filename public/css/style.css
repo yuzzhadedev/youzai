@@ -1137,6 +1137,69 @@ body {
     background: var(--bg-sidebar);
     border-top: 1px solid var(--border);
     flex-shrink: 0;
+    position: relative;
+}
+
+.composer-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.model-select {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 12px;
+    padding: 8px 12px;
+    min-width: 170px;
+}
+
+.tools-btn {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.tools-menu {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: calc(100% + 8px);
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    padding: 8px;
+    z-index: 30;
+}
+
+.tool-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 10px;
+    padding: 8px;
+    color: var(--text-primary);
+}
+
+.tool-item:hover {
+    background: var(--bg-input);
+}
+
+.tool-item span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
 }
 
 .search-input-container {
@@ -1878,6 +1941,12 @@ body {
     .chat-input-area {
         padding: 6px 10px 8px;
         padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+
+    .model-select,
+    .tools-btn {
+        font-size: 11px;
+        padding: 7px 10px;
     }
     
     .input-container {
