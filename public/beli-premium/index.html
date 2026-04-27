@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beli Premium - Youz AI</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="padding:24px;max-width:680px;margin:auto;">
+  <h1>Youz AI Premium</h1>
+  <p><strong>Harga:</strong> Rp10.000 / bulan</p>
+  <ul>
+    <li>Chat terenkripsi</li>
+    <li>Limit obrolan 120/hari</li>
+    <li>Image generate 15/hari</li>
+    <li>Unlock model AI lanjutan (dalam pengembangan)</li>
+    <li>AI fast</li>
+  </ul>
+
+  <h3>Metode pembayaran (manual konfirmasi admin)</h3>
+  <p>QRIS, DANA, GoPay</p>
+
+  <form id="premiumForm" style="display:grid;gap:10px;">
+    <select id="method">
+      <option value="qris">QRIS</option>
+      <option value="dana">DANA</option>
+      <option value="gopay">GoPay</option>
+    </select>
+    <textarea id="notes" placeholder="Catatan pembayaran (opsional)"></textarea>
+    <button type="submit">Kirim Permintaan Premium</button>
+  </form>
+  <p id="result"></p>
+
+  <script>
+    const form = document.getElementById('premiumForm');
+    const result = document.getElementById('result');
+    const user = JSON.parse(localStorage.getItem('youz_user') || 'null');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const method = document.getElementById('method').value;
+      const notes = document.getElementById('notes').value;
+      const res = await fetch('/api/premium', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userContext: user || {}, method, notes })
+      });
+      const data = await res.json();
+      result.textContent = data.content || 'Permintaan dikirim.';
+    });
+  </script>
+</body>
+</html>
