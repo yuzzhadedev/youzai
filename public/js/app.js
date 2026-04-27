@@ -13,6 +13,7 @@ let webSearchEnabled = true;
 let generateImageEnabled = true;
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
+let quotaState = null;
 
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
@@ -42,6 +43,7 @@ const currentTimeSpan = document.getElementById('currentTime');
 const searchSuggestions = document.getElementById('searchSuggestions');
 const modelOptionBtns = document.querySelectorAll('.model-option-btn');
 const modelIndicator = document.getElementById('modelIndicator');
+const quotaBadge = document.getElementById('quotaBadge');
 const scrollBottomBtn = document.getElementById('scrollBottomBtn');
 // ========== FITUR BARU: DOM ELEMENTS TAMBAHAN ==========
 const imageDraftContainer = document.getElementById('imageDraftContainer');
@@ -236,7 +238,7 @@ function openSourcesSheet(sources = [], focusIndex = 0) {
         ? '<p>Tidak ada sumber.</p>'
         : sources.map((source) => `
             <div class="source-item">
-                <a href="${source.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(source.title || source.url)}</a>
+                <a href="${source.url}" target="_blank" rel="noopener noreferrer"><img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">${escapeHtml(source.title || source.url)}</a>
                 <p>${escapeHtml(source.snippet || source.url)}</p>
             </div>
         `).join('');
@@ -388,17 +390,6 @@ function createMessageElement(msg, index) {
             <div class="message-content" id="msg-content-${index}">
                 ${content}
             </div>
-            ${!isUser && msg.sources?.length ? `
-                <div class="message-citations-inline">
-                    ${(msg.sources || []).slice(0, 6).map((source, sourceIndex) => `
-                        <button class="source-chip" type="button" data-source-index="${sourceIndex}" title="${escapeHtml(source.title || source.url || 'Sumber')}">
-                            <img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">
-                            <span>${escapeHtml(source.title || source.url || `Sumber ${sourceIndex + 1}`)}</span>
-                        </button>
-                    `).join('')}
-                    <span class="source-inline-label">Sumber</span>
-                </div>
-            ` : ''}
             ${!isUser && !msg.isError ? `
                 <div class="message-actions">
                     <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content || '')}" title="Salin" ${msg.isComplete === false ? 'disabled' : ''}>
@@ -417,6 +408,11 @@ function createMessageElement(msg, index) {
                         <i class="fas fa-redo-alt"></i>
                         <span>Ulang</span>
                     </button>
+                    ${msg.sources?.length ? `
+                    <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
+                        <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
+                        <span>Sumber</span>
+                    </button>` : ''}
                     ${feedbackIndicator}
                 </div>
             ` : ''}
@@ -435,6 +431,8 @@ function createMessageElement(msg, index) {
         
         const regenerateBtn = messageDiv.querySelector('.regenerate-btn');
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
+        const sourcesBtn = messageDiv.querySelector('.sources-btn');
+        if (sourcesBtn) sourcesBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0));
         
         messageDiv.querySelectorAll('.source-chip').forEach(chip => {
             chip.addEventListener('click', () => {
@@ -671,12 +669,42 @@ settingsModelBtns.forEach(btn => {
     btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
 });
 
+
+function getUserContext() {
+    return {
+        id: currentUser?.id || '',
+        email: currentUser?.email || '',
+        name: currentUser?.name || ''
+    };
+}
+
+function updateQuotaBadge(snapshot = null) {
+    if (!quotaBadge) return;
+    if (snapshot) quotaState = snapshot;
+    const plan = quotaState?.plan || 'free';
+    const usage = quotaState?.usage || { chat: 0, image: 0 };
+    const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
+    quotaBadge.textContent = `${plan === 'premium' ? 'Premium' : 'Free'} ${usage.chat}/${limits.chat} · Img ${usage.image}/${limits.image}`;
+    quotaBadge.classList.toggle('premium', plan === 'premium');
+}
+
+async function loadQuotaSnapshot() {
+    try {
+        const params = new URLSearchParams(getUserContext());
+        const res = await fetch(`/api/limits?${params.toString()}`);
+        const data = await res.json();
+        if (data?.success) updateQuotaBadge(data);
+    } catch (error) {
+        console.warn('Quota snapshot gagal dimuat', error?.message || error);
+    }
+}
+
 // ========== API CALLS ==========
 async function callOpenRouter(messages, enableSearch = false, modelType = 'openai', signal) {
     const res = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, enableSearch, modelType }),
+        body: JSON.stringify({ messages, enableSearch, modelType, userContext: getUserContext() }),
         signal
     });
     return await res.json();
@@ -686,7 +714,7 @@ async function callOpenRouterVision(imageData, prompt) {
     const res = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageData, prompt })
+        body: JSON.stringify({ imageData, prompt, userContext: getUserContext() })
     });
     return await res.json();
 }
@@ -695,7 +723,7 @@ async function callGeminiAPI(messages, signal) {
     const res = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages, userContext: getUserContext() }),
         signal
     });
     return await res.json();
@@ -711,7 +739,8 @@ async function callAPIWithAction(messages, action, imageData, prompt, signal) {
             action,
             modelType, 
             imageData, 
-            prompt
+            prompt,
+            userContext: getUserContext()
         }),
         signal 
     });
@@ -888,6 +917,8 @@ async function sendMessage(options = {}) {
         }
         
         document.getElementById(loadingId)?.remove();
+
+        if (response.limit) updateQuotaBadge(response.limit);
         
         const aiMessage = {
             id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
@@ -1356,6 +1387,7 @@ document.addEventListener('keydown', (e) => {
 async function init() {
     checkUserFromURL();
     await syncUserFromServer();
+    await loadQuotaSnapshot();
     loadFromStorage();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     generateImageEnabled = localStorage.getItem('youz_image_generate_enabled') !== '0';
