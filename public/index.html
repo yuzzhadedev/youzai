@@ -173,12 +173,36 @@
             </div>
 
             <div class="chat-input-area">
+                <div class="composer-toolbar">
+                    <select id="modelSelect" class="model-select" aria-label="Pilih model AI">
+                        <option value="gpt4o">OpenRouter · GPT</option>
+                        <option value="gemini">Gemini 2.0 Flash</option>
+                        <option value="claude">Claude Sonnet 4.5</option>
+                    </select>
+                    <button class="tools-btn" id="toolsBtn" type="button" aria-label="Buka alat">
+                        <i class="fas fa-sliders-h"></i> Alat
+                    </button>
+                </div>
+                <div class="tools-menu hidden" id="toolsMenu">
+                    <label class="tool-item">
+                        <input type="checkbox" id="toolWebSearch" checked>
+                        <span><i class="fas fa-globe"></i> Search web mode</span>
+                        </label>
+                    <label class="tool-item">
+                        <input type="checkbox" id="toolThinking" checked>
+                        <span><i class="fas fa-brain"></i> Thinking mode</span>
+                    </label>
+                    <label class="tool-item">
+                        <input type="checkbox" id="toolImageGenerate" checked>
+                        <span><i class="fas fa-image"></i> Image generate</span>
+                    </label>
+                </div>
                 <div class="search-input-container">
                     <div class="input-container">
-                        <button class="attach-btn" id="attachBtn" type="button" title="Upload Gambar" aria-label="Upload gambar">
-                            <i class="fas fa-image"></i>
-                        </button>
                         <textarea id="messageInput" placeholder="Message YouzAi..." rows="1" autofocus></textarea>
+                        <button class="attach-btn" id="attachBtn" type="button" title="Kirim Foto" aria-label="Kirim foto">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
                         <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
                             <i class="fas fa-arrow-up"></i>
                         </button>
@@ -209,6 +233,7 @@
 
                 <div class="feature-hint" id="featureHint">
                     <span class="hint-item"><i class="fas fa-globe"></i> Search</span>
+                    <span class="hint-item"><i class="fas fa-brain"></i> Thinking</span>
                     <span class="hint-item"><i class="fas fa-paint-brush"></i> Generate</span>
                     <span class="hint-item"><i class="fas fa-edit"></i> Edit</span>
                 </div>
@@ -259,6 +284,13 @@
                             <div class="settings-model-info">
                                 <span class="settings-model-name">Gemini 2.0 Flash</span>
                                 <span class="settings-model-desc">Google · Reasoning Canggih</span>
+                            </div>
+                        </button>
+                        <button class="settings-model-btn" data-model="claude" type="button">
+                            <i class="fas fa-feather-pointed"></i>
+                            <div class="settings-model-info">
+                                <span class="settings-model-name">Claude Sonnet 4.5</span>
+                                <span class="settings-model-desc">Runeria · Fast Reasoning</span>
                             </div>
                         </button>
                     </div>
