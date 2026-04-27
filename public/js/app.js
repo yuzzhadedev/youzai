@@ -11,6 +11,7 @@ let typingAbortRequested = false;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
 let generateImageEnabled = true;
+let thinkingModeEnabled = true;
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
 let quotaState = null;
@@ -26,6 +27,12 @@ const chatTitle = document.getElementById('chatTitle');
 const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
 const attachBtn = document.getElementById('attachBtn');
+const modelSelect = document.getElementById('modelSelect');
+const toolsBtn = document.getElementById('toolsBtn');
+const toolsMenu = document.getElementById('toolsMenu');
+const toolWebSearch = document.getElementById('toolWebSearch');
+const toolThinking = document.getElementById('toolThinking');
+const toolImageGenerate = document.getElementById('toolImageGenerate');
 const imageInput = document.getElementById('imageInput');
 const newChatBtn = document.getElementById('newChatBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
@@ -41,7 +48,6 @@ const userProfileBtn = document.getElementById('userProfileBtn');
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 const currentTimeSpan = document.getElementById('currentTime');
 const searchSuggestions = document.getElementById('searchSuggestions');
-const modelOptionBtns = document.querySelectorAll('.model-option-btn');
 const modelIndicator = document.getElementById('modelIndicator');
 const quotaBadge = document.getElementById('quotaBadge');
 const scrollBottomBtn = document.getElementById('scrollBottomBtn');
@@ -638,27 +644,21 @@ function updateModelIndicator() {
         'openrouter': '<i class="fas fa-robot"></i> <span>OpenRouter</span>',
         'gpt4o': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>ChatGPT</span>',
         'openai': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>OpenAI</span>',
-        'gemini': '<img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini"><span>Gemini</span>'
+        'gemini': '<img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini"><span>Gemini</span>',
+        'claude': '<i class="fas fa-feather-pointed"></i><span>Claude</span>'
     };
     if (modelIndicator) {
         modelIndicator.innerHTML = indicators[activeModel] || indicators['gpt4o'];
     }
 }
 
-modelOptionBtns.forEach(btn => {
-    btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
-});
-
 function setActiveModel(model, persist = true) {
-    const normalizedModel = ['gpt4o', 'gemini'].includes(model) ? model : 'gpt4o';
+    const normalizedModel = ['gpt4o', 'gemini', 'claude'].includes(model) ? model : 'gpt4o';
     activeModel = normalizedModel;
-    modelOptionBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.model === activeModel);
-});
-
-settingsModelBtns.forEach(btn => {
+    settingsModelBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
     });
+    if (modelSelect) modelSelect.value = activeModel;
     updateModelIndicator();
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
@@ -668,6 +668,7 @@ settingsModelBtns.forEach(btn => {
 settingsModelBtns.forEach(btn => {
     btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
 });
+modelSelect?.addEventListener('change', (e) => setActiveModel(e.target.value));
 
 
 function getUserContext() {
@@ -700,43 +701,16 @@ async function loadQuotaSnapshot() {
 }
 
 // ========== API CALLS ==========
-async function callOpenRouter(messages, enableSearch = false, modelType = 'openai', signal) {
-    const res = await fetch('/api/openai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, enableSearch, modelType, userContext: getUserContext() }),
-        signal
-    });
-    return await res.json();
-}
-
-async function callOpenRouterVision(imageData, prompt) {
-    const res = await fetch('/api/openai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageData, prompt, userContext: getUserContext() })
-    });
-    return await res.json();
-}
-
-async function callGeminiAPI(messages, signal) {
-    const res = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages, userContext: getUserContext() }),
-        signal
-    });
-    return await res.json();
-}
-
-async function callAPIWithAction(messages, action, imageData, prompt, signal) {
-    const modelType = activeModel === 'gemini' ? 'gemini' : 'openai';
+async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, signal) {
+    const modelType = ['gpt4o', 'openai'].includes(activeModel) ? 'openai' : activeModel;
     const res = await fetch('/api/youz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             messages, 
             action,
+            enableSearch,
+            thinkingMode: thinkingModeEnabled,
             modelType, 
             imageData, 
             prompt,
@@ -905,16 +879,15 @@ async function sendMessage(options = {}) {
         const enableSearch = webSearchEnabled && needSearch;
         const generateImageRequest = generateImageEnabled && (!userMessage.image && shouldGenerateImageFromPrompt(text));
         
-        let response;
-        if (userMessage.image) {
-            response = await callAPIWithAction(messages, 'generate', userMessage.image, text || 'Deskripsikan atau edit gambar ini.', abortController.signal);
-        } else if (generateImageRequest) {
-            response = await callAPIWithAction(messages, 'generate', null, text, abortController.signal);
-        } else if (activeModel === 'gemini' && !enableSearch) {
-            response = await callGeminiAPI(messages, abortController.signal);
-        } else {
-            response = await callOpenRouter(messages, enableSearch, activeModel === 'gemini' ? 'gemini' : 'openai', abortController.signal);
-        }
+        const action = (userMessage.image || generateImageRequest) ? 'generate' : (enableSearch ? 'search' : 'chat');
+        const response = await callUnifiedAPI(
+            messages,
+            action,
+            userMessage.image || null,
+            text || 'Deskripsikan atau edit gambar ini.',
+            enableSearch,
+            abortController.signal
+        );
         
         document.getElementById(loadingId)?.remove();
 
@@ -924,7 +897,7 @@ async function sendMessage(options = {}) {
             id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
             role: 'assistant',
             content: '',
-            model: (generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : (activeModel === 'gemini' ? 'gemini' : 'chatgpt')),
+            model: response.model || ((generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : activeModel)),
             isError: !response.success,
             feedback: null,
             sources: mergeSources(response.sources || [], extractSourcesFromText(response.content || '')),
@@ -1176,6 +1149,28 @@ attachBtn?.addEventListener('click', () => {
     imageInput.click();
 });
 
+toolsBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toolsMenu?.classList.toggle('hidden');
+});
+
+toolWebSearch?.addEventListener('change', (e) => {
+    webSearchEnabled = e.target.checked;
+    if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
+    localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
+});
+
+toolThinking?.addEventListener('change', (e) => {
+    thinkingModeEnabled = e.target.checked;
+    localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
+});
+
+toolImageGenerate?.addEventListener('change', (e) => {
+    generateImageEnabled = e.target.checked;
+    if (generateImageToggle) generateImageToggle.checked = generateImageEnabled;
+    localStorage.setItem('youz_image_generate_enabled', generateImageEnabled ? '1' : '0');
+});
+
 imageInput?.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -1265,11 +1260,13 @@ languageSelect?.addEventListener('change', (e) => {
 
 webSearchToggle?.addEventListener('change', (e) => {
     webSearchEnabled = e.target.checked;
+    if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
 });
 
 generateImageToggle?.addEventListener('change', (e) => {
     generateImageEnabled = e.target.checked;
+    if (toolImageGenerate) toolImageGenerate.checked = generateImageEnabled;
     localStorage.setItem('youz_image_generate_enabled', generateImageEnabled ? '1' : '0');
 });
 
@@ -1364,6 +1361,9 @@ document.addEventListener('click', (e) => {
     if (userMenuDropdown && !userMenuDropdown.contains(e.target) && e.target !== userMenuBtn) {
         toggleUserMenu(false);
     }
+    if (toolsMenu && toolsBtn && !toolsMenu.contains(e.target) && !toolsBtn.contains(e.target)) {
+        toolsMenu.classList.add('hidden');
+    }
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && !sidebar.classList.contains('closed')) {
             sidebar.classList.add('closed');
@@ -1391,9 +1391,13 @@ async function init() {
     loadFromStorage();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     generateImageEnabled = localStorage.getItem('youz_image_generate_enabled') !== '0';
+    thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
     setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
     if (generateImageToggle) generateImageToggle.checked = generateImageEnabled;
+    if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
+    if (toolImageGenerate) toolImageGenerate.checked = generateImageEnabled;
+    if (toolThinking) toolThinking.checked = thinkingModeEnabled;
     setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     activeConversationId = conversations[0]?.id;
     renderSidebar();
