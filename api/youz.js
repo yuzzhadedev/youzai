@@ -117,12 +117,12 @@ export default async function handler(req, res) {
 
   try {
     const quotaType = action === 'generate' ? 'image' : 'chat';
-    const quota = consumeQuota({ userKey, type: quotaType, amount: 1 });
+    const quota = await consumeQuota({ userKey, type: quotaType, amount: 1 });
     if (!quota.success) {
       const content = quotaType === 'image'
         ? `Limit harian image generate habis (${quota.limit}/hari). Upgrade Premium untuk 15 image/hari.`
         : `Limit harian obrolan habis (${quota.limit}/hari). Upgrade Premium untuk 120 chat/hari.`;
-      return res.status(200).json({ success: false, content, limit: { type: quotaType, ...quota, ...getQuotaSnapshot(userKey) } });
+      return res.status(200).json({ success: false, content, limit: { type: quotaType, ...quota, ...(await getQuotaSnapshot(userKey)) } });
     }
 
     if (action === 'generate' && !imageData) {
@@ -138,7 +138,7 @@ export default async function handler(req, res) {
         if (!imagenResponse.ok || !imageBase64) {
           return res.status(200).json({ success: false, content: `Imagen error: ${imagenData.error?.message || 'Tidak bisa membuat gambar.'}` });
         }
-        return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: getQuotaSnapshot(userKey) });
+        return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: await getQuotaSnapshot(userKey) });
       }
 
       if (!process.env.OPENAI_API_KEY) {
@@ -158,7 +158,7 @@ export default async function handler(req, res) {
       if (!openaiResponse.ok || !imageBase64) {
         return res.status(200).json({ success: false, content: `OpenAI image error: ${openaiData.error?.message || 'Gagal generate gambar.'}` });
       }
-      return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: getQuotaSnapshot(userKey) });
+      return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: await getQuotaSnapshot(userKey) });
     }
 
     const systemPrompt = buildSystemPrompt(thinkingMode);
@@ -201,7 +201,7 @@ export default async function handler(req, res) {
       model: action === 'generate' ? 'vision' : (action === 'search' ? 'web-search' : modelType),
       sources: providerResponse.sources || [],
       action,
-      limit: getQuotaSnapshot(userKey)
+      limit: await getQuotaSnapshot(userKey)
     });
   } catch (error) {
     return res.status(200).json({ success: false, content: `Kesalahan server: ${error.message}` });
