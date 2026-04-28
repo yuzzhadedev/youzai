@@ -45,6 +45,7 @@ const userMenuBtn = document.getElementById('userMenuBtn');
 const userMenuDropdown = document.getElementById('userMenuDropdown');
 const userSettingsBtn = document.getElementById('userSettingsBtn');
 const userProfileBtn = document.getElementById('userProfileBtn');
+const userPremiumBtn = document.getElementById('userPremiumBtn');
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 const currentTimeSpan = document.getElementById('currentTime');
 const searchSuggestions = document.getElementById('searchSuggestions');
@@ -234,7 +235,10 @@ function setProcessingUI(processing) {
     sendBtn.classList.toggle('stop', processing);
     sendBtn.title = processing ? 'Stop' : 'Kirim';
     sendBtn.setAttribute('aria-label', processing ? 'Stop' : 'Kirim');
-    sendBtn.innerHTML = processing ? '<i class="fas fa-stop"></i>' : '<i class="fas fa-arrow-up"></i>';
+    const sendText = currentLanguage === 'en' ? 'Send Message' : 'Kirim Pesan';
+    sendBtn.innerHTML = processing
+        ? '<i class="fas fa-stop"></i> <span>Stop</span>'
+        : `<i class="fas fa-arrow-up"></i> <span id="sendBtnText">${sendText}</span>`;
 }
 
 function openSourcesSheet(sources = [], focusIndex = 0) {
@@ -282,14 +286,49 @@ function renderSidebar() {
         conversationList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:14px;">Belum ada percakapan</div>';
         return;
     }
-    
-    conversationList.innerHTML = conversations.map(conv => `
-        <li class="conv-item ${conv.id === activeConversationId ? 'active' : ''}" data-id="${conv.id}">
-            <i class="far fa-comment"></i>
-            <span class="conv-title">${escapeHtml(conv.title || 'Percakapan Baru')}</span>
-            <i class="far fa-trash-alt delete-conv" data-id="${conv.id}"></i>
-        </li>
-    `).join('');
+
+    const now = new Date();
+    const grouped = {
+        today: [],
+        yesterday: [],
+        sevenDays: [],
+        thirtyDays: []
+    };
+
+    conversations.forEach((conv) => {
+        const sourceDate = conv.updatedAt || conv.createdAt;
+        const convDate = sourceDate ? new Date(sourceDate) : now;
+        const diff = Math.floor((now - convDate) / (1000 * 60 * 60 * 24));
+        if (diff <= 0) grouped.today.push(conv);
+        else if (diff === 1) grouped.yesterday.push(conv);
+        else if (diff <= 7) grouped.sevenDays.push(conv);
+        else if (diff <= 30) grouped.thirtyDays.push(conv);
+    });
+
+    const i18n = currentLanguage === 'en'
+        ? { today: 'Today', yesterday: 'Yesterday', sevenDays: 'Previous 7 days', thirtyDays: 'Previous 30 days' }
+        : { today: 'Hari ini', yesterday: 'Kemarin', sevenDays: '7 hari terakhir', thirtyDays: '30 hari terakhir' };
+
+    const groupHtml = (title, items) => {
+        if (!items.length) return '';
+        return `
+            <li class="history-group">${title}</li>
+            ${items.map(conv => `
+                <li class="conv-item ${conv.id === activeConversationId ? 'active' : ''}" data-id="${conv.id}">
+                    <i class="far fa-comment"></i>
+                    <span class="conv-title">${escapeHtml(conv.title || 'Percakapan Baru')}</span>
+                    <i class="far fa-trash-alt delete-conv" data-id="${conv.id}"></i>
+                </li>
+            `).join('')}
+            `;
+    };
+
+    conversationList.innerHTML = [
+        groupHtml(i18n.today, grouped.today),
+        groupHtml(i18n.yesterday, grouped.yesterday),
+        groupHtml(i18n.sevenDays, grouped.sevenDays),
+        groupHtml(i18n.thirtyDays, grouped.thirtyDays)
+    ].join('');
     
     document.querySelectorAll('.conv-item').forEach(item => {
         item.addEventListener('click', (e) => {
@@ -970,6 +1009,8 @@ async function handleImageUpload(file) {
 // ========== LANGUAGE ==========
 const translations = {
     id: {
+        newChat: 'Percakapan Baru',
+        history: 'Riwayat Percakapan',
         settings: 'Pengaturan',
         general: 'Umum',
         profile: 'Profil',
@@ -986,9 +1027,17 @@ const translations = {
         dataManagement: 'Manajemen Data',
         clearAll: 'Hapus Semua Percakapan',
         exportData: 'Ekspor Data',
-        messagePlaceholder: 'Message Youz AI...'
+        messagePlaceholder: 'Send Message YouzAi...',
+        sendMessage: 'Kirim Pesan',
+        tools: 'Alat',
+        getPremium: 'Get Premium',
+        about: 'Tentang Youz AI',
+        loginPrompt: 'Masuk / Daftar',
+        loginNote: 'Login untuk sinkronisasi profil & riwayat.'
     },
     en: {
+        newChat: 'New Chat',
+        history: 'Chat History',
         settings: 'Settings',
         general: 'General',
         profile: 'Profile',
@@ -1005,7 +1054,13 @@ const translations = {
         dataManagement: 'Data Management',
         clearAll: 'Clear All Conversations',
         exportData: 'Export Data',
-        messagePlaceholder: 'Message Youz AI...'
+        messagePlaceholder: 'Send Message YouzAi...',
+        sendMessage: 'Send Message',
+        tools: 'Tools',
+        getPremium: 'Get Premium',
+        about: 'About Youz AI',
+        loginPrompt: 'Sign in / Register',
+        loginNote: 'Sign in to sync profile & history.'
     }
 };
 
@@ -1062,9 +1117,35 @@ function applyLanguage(lang) {
     
     const exportBtn = document.getElementById('exportDataBtn');
     if (exportBtn) exportBtn.innerHTML = `<i class="fas fa-download"></i> ${t.exportData}`;
+
+    const newChatLabel = document.querySelector('#newChatBtn');
+    if (newChatLabel) newChatLabel.innerHTML = `<i class="fas fa-plus"></i> ${t.newChat}`;
+
+    const historyLabel = document.getElementById('historyLabel');
+    if (historyLabel) historyLabel.textContent = t.history;
+
+    const sendBtnText = document.getElementById('sendBtnText');
+    if (sendBtnText) sendBtnText.textContent = t.sendMessage;
+
+    if (toolsBtn) toolsBtn.innerHTML = `<i class="fas fa-sliders-h"></i> ${t.tools}`;
+
+    const toolsMenuTitle = document.querySelector('.tools-menu-title');
+    if (toolsMenuTitle) toolsMenuTitle.textContent = t.tools;
+
+    if (userPremiumBtn) userPremiumBtn.innerHTML = `<i class="fas fa-crown"></i> ${t.getPremium}`;
+
+    const aboutMenu = document.getElementById('aboutBtn');
+    if (aboutMenu) aboutMenu.innerHTML = `<i class="fas fa-info-circle"></i> ${t.about}`;
+
+    const loginBtn = document.querySelector('.sidebar-auth-link.cta');
+    if (loginBtn) loginBtn.innerHTML = `<i class="fas fa-right-to-bracket"></i> ${t.loginPrompt}`;
+
+    const loginNote = document.querySelector('.sidebar-auth-note');
+    if (loginNote) loginNote.textContent = t.loginNote;
     
     localStorage.setItem('youz_language', lang);
     currentLanguage = lang;
+    renderSidebar();
 }
 
 // ========== SEARCH SUGGESTIONS ==========
@@ -1328,6 +1409,12 @@ userSettingsBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     openSettings('general');
     toggleUserMenu(false);
+});
+
+userPremiumBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    toggleUserMenu(false);
+    window.location.href = '/beli-premium';
 });
 
 userMenuBtn?.addEventListener('click', (e) => {
