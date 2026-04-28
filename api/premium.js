@@ -1,6 +1,6 @@
 import { createPremiumRequest, resolveUserKey, confirmPremium, getQuotaSnapshot } from '../lib/db.js';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'GET') {
@@ -16,7 +16,7 @@ export default function handler(req, res) {
         'Unlock model AI lanjutan (dalam pengembangan)',
         'AI fast'
       ],
-      ...getQuotaSnapshot(userKey)
+      ...(await getQuotaSnapshot(userKey))
     });
   }
 
@@ -29,12 +29,12 @@ export default function handler(req, res) {
       }
       const userKey = String(req.body?.targetUserKey || '').trim();
       if (!userKey) return res.status(400).json({ success: false, content: 'targetUserKey wajib diisi.' });
-      confirmPremium({ userKey, months: Number(req.body?.months) || 1, admin: 'manual-admin' });
+      await confirmPremium({ userKey, months: Number(req.body?.months) || 1, admin: 'manual-admin' });
       return res.status(200).json({ success: true, content: 'Premium berhasil diaktifkan.' });
     }
 
     const userKey = resolveUserKey(req, userContext);
-    const request = createPremiumRequest({
+    const request = await createPremiumRequest({
       userKey,
       name: userContext?.name || '',
       email: userContext?.email || '',
