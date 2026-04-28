@@ -1,4 +1,4 @@
-import { consumeQuota, resolveUserKey, getQuotaSnapshot } from './_db.js';
+import { consumeQuota, resolveUserKey, getQuotaSnapshot } from '../lib/db.js';
 
 const MODEL_MAP = {
   openai: 'openai/gpt-4.1',
