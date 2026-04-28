@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beli Premium - Youz AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0f0e0d;
+      --paper: #faf8f5;
+      --cream: #f3ede5;
+      --gold: #b8973a;
+      --gold-pale: #f5eddb;
+      --muted: #7a7060;
+      --border: #ddd5c8;
+      --white: #ffffff;
+      --danger: #c0392b;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 48px 20px 60px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(184,151,58,0.07) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath d='M0 0h1v1H0z' fill='%23b8973a' fill-opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    .card {
+      position: relative; z-index: 1;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      width: 100%; max-width: 540px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.07),
+                  0 0 0 5px var(--paper), 0 0 0 6px var(--border);
+      overflow: hidden;
+      animation: rise .6s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes rise { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    /* HEADER */
+    .card-header {
+      background: var(--ink);
+      padding: 28px 36px 26px;
+      position: relative; overflow: hidden;
+    }
+    .card-header::after {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(184,151,58,.15) 0%, transparent 70%);
+    }
+    .logo-row { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
+    .logo-img { width: 34px; height: 34px; object-fit: contain; border-radius: 8px; }
+    .brand-name { font-family: 'DM Serif Display', serif; font-size: 19px; color: var(--white); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--gold); color: var(--white);
+      font-size: 9.5px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 2px; margin-bottom: 18px;
+    }
+    .badge::before { content: '◆'; font-size: 6px; }
+    .price-label { font-size: 10.5px; color: rgba(255,255,255,.4); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+    .price-value { font-family: 'DM Serif Display', serif; font-size: 38px; color: var(--white); line-height: 1; }
+    .price-period { font-size: 12.5px; color: rgba(255,255,255,.4); margin-top: 5px; }
+
+    /* BODY */
+    .card-body { padding: 30px 36px 36px; }
+
+    .section-label {
+      font-size: 9.5px; font-weight: 600; letter-spacing: .13em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 13px; display: block;
+    }
+
+    .features { list-style: none; display: flex; flex-direction: column; gap: 9px; margin-bottom: 26px; }
+    .features li { display: flex; align-items: flex-start; gap: 11px; font-size: 13.5px; color: var(--ink); line-height: 1.5; }
+    .check {
+      width: 17px; height: 17px; flex-shrink: 0; margin-top: 1px;
+      background: var(--gold); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .check svg { width: 10px; height: 10px; }
+
+    .divider { height: 1px; background: linear-gradient(90deg, var(--border) 60%, transparent); margin: 22px 0; }
+
+    /* STEP ROW */
+    .step-row { display: flex; align-items: center; gap: 10px; margin-bottom: 13px; }
+    .step-num {
+      width: 22px; height: 22px; border-radius: 50%; background: var(--ink);
+      color: var(--white); font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .step-text { font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+    /* METHOD CHIPS */
+    .method-chips { display: flex; gap: 10px; margin-bottom: 22px; }
+    .method-chip {
+      flex: 1; padding: 14px 8px 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      background: var(--paper); cursor: pointer;
+      text-align: center; user-select: none;
+      transition: all .2s;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .method-chip:hover { border-color: var(--gold); background: var(--gold-pale); }
+    .method-chip.active {
+      border-color: var(--gold); background: var(--gold-pale);
+      box-shadow: 0 0 0 3px rgba(184,151,58,.15);
+    }
+    .chip-logo-wrap { height: 28px; display: flex; align-items: center; justify-content: center; }
+    .chip-label { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+    .method-chip.active .chip-label { color: var(--gold); }
+
+    /* PAYMENT INFO BOX */
+    .payment-info-box {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 20px 16px;
+      margin-bottom: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeIn .25s ease;
+    }
+    .payment-info-box.visible { display: flex; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .info-title { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+    /* QR */
+    .qr-center { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .qr-frame {
+      width: 190px; height: 190px;
+      background: white; border: 1px solid var(--border);
+      border-radius: 6px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-frame img { width: 100%; height: 100%; object-fit: contain; }
+    .qr-caption { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.6; }
+
+    /* Account card */
+    .account-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .acc-logo-wrap { flex-shrink: 0; }
+    .acc-detail { flex: 1; min-width: 0; }
+    .acc-number { font-size: 17px; font-weight: 600; letter-spacing: .04em; color: var(--ink); }
+    .acc-name { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 7px 13px;
+      background: var(--ink); color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px; font-weight: 600;
+      border: none; border-radius: 4px; cursor: pointer;
+      transition: all .2s;
+    }
+    .copy-btn:hover { background: #2a2826; }
+    .copy-btn.copied { background: #2a6e2a; }
+
+    .payment-screenshot {
+      width: 100%; border-radius: 6px;
+      border: 1px solid var(--border);
+      object-fit: cover; display: block;
+    }
+
+    /* UPLOAD */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 8px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      background: var(--paper);
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--gold);
+      background: var(--gold-pale);
+    }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+    .upload-text { font-size: 13.5px; color: var(--ink); margin-bottom: 4px; }
+    .upload-text strong { color: var(--gold); }
+    .upload-sub { font-size: 11px; color: var(--muted); }
+
+    .proof-preview {
+      display: none;
+      position: relative; margin-top: 12px;
+      border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .proof-preview.visible { display: block; }
+    .proof-preview img { width: 100%; display: block; max-height: 260px; object-fit: contain; background: var(--cream); }
+    .proof-remove {
+      position: absolute; top: 8px; right: 8px;
+      width: 28px; height: 28px;
+      background: rgba(0,0,0,.55); color: white;
+      border: none; border-radius: 50%; cursor: pointer;
+      font-size: 13px; display: flex; align-items: center; justify-content: center;
+      transition: background .18s;
+    }
+    .proof-remove:hover { background: var(--danger); }
+
+    .error-note {
+      display: none; align-items: center; gap: 6px;
+      color: var(--danger); font-size: 12px; font-weight: 500; margin-top: 8px;
+    }
+    .error-note.visible { display: flex; }
+
+    /* TEXTAREA */
+    textarea {
+      width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+      color: var(--ink); background: var(--paper);
+      border: 1.5px solid var(--border); border-radius: 6px;
+      padding: 11px 14px; outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      resize: vertical; min-height: 76px;
+    }
+    textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,151,58,.12); }
+
+    /* SUBMIT */
+    .btn-submit {
+      width: 100%; padding: 15px;
+      background: var(--ink); color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12.5px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+      border: none; border-radius: 3px; cursor: pointer;
+      transition: background .2s, transform .1s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: relative; overflow: hidden;
+    }
+    .btn-submit::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; background: var(--gold);
+    }
+    .btn-submit:hover { background: #1e1c1a; }
+    .btn-submit:active { transform: scale(.99); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+    #result {
+      margin-top: 14px; padding: 12px 14px;
+      border-radius: 6px; font-size: 13px; line-height: 1.6;
+      display: none;
+    }
+    #result.success { background: #f0f9f0; border: 1px solid #b2d8b2; color: #2a6e2a; display: block; }
+    #result.error   { background: #fdf2f2; border: 1px solid #e8b4b4; color: #8b2a2a; display: block; }
+
+    .footer-note { margin-top: 18px; font-size: 11px; color: var(--muted); text-align: center; line-height: 1.7; }
+    .form-group { margin-bottom: 18px; }
+
+    @media (max-width: 560px) {
+      .card-header, .card-body { padding-left: 22px; padding-right: 22px; }
+      .price-value { font-size: 30px; }
+      .method-chips { gap: 7px; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="card-header">
+    <div class="logo-row">
+      <img src="/login/logo.png" alt="Youz AI" class="logo-img" onerror="this.style.display='none'">
+      <span class="brand-name">Youz AI</span>
+    </div>
+    <div class="badge">Premium</div>
+    <div>
+      <div class="price-label">Harga Langganan</div>
+      <div class="price-value">Rp10.000</div>
+      <div class="price-period">per bulan &nbsp;·&nbsp; konfirmasi manual admin</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="card-body">
+
+    <span class="section-label">Yang kamu dapatkan</span>
+    <ul class="features">
+      <li><span class="check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Chat terenkripsi end-to-end</li>
+      <li><span class="check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Limit obrolan 120 kali per hari</li>
+      <li><span class="check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Image generate 15 kali per hari</li>
+      <li><span class="check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Akses model AI lanjutan <span style="font-size:11px;color:var(--muted);margin-left:4px;">(segera hadir)</span></li>
+      <li><span class="check"><svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Respons AI lebih cepat</li>
+    </ul>
+
+    <div class="divider"></div>
+
+    <!-- STEP 1 -->
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <span class="step-text">Pilih Metode Pembayaran</span>
+    </div>
+
+    <div class="method-chips">
+
+      <!-- QRIS chip -->
+      <div class="method-chip active" onclick="selectMethod('qris',this)">
+        <div class="chip-logo-wrap">
+          <svg width="72" height="26" viewBox="0 0 72 26" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="26" rx="4" fill="#E10A15"/>
+            <text x="8" y="19" font-family="Arial Black,sans-serif" font-size="13" font-weight="900" fill="white">QRIS</text>
+            <!-- mini grid -->
+            <rect x="50" y="5"  width="4" height="4" rx="1" fill="white"/>
+            <rect x="56" y="5"  width="4" height="4" rx="1" fill="white"/>
+            <rect x="62" y="5"  width="4" height="4" rx="1" fill="white"/>
+            <rect x="50" y="11" width="4" height="4" rx="1" fill="white"/>
+            <rect x="56" y="11" width="4" height="4" rx="1" fill="white"/>
+            <rect x="62" y="11" width="4" height="4" rx="1" fill="white"/>
+            <rect x="50" y="17" width="4" height="4" rx="1" fill="white"/>
+            <rect x="56" y="17" width="4" height="4" rx="1" fill="white"/>
+            <rect x="62" y="17" width="4" height="4" rx="1" fill="white"/>
+          </svg>
+        </div>
+        <span class="chip-label">QRIS</span>
+      </div>
+
+      <!-- DANA chip -->
+      <div class="method-chip" onclick="selectMethod('dana',this)">
+        <div class="chip-logo-wrap">
+          <svg width="72" height="26" viewBox="0 0 72 26" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="26" rx="13" fill="#118EEA"/>
+            <text x="36" y="19" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">DANA</text>
+          </svg>
+        </div>
+        <span class="chip-label">DANA</span>
+      </div>
+
+      <!-- GoPay chip -->
+      <div class="method-chip" onclick="selectMethod('gopay',this)">
+        <div class="chip-logo-wrap">
+          <svg width="72" height="26" viewBox="0 0 72 26" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="26" rx="13" fill="#00AA13"/>
+            <text x="36" y="19" font-family="Arial Black,sans-serif" font-size="13" font-weight="900" fill="white" text-anchor="middle">GoPay</text>
+          </svg>
+        </div>
+        <span class="chip-label">GoPay</span>
+      </div>
+
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <span class="step-text">Lakukan Pembayaran</span>
+    </div>
+
+    <!-- QRIS Info -->
+    <div class="payment-info-box visible" id="info-qris">
+      <div class="info-title">Scan QR · Nominal <strong style="color:var(--ink);">Rp10.000</strong></div>
+      <div class="qr-center">
+        <div class="qr-frame">
+          <img src="/payment/qris.png" alt="QRIS Code"
+            onerror="this.parentElement.innerHTML=`
+              <svg width='150' height='150' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'>
+                <rect x='4'  y='4'  width='28' height='28' rx='3' fill='none' stroke='%23222' stroke-width='2.5'/>
+                <rect x='11' y='11' width='14' height='14' rx='1' fill='%23222'/>
+                <rect x='48' y='4'  width='28' height='28' rx='3' fill='none' stroke='%23222' stroke-width='2.5'/>
+                <rect x='55' y='11' width='14' height='14' rx='1' fill='%23222'/>
+                <rect x='4'  y='48' width='28' height='28' rx='3' fill='none' stroke='%23222' stroke-width='2.5'/>
+                <rect x='11' y='55' width='14' height='14' rx='1' fill='%23222'/>
+                <rect x='48' y='48' width='7' height='7' fill='%23222'/>
+                <rect x='58' y='48' width='7' height='7' fill='%23222'/>
+                <rect x='68' y='48' width='7' height='7' fill='%23222'/>
+                <rect x='48' y='58' width='7' height='7' fill='%23222'/>
+                <rect x='68' y='68' width='7' height='7' fill='%23222'/>
+                <rect x='58' y='68' width='7' height='7' fill='%23222'/>
+              </svg>`">
+        </div>
+        <div class="qr-caption">Scan dengan aplikasi bank atau e-wallet apapun<br><strong style="color:var(--ink);">Nominal: Rp10.000</strong></div>
+      </div>
+    </div>
+
+    <!-- DANA Info -->
+    <div class="payment-info-box" id="info-dana">
+      <div class="info-title">Transfer DANA · Nominal <strong style="color:var(--ink);">Rp10.000</strong></div>
+      <div class="account-card">
+        <div class="acc-logo-wrap">
+          <svg width="60" height="22" viewBox="0 0 72 26" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="26" rx="13" fill="#118EEA"/>
+            <text x="36" y="19" font-family="Arial Black,sans-serif" font-size="14" font-weight="900" fill="white" text-anchor="middle">DANA</text>
+          </svg>
+        </div>
+        <div class="acc-detail">
+          <div class="acc-number" id="dana-number">0812-3456-7890</div>
+          <div class="acc-name">a.n. Admin Youz AI</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('dana-number',this)">Salin</button>
+      </div>
+
+    </div>
+
+    <!-- GoPay Info -->
+    <div class="payment-info-box" id="info-gopay">
+      <div class="info-title">Transfer GoPay · Nominal <strong style="color:var(--ink);">Rp10.000</strong></div>
+      <div class="account-card">
+        <div class="acc-logo-wrap">
+          <svg width="60" height="22" viewBox="0 0 72 26" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="26" rx="13" fill="#00AA13"/>
+            <text x="36" y="19" font-family="Arial Black,sans-serif" font-size="13" font-weight="900" fill="white" text-anchor="middle">GoPay</text>
+          </svg>
+        </div>
+        <div class="acc-detail">
+          <div class="acc-number" id="gopay-number">0812-3456-7890</div>
+          <div class="acc-name">a.n. Admin Youz AI</div>
+        </div>
+        <button class="copy-btn" onclick="copyText('gopay-number',this)">Salin</button>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- STEP 3: Upload WAJIB -->
+    <div class="form-group">
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <span class="step-text">Upload Bukti Pembayaran &nbsp;<span style="color:var(--danger);font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;">* Wajib</span></span>
+      </div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="proofFile" accept="image/*" onchange="handleFileSelect(this)">
+        <span class="upload-icon">🧾</span>
+        <div class="upload-text"><strong>Klik untuk pilih file</strong> atau drag &amp; drop</div>
+        <div class="upload-sub">Format JPG, PNG, WEBP · Maks. 5 MB</div>
+      </div>
+      <div class="proof-preview" id="proofPreview">
+        <img id="proofImg" src="" alt="Bukti pembayaran">
+        <button class="proof-remove" onclick="removeProof()" title="Hapus">✕</button>
+      </div>
+      <div class="error-note" id="proofError">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#c0392b" stroke-width="1.5"/><path d="M8 5v4M8 11v.5" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Bukti pembayaran wajib dilampirkan sebelum mengirim.
+      </div>
+    </div>
+
+    <!-- STEP 4: Catatan -->
+    <div class="form-group">
+      <div class="step-row">
+        <div class="step-num">4</div>
+        <span class="step-text">Catatan <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);font-size:10px;">(opsional)</span></span>
+      </div>
+      <textarea id="notes" placeholder="Mis. nama akun pengirim, nomor referensi, atau keterangan lain..."></textarea>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+      Kirim Permintaan Premium
+    </button>
+
+    <div id="result"></div>
+
+    <p class="footer-note">
+      Pembayaran diverifikasi manual oleh admin.<br>
+      Premium aktif dalam 1×24 jam setelah bukti dikonfirmasi.
+    </p>
+
+  </div>
+</div>
+
+<script>
+  let proofBase64 = null;
+  let currentMethod = 'qris';
+
+  function selectMethod(value, el) {
+    document.querySelectorAll('.method-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    currentMethod = value;
+    document.querySelectorAll('.payment-info-box').forEach(b => b.classList.remove('visible'));
+    const box = document.getElementById('info-' + value);
+    if (box) { box.classList.add('visible'); }
+  }
+
+  function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Ukuran file terlalu besar. Maksimal 5 MB.'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      proofBase64 = e.target.result;
+      document.getElementById('proofImg').src = proofBase64;
+      document.getElementById('proofPreview').classList.add('visible');
+      document.getElementById('proofError').classList.remove('visible');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeProof() {
+    proofBase64 = null;
+    document.getElementById('proofFile').value = '';
+    document.getElementById('proofPreview').classList.remove('visible');
+    document.getElementById('proofImg').src = '';
+  }
+
+  const zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) {
+      document.getElementById('proofFile').files = e.dataTransfer.files;
+      handleFileSelect(document.getElementById('proofFile'));
+    }
+  });
+
+  function copyText(elId, btn) {
+    const text = document.getElementById(elId).textContent.replace(/-/g, '');
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Tersalin'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Salin'; btn.classList.remove('copied'); }, 2200);
+    });
+  }
+
+  async function handleSubmit() {
+    if (!proofBase64) {
+      document.getElementById('proofError').classList.add('visible');
+      document.getElementById('uploadZone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    const btn    = document.getElementById('submitBtn');
+    const result = document.getElementById('result');
+    const notes  = document.getElementById('notes').value;
+    const user   = JSON.parse(localStorage.getItem('youz_user') || 'null');
+
+    btn.disabled = true; btn.textContent = 'Mengirim…';
+    result.className = ''; result.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/premium', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userContext: user || {}, method: currentMethod, notes, proof: proofBase64 })
+      });
+      const data = await res.json();
+      result.textContent = data.content || 'Permintaan berhasil dikirim! Admin akan segera mengonfirmasi pembayaranmu.';
+      result.className = 'success';
+      btn.textContent = 'Terkirim ✓';
+    } catch {
+      result.textContent = 'Terjadi kesalahan saat mengirim. Silakan coba lagi.';
+      result.className = 'error';
+      btn.disabled = false;
+      btn.textContent = 'Kirim Permintaan Premium';
+    }
+  }
+</script>
+</body>
+</html>
