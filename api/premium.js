@@ -1,4 +1,4 @@
-import { createPremiumRequest, resolveUserKey, confirmPremium, getQuotaSnapshot } from './_db.js';
+import { createPremiumRequest, resolveUserKey, confirmPremium, getQuotaSnapshot } from '../lib/db.js';
 
 export default function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
