@@ -1,4 +1,4 @@
-import { getQuotaSnapshot, resolveUserKey } from './_db.js';
+import { getQuotaSnapshot, resolveUserKey } from '../lib/db.js';
 
 export default function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
