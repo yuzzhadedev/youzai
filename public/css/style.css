@@ -317,6 +317,14 @@ body {
     cursor: pointer;
     font-size: 13px;
 }
+.history-group {
+    list-style: none;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 10px 8px 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
 
 .conv-item i {
     color: var(--text-secondary);
@@ -1143,7 +1151,8 @@ body {
 .composer-toolbar {
     display: flex;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-top: 8px;
+    align-items: center;
 }
 
 .model-select {
@@ -1153,7 +1162,9 @@ body {
     color: var(--text-primary);
     font-size: 12px;
     padding: 8px 12px;
-    min-width: 170px;
+    min-width: 128px;
+    max-width: 170px;
+    height: 34px;
 }
 
 .tools-btn {
@@ -1167,12 +1178,14 @@ body {
     display: inline-flex;
     gap: 6px;
     align-items: center;
+    height: 34px;
+    padding: 8px 10px;
 }
 
 .tools-menu {
     position: absolute;
-    left: 12px;
-    right: 12px;
+    left: 16px;
+    width: min(280px, calc(100% - 32px));
     bottom: calc(100% + 8px);
     background: var(--bg-sidebar);
     border: 1px solid var(--border);
@@ -1180,6 +1193,12 @@ body {
     box-shadow: var(--shadow-lg);
     padding: 8px;
     z-index: 30;
+}
+.tools-menu-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin: 2px 8px 6px;
 }
 
 .tool-item {
@@ -1212,8 +1231,12 @@ body {
     border: 1px solid var(--border);
     display: flex;
     align-items: center;
-    padding: 4px 6px 4px 10px;
+    padding: 8px 8px 8px 10px;
     transition: all 0.2s;
+}
+.input-container.stacked {
+    flex-direction: column;
+    align-items: stretch;
 }
 
 .input-container:focus-within {
@@ -1236,6 +1259,7 @@ body {
     font-size: 16px;
     transition: all 0.15s;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .attach-btn:hover {
@@ -1275,6 +1299,14 @@ body {
     font-size: 14px;
     transition: all 0.15s;
     flex-shrink: 0;
+}
+.send-btn.wide {
+    width: 100%;
+    border-radius: 14px;
+    margin-top: 8px;
+    height: 40px;
+    gap: 8px;
+    font-weight: 600;
 }
 
 .send-btn:hover {
@@ -1775,7 +1807,7 @@ body {
 }
 
 .danger-btn:hover {
-    background: #fee2e2;
+    background: transparent;
 }
 
 /* ===== MOBILE ===== */
@@ -1948,9 +1980,13 @@ body {
         font-size: 11px;
         padding: 7px 10px;
     }
+    .model-select {
+        min-width: 108px;
+        max-width: 140px;
+    }
     
     .input-container {
-        padding: 3px 5px 3px 8px;
+        padding: 6px 6px 6px 8px;
     }
     
     .attach-btn {
@@ -1963,9 +1999,9 @@ body {
         font-size: 13px;
     }
     
-    .send-btn {
-        width: 28px;
-        height: 28px;
+    .send-btn.wide {
+        width: 100%;
+        height: 38px;
     }
     
     .menu-dropdown {
