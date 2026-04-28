@@ -8,6 +8,7 @@
      "check": "node -e \"const {execFileSync}=require('node:child_process'); const {join}=require('node:path'); const {readdirSync}=require('node:fs'); const root=process.cwd(); const walk=(dir)=>readdirSync(dir,{withFileTypes:true}).flatMap((ent)=>{const abs=join(dir,ent.name); if(ent.isDirectory()){if(ent.name==='node_modules'||ent.name==='.git') return []; return walk(abs);} return abs.endsWith('.js')?[abs]:[];}); for(const file of walk(root)){execFileSync(process.execPath,['--check',file],{stdio:'inherit'});} \""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.57.0",
     "@vercel/node": "^3.0.0"
   },
   "author": "Yuzz Ofc"
