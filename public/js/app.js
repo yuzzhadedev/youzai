@@ -751,6 +751,19 @@ async function readApiResponse(res) {
         return JSON.parse(rawText);
     } catch (error) {
         const fallbackMessage = (rawText || `HTTP ${res.status}`).trim();
+        const lowered = fallbackMessage.toLowerCase();
+        const isInfraError = lowered.includes('a server error has occurred')
+            || lowered.includes('function_invocation_failed')
+            || lowered.includes('unexpected token')
+            || res.status >= 500;
+        if (isInfraError) {
+            return {
+                success: false,
+                content: 'Server sedang bermasalah saat memproses chat. Coba kirim ulang 10–20 detik lagi.',
+                status: res.status,
+                rawError: fallbackMessage
+            };
+        }
         return { success: false, content: fallbackMessage, status: res.status };
     }
 }
