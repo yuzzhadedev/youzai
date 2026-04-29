@@ -185,16 +185,15 @@
                         <input type="checkbox" id="toolThinking" checked>
                         <span><i class="fas fa-brain"></i> Thinking mode</span>
                     </label>
-                    <label class="tool-item">
-                        <input type="checkbox" id="toolImageGenerate" checked>
-                        <span><i class="fas fa-image"></i> Image generate</span>
-                    </label>
                 </div>
                 <div class="search-input-container">
                     <div class="input-container stacked">
                         <textarea id="messageInput" placeholder="Message YouzAi..." rows="1" autofocus></textarea>
                         <div class="composer-toolbar">
-                            <select id="modelSelect" class="model-select" aria-label="Pilih model AI">
+                            <button class="model-select-btn" id="modelSelectBtn" type="button" aria-label="Pilih model AI">
+                                <i class="fas fa-robot"></i> <span id="modelSelectBtnText">OpenRouter · GPT</span>
+                            </button>
+                            <select id="modelSelect" class="model-select hidden" aria-label="Pilih model AI">
                                 <option value="gpt4o">OpenRouter · GPT</option>
                                 <option value="gemini">Gemini 2.0 Flash</option>
                                 <option value="claude">Claude Sonnet 4.5</option>
@@ -204,11 +203,11 @@
                             </button>
                             <button class="attach-btn" id="attachBtn" type="button" title="Kirim Foto" aria-label="Kirim foto">
                                 <i class="fas fa-paperclip"></i>
-                                </button>
+                            </button>
+                            <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
+                                <i class="fas fa-arrow-up"></i> <span id="sendBtnText">Send Message</span>
+                            </button>
                         </div>
-                        <button class="send-btn wide" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
-                            <i class="fas fa-arrow-up"></i> <span id="sendBtnText">Send Message</span>
-                        </button>
                     </div>
 
                     <div class="search-suggestions hidden" id="searchSuggestions">
@@ -308,13 +307,6 @@
                                 <small>Izinkan AI memakai pencarian internet.</small>
                             </div>
                             <input type="checkbox" id="webSearchToggle" checked>
-                        </label>
-                        <label class="feature-toggle">
-                            <div class="feature-toggle-info">
-                                <span>Generate Image</span>
-                                <small>Izinkan AI membuat gambar dari prompt.</small>
-                            </div>
-                            <input type="checkbox" id="generateImageToggle" checked>
                         </label>
                     </div>
                 </div>
