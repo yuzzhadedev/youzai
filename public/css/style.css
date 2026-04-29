@@ -1155,6 +1155,10 @@ body {
     align-items: center;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .model-select {
     border: 1px solid var(--border);
     border-radius: 999px;
@@ -1165,6 +1169,21 @@ body {
     min-width: 128px;
     max-width: 170px;
     height: 34px;
+}
+.model-select-btn {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 12px;
+    padding: 8px 12px;
+    min-width: 128px;
+    max-width: 170px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
 }
 
 .tools-btn {
@@ -1259,7 +1278,6 @@ body {
     font-size: 16px;
     transition: all 0.15s;
     flex-shrink: 0;
-    margin-left: auto;
 }
 
 .attach-btn:hover {
@@ -1286,7 +1304,8 @@ body {
 }
 
 .send-btn {
-    width: 32px;
+    min-width: 32px;
+    padding: 0 10px;
     height: 32px;
     border-radius: 16px;
     display: flex;
@@ -1299,12 +1318,6 @@ body {
     font-size: 14px;
     transition: all 0.15s;
     flex-shrink: 0;
-}
-.send-btn.wide {
-    width: 100%;
-    border-radius: 14px;
-    margin-top: 8px;
-    height: 40px;
     gap: 8px;
     font-weight: 600;
 }
