@@ -117,12 +117,14 @@ export default async function handler(req, res) {
 
   try {
     const quotaType = action === 'generate' ? 'image' : 'chat';
-    const quota = await consumeQuota({ userKey, type: quotaType, amount: 1 });
-    if (!quota.success) {
+    const quotaSnapshot = await getQuotaSnapshot(userKey);
+    const currentUsage = quotaSnapshot?.usage?.[quotaType] || 0;
+    const limitAmount = quotaSnapshot?.limits?.[quotaType] || 0;
+    if (currentUsage >= limitAmount) {
       const content = quotaType === 'image'
-        ? `Limit harian image generate habis (${quota.limit}/hari). Upgrade Premium untuk 15 image/hari.`
-        : `Limit harian obrolan habis (${quota.limit}/hari). Upgrade Premium untuk 120 chat/hari.`;
-      return res.status(200).json({ success: false, content, limit: { type: quotaType, ...quota, ...(await getQuotaSnapshot(userKey)) } });
+        ? `Limit harian image generate habis (${limitAmount}/hari). Upgrade Premium untuk 15 image/hari.`
+        : `Limit harian obrolan habis (${limitAmount}/hari). Upgrade Premium untuk 120 chat/hari.`;
+      return res.status(200).json({ success: false, content, limit: { type: quotaType, ...quotaSnapshot } });
     }
 
     if (action === 'generate' && !imageData) {
@@ -138,6 +140,7 @@ export default async function handler(req, res) {
         if (!imagenResponse.ok || !imageBase64) {
           return res.status(200).json({ success: false, content: `Imagen error: ${imagenData.error?.message || 'Tidak bisa membuat gambar.'}` });
         }
+        await consumeQuota({ userKey, type: 'image', amount: 1 });
         return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: await getQuotaSnapshot(userKey) });
       }
 
@@ -158,6 +161,7 @@ export default async function handler(req, res) {
       if (!openaiResponse.ok || !imageBase64) {
         return res.status(200).json({ success: false, content: `OpenAI image error: ${openaiData.error?.message || 'Gagal generate gambar.'}` });
       }
+      await consumeQuota({ userKey, type: 'image', amount: 1 });
       return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: await getQuotaSnapshot(userKey) });
     }
 
@@ -195,6 +199,10 @@ export default async function handler(req, res) {
       });
     }
 
+    if (providerResponse.success) {
+      await consumeQuota({ userKey, type: 'chat', amount: 1 });
+    }
+    
     return res.status(200).json({
       success: providerResponse.success,
       content: providerResponse.content,
