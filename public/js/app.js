@@ -10,8 +10,7 @@ let activeSources = [];
 let typingAbortRequested = false;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
-let generateImageEnabled = true;
-let thinkingModeEnabled = true;
+let thinkingModeEnabled = false;
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
 let quotaState = null;
@@ -28,11 +27,12 @@ const messageInput = document.getElementById('messageInput');
 const sendBtn = document.getElementById('sendBtn');
 const attachBtn = document.getElementById('attachBtn');
 const modelSelect = document.getElementById('modelSelect');
+const modelSelectBtn = document.getElementById('modelSelectBtn');
+const modelSelectBtnText = document.getElementById('modelSelectBtnText');
 const toolsBtn = document.getElementById('toolsBtn');
 const toolsMenu = document.getElementById('toolsMenu');
 const toolWebSearch = document.getElementById('toolWebSearch');
 const toolThinking = document.getElementById('toolThinking');
-const toolImageGenerate = document.getElementById('toolImageGenerate');
 const imageInput = document.getElementById('imageInput');
 const newChatBtn = document.getElementById('newChatBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
@@ -85,7 +85,6 @@ const clearAllDataBtn = document.getElementById('clearAllDataBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
 const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
 const webSearchToggle = document.getElementById('webSearchToggle');
-const generateImageToggle = document.getElementById('generateImageToggle');
 const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
 const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
@@ -698,6 +697,7 @@ function setActiveModel(model, persist = true) {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
     });
     if (modelSelect) modelSelect.value = activeModel;
+    if (modelSelectBtnText) modelSelectBtnText.textContent = modelSelect?.selectedOptions?.[0]?.textContent || 'OpenRouter · GPT';
     updateModelIndicator();
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
@@ -708,6 +708,7 @@ settingsModelBtns.forEach(btn => {
     btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
 });
 modelSelect?.addEventListener('change', (e) => setActiveModel(e.target.value));
+modelSelectBtn?.addEventListener('click', () => modelSelect?.focus());
 
 
 function getUserContext() {
@@ -926,7 +927,7 @@ async function sendMessage(options = {}) {
     clearImageDraft();
     
     const loadingId = 'loading-' + Date.now();
-    const previewImageGeneration = generateImageEnabled && shouldGenerateImageFromPrompt(text);
+    const previewImageGeneration = shouldGenerateImageFromPrompt(text);
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant" id="${loadingId}">
             <div class="message-avatar"><i class="fas fa-robot"></i></div>
@@ -944,7 +945,7 @@ async function sendMessage(options = {}) {
         const messages = conv.messages.map(m => ({ role: m.role, content: m.content }));
         const needSearch = shouldUseWebSearchFromPrompt(text);
         const enableSearch = webSearchEnabled && needSearch;
-        const generateImageRequest = generateImageEnabled && (!userMessage.image && shouldGenerateImageFromPrompt(text));
+        const generateImageRequest = (!userMessage.image && shouldGenerateImageFromPrompt(text));
         
         const action = (userMessage.image || generateImageRequest) ? 'generate' : (enableSearch ? 'search' : 'chat');
         const response = await callUnifiedAPI(
@@ -1274,11 +1275,6 @@ toolThinking?.addEventListener('change', (e) => {
     localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
 });
 
-toolImageGenerate?.addEventListener('change', (e) => {
-    generateImageEnabled = e.target.checked;
-    if (generateImageToggle) generateImageToggle.checked = generateImageEnabled;
-    localStorage.setItem('youz_image_generate_enabled', generateImageEnabled ? '1' : '0');
-});
 
 imageInput?.addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -1373,11 +1369,6 @@ webSearchToggle?.addEventListener('change', (e) => {
     localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
 });
 
-generateImageToggle?.addEventListener('change', (e) => {
-    generateImageEnabled = e.target.checked;
-    if (toolImageGenerate) toolImageGenerate.checked = generateImageEnabled;
-    localStorage.setItem('youz_image_generate_enabled', generateImageEnabled ? '1' : '0');
-});
 
 saveProfileBtn?.addEventListener('click', () => {
     if (currentUser) {
@@ -1505,13 +1496,10 @@ async function init() {
     await loadQuotaSnapshot();
     loadFromStorage();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
-    generateImageEnabled = localStorage.getItem('youz_image_generate_enabled') !== '0';
     thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
     setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
-    if (generateImageToggle) generateImageToggle.checked = generateImageEnabled;
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
-    if (toolImageGenerate) toolImageGenerate.checked = generateImageEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
     setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     activeConversationId = conversations[0]?.id;
