@@ -166,7 +166,7 @@ function checkUserFromURL() {
 async function syncUserFromServer() {
     try {
         const res = await fetch('/api/auth/me');
-        const data = await res.json();
+        const data = await readApiResponse(res);
         if (data?.authenticated && data.user) {
             currentUser = data.user;
             localStorage.setItem('youz_user', JSON.stringify(currentUser));
@@ -732,7 +732,7 @@ async function loadQuotaSnapshot() {
     try {
         const params = new URLSearchParams(getUserContext());
         const res = await fetch(`/api/limits?${params.toString()}`);
-        const data = await res.json();
+        const data = await readApiResponse(res);
         if (data?.success) updateQuotaBadge(data);
     } catch (error) {
         console.warn('Quota snapshot gagal dimuat', error?.message || error);
@@ -740,6 +740,21 @@ async function loadQuotaSnapshot() {
 }
 
 // ========== API CALLS ==========
+async function readApiResponse(res) {
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return await res.json();
+    }
+
+    const rawText = await res.text();
+    try {
+        return JSON.parse(rawText);
+    } catch (error) {
+        const fallbackMessage = (rawText || `HTTP ${res.status}`).trim();
+        return { success: false, content: fallbackMessage, status: res.status };
+    }
+}
+
 async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, signal) {
     const modelType = ['gpt4o', 'openai'].includes(activeModel) ? 'openai' : activeModel;
     const res = await fetch('/api/youz', {
@@ -757,7 +772,7 @@ async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch,
         }),
         signal 
     });
-    return await res.json();
+    return await readApiResponse(res);
 }
 
 function shouldGenerateImageFromPrompt(text) {
