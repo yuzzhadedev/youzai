@@ -29,6 +29,7 @@ const attachBtn = document.getElementById('attachBtn');
 const modelSelect = document.getElementById('modelSelect');
 const modelSelectBtn = document.getElementById('modelSelectBtn');
 const modelSelectBtnText = document.getElementById('modelSelectBtnText');
+const modelSelectPanel = document.getElementById('modelSelectPanel');
 const toolsBtn = document.getElementById('toolsBtn');
 const toolsMenu = document.getElementById('toolsMenu');
 const toolWebSearch = document.getElementById('toolWebSearch');
@@ -236,8 +237,8 @@ function setProcessingUI(processing) {
     sendBtn.setAttribute('aria-label', processing ? 'Stop' : 'Kirim');
     const sendText = currentLanguage === 'en' ? 'Send Message' : 'Kirim Pesan';
     sendBtn.innerHTML = processing
-        ? '<i class="fas fa-stop"></i> <span>Stop</span>'
-        : `<i class="fas fa-arrow-up"></i> <span id="sendBtnText">${sendText}</span>`;
+        ? '<i class="fas fa-stop"></i>'
+        : '<i class="fas fa-arrow-up"></i>';
 }
 
 function openSourcesSheet(sources = [], focusIndex = 0) {
@@ -697,7 +698,7 @@ function setActiveModel(model, persist = true) {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
     });
     if (modelSelect) modelSelect.value = activeModel;
-    if (modelSelectBtnText) modelSelectBtnText.textContent = modelSelect?.selectedOptions?.[0]?.textContent || 'OpenRouter · GPT';
+    if (modelSelectBtnText) modelSelectBtnText.textContent = modelSelect?.selectedOptions?.[0]?.textContent || 'ChatGPT 4o';
     updateModelIndicator();
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
@@ -708,7 +709,16 @@ settingsModelBtns.forEach(btn => {
     btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
 });
 modelSelect?.addEventListener('change', (e) => setActiveModel(e.target.value));
-modelSelectBtn?.addEventListener('click', () => modelSelect?.focus());
+modelSelectBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modelSelectPanel?.classList.toggle('hidden');
+});
+document.querySelectorAll('.panel-model-item').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        setActiveModel(btn.dataset.model);
+        modelSelectPanel?.classList.add('hidden');
+    });
+});
 
 
 function getUserContext() {
@@ -984,7 +994,7 @@ async function sendMessage(options = {}) {
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content, 20);
-            aiMessage.content = typingAbortRequested ? `${contentEl.textContent}\n\n⏹️ Respons dihentikan.` : response.content;
+            aiMessage.content = contentEl.textContent || response.content;
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';
             if (contentEl) contentEl.innerHTML = escapeHtml(aiMessage.content);
@@ -998,15 +1008,8 @@ async function sendMessage(options = {}) {
         if (error.name === 'AbortError') {
             const lastAssistant = conv.messages[conv.messages.length - 1];
             if (lastAssistant?.role === 'assistant' && lastAssistant.isComplete === false) {
-                lastAssistant.content = `${lastAssistant.content || ''}\n\n⏹️ Respons dihentikan.`;
+                lastAssistant.content = (lastAssistant.content || '').trim();
                 lastAssistant.isComplete = true;
-            } else {
-                conv.messages.push({
-                    id: 'msg-' + Date.now(),
-                    role: 'assistant',
-                    content: '⏹️ Respons dihentikan.',
-                    isComplete: true
-                });
             }
             saveToStorage();
             renderMessages(conv.messages);
@@ -1469,6 +1472,9 @@ document.addEventListener('click', (e) => {
     }
     if (toolsMenu && toolsBtn && !toolsMenu.contains(e.target) && !toolsBtn.contains(e.target)) {
         toolsMenu.classList.add('hidden');
+    }
+    if (modelSelectPanel && modelSelectBtn && !modelSelectPanel.contains(e.target) && !modelSelectBtn.contains(e.target)) {
+        modelSelectPanel.classList.add('hidden');
     }
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && !sidebar.classList.contains('closed')) {
