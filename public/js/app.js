@@ -680,11 +680,11 @@ function updateCurrentTime() {
 // ========== MODEL SELECTOR ==========
 function updateModelIndicator() {
     const indicators = {
-        'openrouter': '<i class="fas fa-robot"></i> <span>OpenRouter</span>',
-        'gpt4o': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>ChatGPT</span>',
-        'openai': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>OpenAI</span>',
-        'gemini': '<img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini"><span>Gemini</span>',
-        'claude': '<i class="fas fa-feather-pointed"></i><span>Claude</span>'
+        'openrouter': '<img src="/login/logo.png" alt="AI"><span>OpenRouter</span>',
+        'gpt4o': '<img src="/login/logo.png" alt="AI"><span>ChatGPT 4o</span>',
+        'openai': '<img src="/login/logo.png" alt="AI"><span>OpenAI</span>',
+        'gemini': '<img src="/login/logo.png" alt="AI"><span>Gemini 2.0 Flash</span>',
+        'claude': '<img src="/login/logo.png" alt="AI"><span>Claude Sonnet 4.5</span>'
     };
     if (modelIndicator) {
         modelIndicator.innerHTML = indicators[activeModel] || indicators['gpt4o'];
@@ -715,6 +715,7 @@ modelSelectBtn?.addEventListener('click', (e) => {
 });
 document.querySelectorAll('.panel-model-item').forEach((btn) => {
     btn.addEventListener('click', () => {
+        if (btn.classList.contains('locked')) return;
         setActiveModel(btn.dataset.model);
         modelSelectPanel?.classList.add('hidden');
     });
@@ -731,6 +732,7 @@ function getUserContext() {
 
 function updateQuotaBadge(snapshot = null) {
     if (!quotaBadge) return;
+    quotaBadge.classList.add('hidden');
     if (snapshot) quotaState = snapshot;
     const plan = quotaState?.plan || 'free';
     const usage = quotaState?.usage || { chat: 0, image: 0 };
@@ -940,7 +942,7 @@ async function sendMessage(options = {}) {
     const previewImageGeneration = shouldGenerateImageFromPrompt(text);
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant" id="${loadingId}">
-            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <div class="message-avatar"><img src="/login/logo.png" alt="AI"></div>
             <div class="message-content">
                 <div class="thinking-indicator">
                     <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
