@@ -29,7 +29,7 @@
     
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app">
@@ -191,10 +191,18 @@
                         <textarea id="messageInput" placeholder="Message YouzAi..." rows="1" autofocus></textarea>
                         <div class="composer-toolbar">
                             <button class="model-select-btn" id="modelSelectBtn" type="button" aria-label="Pilih model AI">
-                                <i class="fas fa-robot"></i> <span id="modelSelectBtnText">OpenRouter · GPT</span>
+                                <i class="fas fa-robot"></i> <span id="modelSelectBtnText">ChatGPT</span>
                             </button>
+                            <div class="model-select-panel hidden" id="modelSelectPanel">
+                                <div class="model-group-title">STANDAR MODELS</div>
+                                <button class="panel-model-item" data-model="gemini" type="button">Gemini 2.0 Flash</button>
+                                <button class="panel-model-item" data-model="claude" type="button">Claude Sonnet 4.5</button>
+                                <div class="model-group-title">PREMIUM MODELS</div>
+                                <button class="panel-model-item" data-model="gpt4o" type="button">ChatGPT</button>
+                                <small class="model-panel-note">??</small>
+                            </div>
                             <select id="modelSelect" class="model-select hidden" aria-label="Pilih model AI">
-                                <option value="gpt4o">OpenRouter · GPT</option>
+                                <option value="gpt4o">ChatGPT 4o</option>
                                 <option value="gemini">Gemini 2.0 Flash</option>
                                 <option value="claude">Claude Sonnet 4.5</option>
                             </select>
@@ -271,46 +279,8 @@
             </div>
 
             <div class="settings-content" id="generalContent">
-                <div class="settings-section">
-                    <h3>Pilih Model AI</h3>
-                    <div class="settings-model-options">
-                        <button class="settings-model-btn active" data-model="gpt4o" type="button">
-                            <img class="model-logo" src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI Logo">
-                            <div class="settings-model-info">
-                                <span class="settings-model-name">ChatGPT</span>
-                                <span class="settings-model-desc">OpenAI · GPT-4o Mini</span>
-                            </div>
-                        </button>
-                        <button class="settings-model-btn" data-model="gemini" type="button">
-                            <img class="model-logo" src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini Logo">
-                            <div class="settings-model-info">
-                                <span class="settings-model-name">Gemini 2.0 Flash</span>
-                                <span class="settings-model-desc">Google · Reasoning Canggih</span>
-                            </div>
-                        </button>
-                        <button class="settings-model-btn" data-model="claude" type="button">
-                            <i class="fas fa-feather-pointed"></i>
-                            <div class="settings-model-info">
-                                <span class="settings-model-name">Claude Sonnet 4.5</span>
-                                <span class="settings-model-desc">Runeria · Fast Reasoning</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
 
-                <div class="settings-section">
-                    <h3>Fitur</h3>
-                    <div class="feature-settings">
-                        <label class="feature-toggle">
-                            <div class="feature-toggle-info">
-                                <span>Web Search</span>
-                                <small>Izinkan AI memakai pencarian internet.</small>
-                            </div>
-                            <input type="checkbox" id="webSearchToggle" checked>
-                        </label>
-                    </div>
-                </div>
-
+                
                 <div class="settings-section">
                     <h3 id="themeTitle">Tema</h3>
                     <div class="theme-options">
