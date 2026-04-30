@@ -29,7 +29,7 @@
     
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="app">
@@ -57,6 +57,7 @@
                         <div class="user-info">
                             <span id="userName"></span>
                             <span id="userEmail"></span>
+                            <span class="profile-premium-badge">Premium</span>
                         </div>
                         <button id="userMenuBtn" class="user-menu-btn" type="button" title="Menu Pengguna" aria-label="Menu pengguna">
                             <i class="fas fa-ellipsis-v"></i>
@@ -116,9 +117,9 @@
                 </div>
                 <div class="header-right">
                     <span class="model-indicator" id="modelIndicator">
-                        <i class="fas fa-robot"></i> ChatGPT
+                        <img src="/login/logo.png" alt="AI"> <span>ChatGPT</span>
                     </span>
-                    <span class="quota-badge" id="quotaBadge">Free 20/3</span>
+                    
                     <button class="header-new-chat-btn" id="headerNewChatBtn" type="button" title="Percakapan Baru" aria-label="Percakapan baru">
                         <i class="fas fa-pen-to-square"></i>
                     </button>
@@ -191,15 +192,15 @@
                         <textarea id="messageInput" placeholder="Message YouzAi..." rows="1" autofocus></textarea>
                         <div class="composer-toolbar">
                             <button class="model-select-btn" id="modelSelectBtn" type="button" aria-label="Pilih model AI">
-                                <i class="fas fa-robot"></i> <span id="modelSelectBtnText">ChatGPT</span>
+                                <img src="/login/logo.png" alt="AI"> <span id="modelSelectBtnText">ChatGPT</span>
                             </button>
                             <div class="model-select-panel hidden" id="modelSelectPanel">
                                 <div class="model-group-title">STANDAR MODELS</div>
                                 <button class="panel-model-item" data-model="gemini" type="button">Gemini 2.0 Flash</button>
                                 <button class="panel-model-item" data-model="claude" type="button">Claude Sonnet 4.5</button>
-                                <div class="model-group-title">PREMIUM MODELS</div>
-                                <button class="panel-model-item" data-model="gpt4o" type="button">ChatGPT</button>
-                                <small class="model-panel-note">??</small>
+                                <div class="model-group-title premium-title">PREMIUM MODELS <span class="upgrade-badge">Upgrade</span></div>
+                                <button class="panel-model-item locked" data-model="gpt4o" type="button"><span>ChatGPT 4o</span><i class="fas fa-lock"></i></button>
+                                <small class="model-panel-note"><i class="fas fa-lock"></i> Premium Plan currently unavailable</small>
                             </div>
                             <select id="modelSelect" class="model-select hidden" aria-label="Pilih model AI">
                                 <option value="gpt4o">ChatGPT 4o</option>
