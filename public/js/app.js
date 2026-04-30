@@ -53,6 +53,11 @@ const searchSuggestions = document.getElementById('searchSuggestions');
 const modelIndicator = document.getElementById('modelIndicator');
 const quotaBadge = document.getElementById('quotaBadge');
 const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+const limitNotice = document.getElementById('limitNotice');
+const limitNoticeText = document.getElementById('limitNoticeText');
+const limitNoticeCta = document.getElementById('limitNoticeCta');
+const limitNoticeClose = document.getElementById('limitNoticeClose');
+const modelPanelNote = document.getElementById('modelPanelNote');
 // ========== FITUR BARU: DOM ELEMENTS TAMBAHAN ==========
 const imageDraftContainer = document.getElementById('imageDraftContainer');
 const draftImage = document.getElementById('draftImage');
@@ -735,10 +740,21 @@ function updateQuotaBadge(snapshot = null) {
     quotaBadge.classList.add('hidden');
     if (snapshot) quotaState = snapshot;
     const plan = quotaState?.plan || 'free';
+    document.querySelectorAll('.panel-model-item.locked').forEach((el)=> el.classList.toggle('locked', plan !== 'premium'));
+    if (modelPanelNote) modelPanelNote.innerHTML = plan === 'premium' ? '<i class="fas fa-unlock"></i> (unlock) Premium features are open to you' : '<i class="fas fa-lock"></i> Upgrade ke Premium untuk membuka fitur premium';
     const usage = quotaState?.usage || { chat: 0, image: 0 };
     const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
     quotaBadge.textContent = `${plan === 'premium' ? 'Premium' : 'Free'} ${usage.chat}/${limits.chat} · Img ${usage.image}/${limits.image}`;
     quotaBadge.classList.toggle('premium', plan === 'premium');
+}
+
+
+function showLimitNotice(data) {
+    if (!limitNotice || !limitNoticeText) return;
+    const reset = data?.limit?.usageDate || new Date().toISOString().slice(0,10);
+    limitNoticeText.textContent = `Anda telah mencapai batas. Upgrade ke YouzAi Premium atau coba lagi setelah reset limit (${reset}).`;
+    limitNotice.classList.remove('hidden');
+    limitNoticeCta?.classList.remove('hidden');
 }
 
 async function loadQuotaSnapshot() {
@@ -1375,9 +1391,13 @@ webSearchToggle?.addEventListener('change', (e) => {
 });
 
 
-saveProfileBtn?.addEventListener('click', () => {
+saveProfileBtn?.addEventListener('click', async () => {
     if (currentUser) {
-        currentUser.name = profileName.value;
+        const payload = { name: profileName.value, email: profileEmail.value };
+        const res = await fetch('/api/auth/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const data = await readApiResponse(res);
+        if (data?.success && data.user) currentUser = data.user;
+        else currentUser.name = profileName.value;
         localStorage.setItem('youz_user', JSON.stringify(currentUser));
         updateUserUI();
         alert(currentLanguage === 'id' ? 'Profil berhasil disimpan!' : 'Profile saved successfully!');
@@ -1537,3 +1557,6 @@ async function init() {
 }
 
 init();
+
+limitNoticeClose?.addEventListener('click', ()=> limitNotice?.classList.add('hidden'));
+limitNoticeCta?.addEventListener('click', ()=> window.location.href='/beli-premium');
