@@ -126,6 +126,13 @@
                 </div>
             </header>
 
+            
+            <div class="limit-notice hidden" id="limitNotice">
+                <button class="limit-notice-close" id="limitNoticeClose" type="button" aria-label="Tutup notifikasi"><i class="fas fa-times"></i></button>
+                <div class="limit-notice-text" id="limitNoticeText"></div>
+                <button class="limit-notice-cta hidden" id="limitNoticeCta" type="button">Upgrade ke Premium</button>
+            </div>
+
             <div class="chat-messages" id="chatMessages">
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -198,9 +205,9 @@
                                 <div class="model-group-title">STANDAR MODELS</div>
                                 <button class="panel-model-item" data-model="gemini" type="button">Gemini 2.0 Flash</button>
                                 <button class="panel-model-item" data-model="claude" type="button">Claude Sonnet 4.5</button>
-                                <div class="model-group-title premium-title">PREMIUM MODELS <span class="upgrade-badge">Upgrade</span></div>
-                                <button class="panel-model-item locked" data-model="gpt4o" type="button"><span>ChatGPT 4o</span><i class="fas fa-lock"></i></button>
-                                <small class="model-panel-note"><i class="fas fa-lock"></i> Premium Plan currently unavailable</small>
+                                <div class="model-group-title premium-title">PREMIUM MODELS <span class="upgrade-badge" id="premiumUpgradeBadge">Upgrade</span></div>
+                                <button class="panel-model-item premium-model locked" data-model="gpt4o" type="button"><span>ChatGPT 4o</span><i class="fas fa-lock"></i></button>
+                                <small class="model-panel-note" id="modelPanelNote"><i class="fas fa-unlock"></i> Premium belum terbuka. Upgrade ke Premium untuk unlock fitur ini</small>
                             </div>
                             <select id="modelSelect" class="model-select hidden" aria-label="Pilih model AI">
                                 <option value="gpt4o">ChatGPT 4o</option>
