@@ -715,6 +715,7 @@ modelSelectBtn?.addEventListener('click', (e) => {
 });
 document.querySelectorAll('.panel-model-item').forEach((btn) => {
     btn.addEventListener('click', () => {
+        if (btn.classList.contains('locked')) return;
         setActiveModel(btn.dataset.model);
         modelSelectPanel?.classList.add('hidden');
     });
@@ -731,6 +732,7 @@ function getUserContext() {
 
 function updateQuotaBadge(snapshot = null) {
     if (!quotaBadge) return;
+    quotaBadge.classList.add('hidden');
     if (snapshot) quotaState = snapshot;
     const plan = quotaState?.plan || 'free';
     const usage = quotaState?.usage || { chat: 0, image: 0 };
@@ -940,7 +942,7 @@ async function sendMessage(options = {}) {
     const previewImageGeneration = shouldGenerateImageFromPrompt(text);
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant" id="${loadingId}">
-            <div class="message-avatar"><i class="fas fa-robot"></i></div>
+            <div class="message-avatar"><img src="/login/logo.png" alt="AI"></div>
             <div class="message-content">
                 <div class="thinking-indicator">
                     <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
