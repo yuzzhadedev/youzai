@@ -499,6 +499,19 @@ function createMessageElement(msg, index) {
         });
     }
     
+
+    messageDiv.querySelectorAll('.code-copy-btn').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+            const raw = decodeURIComponent(btn.dataset.code || '');
+            try {
+                await navigator.clipboard.writeText(raw);
+                const original = btn.textContent;
+                btn.textContent = 'Copied';
+                setTimeout(() => btn.textContent = original, 1200);
+            } catch {}
+        });
+    });
+
     return messageDiv;
 }
 
@@ -512,6 +525,12 @@ function escapeHtml(text) {
 function parseSimpleMarkdown(text) {
     if (!text) return '';
     let rendered = escapeHtml(text);
+    rendered = rendered.replace(/```(\w+)?\n?([\s\S]*?)```/g, (_, lang = '', code = '') => {
+        const language = String(lang || 'text').trim().toLowerCase();
+        const codeText = code.replace(/^\n+|\n+$/g, '');
+        const encodedCode = encodeURIComponent(codeText);
+        return `<div class="code-block"><div class="code-header"><span class="code-language">${escapeHtml(language)}</span><button type="button" class="code-copy-btn" data-code="${encodedCode}" aria-label="Salin kode">Copy</button></div><pre><code class="language-${escapeHtml(language)}">${escapeHtml(codeText)}</code></pre></div>`;
+    });
     rendered = rendered.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     rendered = rendered.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     rendered = rendered.replace(/\*(.+?)\*/g, '<em>$1</em>');
@@ -565,6 +584,10 @@ function getSourceFaviconUrl(url) {
     } catch {
         return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
     }
+}
+
+function renderPlainTextContent(text) {
+    return escapeHtml(text || '');
 }
 
 function renderMessageContent(text) {
@@ -753,8 +776,8 @@ function updateQuotaBadge(snapshot = null) {
     premiumUpgradeBadge?.classList.toggle('hidden', isPremium);
     if (modelPanelNote) {
         modelPanelNote.innerHTML = isPremium
-            ? '<i class="fas fa-unlock"></i> (unlock) Premium features are open to you'
-            : '<i class="fas fa-lock"></i> Premium belum terbuka. Upgrade ke Premium untuk unlock fitur ini';
+            ? '<i class="fas fa-unlock"></i> (unlock) Premium Model has been opened'
+            : '<i class="fas fa-lock"></i> (lock) Pro Plan currently unavailable';
     }
     const usage = quotaState?.usage || { chat: 0, image: 0 };
     const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
@@ -893,7 +916,7 @@ async function typeWriterEffect(el, text, speed = 20) {
             }
             if (i < text.length) {
                 const partial = text.slice(0, i + 1);
-                el.innerHTML = renderMessageContent(partial);
+                el.innerHTML = renderPlainTextContent(partial);
                 i++;
                 if (autoScrollDuringTyping) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
