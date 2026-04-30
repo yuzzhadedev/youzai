@@ -2227,3 +2227,14 @@ body {
 .limit-notice-text{font-size:14px;line-height:1.45;color:#eceff4;padding-right:24px;}
 .limit-notice-close{position:absolute;right:10px;top:8px;background:transparent;border:none;color:#c7cad1;cursor:pointer;}
 .limit-notice-cta{border:none;background:#1e2740;color:#cdd8ff;border-radius:999px;padding:10px 14px;font-weight:600;cursor:pointer;align-self:stretch;}
+
+
+.panel-model-item span small{display:block;font-size:10px;color:#9ca3af;margin-top:2px;}
+.code-block{margin:10px 0;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;background:#1e1e1e;}
+.code-header{display:flex;justify-content:space-between;align-items:center;background:#2a2d2e;padding:7px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
+.code-language{font-size:11px;text-transform:lowercase;color:#d1d5db;font-family:'Fira Code','Courier New',monospace;}
+.code-copy-btn{background:#3b3f41;color:#e5e7eb;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;}
+.code-block pre{margin:0;padding:12px;overflow:auto;max-width:100%;}
+.code-block code{display:block;color:#d4d4d4;background:transparent!important;font-family:'Fira Code','Courier New',monospace;font-size:12px;line-height:1.5;white-space:pre;min-width:max-content;}
+.code-block pre::-webkit-scrollbar{height:10px;width:10px;}
+.code-block pre::-webkit-scrollbar-thumb{background:#4b5563;border-radius:999px;}
