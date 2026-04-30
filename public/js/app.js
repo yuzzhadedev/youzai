@@ -59,6 +59,7 @@ const limitNoticeCta = document.getElementById('limitNoticeCta');
 const limitNoticeClose = document.getElementById('limitNoticeClose');
 const modelPanelNote = document.getElementById('modelPanelNote');
 const premiumUpgradeBadge = document.getElementById('premiumUpgradeBadge');
+const profilePlanBadge = document.getElementById('profilePlanBadge');
 // ========== FITUR BARU: DOM ELEMENTS TAMBAHAN ==========
 const imageDraftContainer = document.getElementById('imageDraftContainer');
 const draftImage = document.getElementById('draftImage');
@@ -587,7 +588,8 @@ function getSourceFaviconUrl(url) {
 }
 
 function renderPlainTextContent(text) {
-    return escapeHtml(text || '');
+    const safe = escapeHtml(text || '');
+    return safe.replace(/<br>/g, '<br><span class="typing-cursor">▌</span>').replace(/<span class="typing-cursor">▌<\/span>$/, '') + '<span class="typing-cursor">▌</span>';
 }
 
 function renderMessageContent(text) {
@@ -763,7 +765,7 @@ function updateQuotaBadge(snapshot = null) {
     if (!quotaBadge) return;
     quotaBadge.classList.add('hidden');
     if (snapshot) quotaState = snapshot;
-    const plan = quotaState?.plan || 'free';
+    const plan = String(quotaState?.plan || 'free').toLowerCase();
     const isPremium = plan === 'premium';
     document.querySelectorAll('.panel-model-item.premium-model').forEach((el) => {
         el.classList.toggle('locked', !isPremium);
@@ -774,10 +776,18 @@ function updateQuotaBadge(snapshot = null) {
         }
     });
     premiumUpgradeBadge?.classList.toggle('hidden', isPremium);
+    if (profilePlanBadge) {
+        profilePlanBadge.textContent = isPremium ? 'Premium' : 'Free';
+        profilePlanBadge.classList.toggle('is-free', !isPremium);
+    }
+
     if (modelPanelNote) {
         modelPanelNote.innerHTML = isPremium
-            ? '<i class="fas fa-unlock"></i> (unlock) Premium Model has been opened'
-            : '<i class="fas fa-lock"></i> (lock) Pro Plan currently unavailable';
+            ? '<i class="fas fa-unlock"></i> Premium Models unlocked'
+            : '<i class="fas fa-lock"></i> Premium Models locked, upgrade untuk membuka';
+    }
+    if (isPremium && !['gpt4o','claude','gemini'].includes(activeModel)) {
+        setActiveModel('gpt4o');
     }
     const usage = quotaState?.usage || { chat: 0, image: 0 };
     const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
@@ -905,7 +915,7 @@ function showImageDraftFromData(dataURL) {
 }
 
 // ========== TYPING EFFECT ==========
-async function typeWriterEffect(el, text, speed = 20) {
+async function typeWriterEffect(el, text, speed = 40) {
     el.innerHTML = '';
     let i = 0;
     return new Promise(resolve => {
@@ -916,7 +926,7 @@ async function typeWriterEffect(el, text, speed = 20) {
             }
             if (i < text.length) {
                 const partial = text.slice(0, i + 1);
-                el.innerHTML = renderPlainTextContent(partial);
+                el.innerHTML = parseSimpleMarkdown(partial);
                 i++;
                 if (autoScrollDuringTyping) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1048,7 +1058,7 @@ async function sendMessage(options = {}) {
         const contentEl = document.getElementById(`msg-content-${conv.messages.length - 1}`);
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
-            await typeWriterEffect(contentEl, response.content, 20);
+            await typeWriterEffect(contentEl, response.content, 40);
             aiMessage.content = contentEl.textContent || response.content;
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';

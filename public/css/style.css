@@ -2238,3 +2238,8 @@ body {
 .code-block code{display:block;color:#d4d4d4;background:transparent!important;font-family:'Fira Code','Courier New',monospace;font-size:12px;line-height:1.5;white-space:pre;min-width:max-content;}
 .code-block pre::-webkit-scrollbar{height:10px;width:10px;}
 .code-block pre::-webkit-scrollbar-thumb{background:#4b5563;border-radius:999px;}
+
+
+* { -webkit-tap-highlight-color: transparent; }
+button:focus, button:focus-visible, .action-btn:focus, .panel-model-item:focus { outline: none !important; box-shadow: none !important; }
+.profile-premium-badge.is-free{background:rgba(148,163,184,.18);color:#cbd5e1;}
