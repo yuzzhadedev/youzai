@@ -460,11 +460,10 @@ function createMessageElement(msg, index) {
                         <i class="fas fa-redo-alt"></i>
                         <span>Ulang</span>
                     </button>
-                    ${msg.sources?.length ? `
-                    <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
-                        <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
+                    <button class="action-btn sources-btn ${msg.sources?.length ? 'has-sources' : ''} ${!msg.sources?.length ? 'is-empty' : ''}" type="button" title="Sumber" data-index="${index}" ${!msg.sources?.length ? 'disabled' : ''}>
+                        ${msg.sources?.length ? `<span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>` : '<i class="fas fa-link"></i>'}
                         <span>Sumber</span>
-                    </button>` : ''}
+                    </button>
                     ${feedbackIndicator}
                 </div>
             ` : ''}
@@ -783,12 +782,13 @@ function updateQuotaBadge(snapshot = null) {
     if (profilePlanBadge) {
         profilePlanBadge.textContent = isPremium ? 'Premium' : 'Free';
         profilePlanBadge.classList.toggle('is-free', !isPremium);
+        profilePlanBadge.classList.toggle('premium', isPremium);
     }
 
     if (modelPanelNote) {
         modelPanelNote.innerHTML = isPremium
-            ? '<i class="fas fa-unlock"></i> Premium Models unlocked'
-            : '<i class="fas fa-lock"></i> Premium Models locked, upgrade untuk membuka';
+            ? '<i class="fas fa-unlock"></i> Premium Model has been opened'
+            : '<i class="fas fa-lock"></i> Premium Plan is currently available.';
     }
     if (isPremium && !['gpt4o','claude','gemini'].includes(activeModel)) {
         setActiveModel('gpt4o');
@@ -920,6 +920,17 @@ function showImageDraftFromData(dataURL) {
 }
 
 // ========== TYPING EFFECT ==========
+function sanitizePartialMarkdown(text = '') {
+    if (!text) return '';
+    let safe = text;
+    safe = safe.replace(/\[[^\]]*$/g, '');
+    safe = safe.replace(/\([^)]*$/g, '');
+    safe = safe.replace(/\*\*[^*]*$/g, '');
+    safe = safe.replace(/\*[^*]*$/g, '');
+    safe = safe.replace(/`[^`]*$/g, '');
+    return safe;
+}
+
 async function typeWriterEffect(el, text, speed = 40) {
     el.innerHTML = '';
     let i = 0;
@@ -930,7 +941,7 @@ async function typeWriterEffect(el, text, speed = 40) {
                 return;
             }
             if (i < text.length) {
-                const partial = text.slice(0, i + 1);
+                const partial = sanitizePartialMarkdown(text.slice(0, i + 1));
                 el.innerHTML = parseSimpleMarkdown(partial);
                 i++;
                 if (autoScrollDuringTyping) {
@@ -938,6 +949,7 @@ async function typeWriterEffect(el, text, speed = 40) {
                 }
                 typingTimeout = setTimeout(type, speed);
             } else {
+                el.innerHTML = parseSimpleMarkdown(text || '');
                 resolve();
             }
         }
@@ -1064,7 +1076,7 @@ async function sendMessage(options = {}) {
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content, 40);
-            aiMessage.content = contentEl.textContent || response.content;
+            aiMessage.content = response.content || contentEl.textContent || '';
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';
             if (contentEl) contentEl.innerHTML = escapeHtml(aiMessage.content);
