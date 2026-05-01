@@ -1059,8 +1059,7 @@ async function sendMessage(options = {}) {
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content, 40);
-            aiMessage.content = response.content || '';
-            contentEl.innerHTML = renderMessageContent(aiMessage.content);
+            aiMessage.content = contentEl.textContent || response.content;
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';
             if (contentEl) contentEl.innerHTML = escapeHtml(aiMessage.content);
