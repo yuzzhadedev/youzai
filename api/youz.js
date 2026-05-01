@@ -118,6 +118,13 @@ export default async function handler(req, res) {
   try {
     const quotaType = action === 'generate' ? 'image' : 'chat';
     const quotaSnapshot = await getQuotaSnapshot(userKey);
+    if (modelType === 'gpt4o' && quotaSnapshot?.plan !== 'premium') {
+      return res.status(200).json({
+        success: false,
+        content: 'Model ChatGPT 4o hanya untuk pengguna Premium.',
+        limit: { type: quotaType, ...quotaSnapshot }
+      });
+    }
     const currentUsage = quotaSnapshot?.usage?.[quotaType] || 0;
     const limitAmount = quotaSnapshot?.limits?.[quotaType] || 0;
     if (currentUsage >= limitAmount) {
