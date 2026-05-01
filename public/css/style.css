@@ -1381,6 +1381,14 @@ body {
     color: var(--primary);
 }
 
+.sources-btn {
+    margin-left: 10px;
+}
+
+.sources-btn.is-empty {
+    opacity: 0.45;
+}
+
 .sources-sheet {
     position: fixed;
     inset: 0;
