@@ -199,6 +199,15 @@ function updateUserUI() {
         userAvatar.src = currentUser.picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'User') + '&background=3b82f6&color=fff';
         userName.textContent = currentUser.name || 'User';
         userEmail.textContent = currentUser.email || '';
+        const detectedPlan = String(currentUser.plan || currentUser.plan_name || '').toLowerCase();
+        if (detectedPlan === 'premium' || detectedPlan.startsWith('premium_') || detectedPlan.startsWith('premium-')) {
+            updateQuotaBadge({
+                plan: 'premium',
+                usage: quotaState?.usage || { chat: 0, image: 0 },
+                limits: quotaState?.limits || { chat: 120, image: 15 },
+                usageDate: quotaState?.usageDate || new Date().toISOString().slice(0, 10)
+            });
+        }
     } else {
         userProfile.classList.add('hidden');
         sidebarAuthLinks?.classList.remove('hidden');
@@ -253,10 +262,9 @@ function openSourcesSheet(sources = [], focusIndex = 0) {
     activeSources = sources;
     sourcesList.innerHTML = !sources.length
         ? '<p>Tidak ada sumber.</p>'
-        : sources.map((source) => `
+        : sources.map((source, index) => `
             <div class="source-item">
-                <a href="${source.url}" target="_blank" rel="noopener noreferrer"><img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">${escapeHtml(source.title || source.url)}</a>
-                <p>${escapeHtml(source.snippet || source.url)}</p>
+                <a href="${source.url}" target="_blank" rel="noopener noreferrer">[${index + 1}] ${escapeHtml(source.title || source.url)} - ${escapeHtml(source.domain || new URL(source.url).hostname.replace(/^www\./, ''))}</a>
             </div>
         `).join('');
     sourcesSheet.classList.remove('hidden');
@@ -460,10 +468,12 @@ function createMessageElement(msg, index) {
                         <i class="fas fa-redo-alt"></i>
                         <span>Ulang</span>
                     </button>
-                    <button class="action-btn sources-btn ${msg.sources?.length ? 'has-sources' : ''} ${!msg.sources?.length ? 'is-empty' : ''}" type="button" title="Sumber" data-index="${index}" ${!msg.sources?.length ? 'disabled' : ''}>
-                        ${msg.sources?.length ? `<span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>` : '<i class="fas fa-link"></i>'}
+                    ${shouldShowSourcesButton(msg) ? `
+                    <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
+                        <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
                         <span>Sumber</span>
                     </button>
+                    ` : ''}
                     ${feedbackIndicator}
                 </div>
             ` : ''}
@@ -542,11 +552,20 @@ function parseSimpleMarkdown(text) {
 
 function normalizeSources(sources = []) {
     return (Array.isArray(sources) ? sources : [])
-        .map((source) => ({
-            title: source?.title || source?.name || source?.url || 'Sumber',
-            url: source?.url || source?.link || source?.uri || '',
-            snippet: source?.snippet || source?.text || source?.description || ''
-        }))
+        .map((source) => {
+            const url = source?.url || source?.link || source?.uri || '';
+            let domain = source?.domain || '';
+            if (!domain && /^https?:\/\//i.test(url)) {
+                try { domain = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+            }
+            return {
+                id: source?.id,
+                title: source?.title || source?.name || source?.url || 'Sumber',
+                url,
+                domain,
+                snippet: source?.snippet || source?.text || source?.description || ''
+            };
+        })
         .filter((source) => /^https?:\/\//i.test(source.url));
 }
 
@@ -584,6 +603,14 @@ function getSourceFaviconUrl(url) {
     } catch {
         return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
     }
+}
+
+
+function shouldShowSourcesButton(msg) {
+    const hasSearchResult = Boolean(msg?.hasSearch) || (msg?.model === 'web-search');
+    const hasSources = Array.isArray(msg?.sources) && msg.sources.length > 0;
+    const isImageResponse = Boolean(msg?.generatedImage);
+    return hasSearchResult && hasSources && !isImageResponse;
 }
 
 function renderPlainTextContent(text) {
@@ -759,9 +786,9 @@ document.querySelectorAll('.panel-model-item').forEach((btn) => {
 
 function getUserContext() {
     return {
-        id: currentUser?.id || '',
+        id: currentUser?.id || currentUser?.sub || currentUser?.user_id || currentUser?._id || '',
         email: currentUser?.email || '',
-        name: currentUser?.name || ''
+        name: currentUser?.name || currentUser?.fullName || currentUser?.username || ''
     };
 }
 
@@ -1058,6 +1085,7 @@ async function sendMessage(options = {}) {
             role: 'assistant',
             content: '',
             model: response.model || ((generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : activeModel)),
+            hasSearch: Boolean(response.hasSearch) || enableSearch,
             isError: !response.success,
             feedback: null,
             sources: mergeSources(response.sources || [], extractSourcesFromText(response.content || '')),

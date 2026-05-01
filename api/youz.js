@@ -7,14 +7,17 @@ const MODEL_MAP = {
   claude: 'anthropic/claude-sonnet-4.5'
 };
 
-function buildSystemPrompt(thinkingMode) {
+function buildSystemPrompt(thinkingMode, userContext = {}) {
   const now = new Date();
   const currentTime = now.toLocaleString('id-ID', {
     timeZone: 'Asia/Jakarta',
     dateStyle: 'full',
     timeStyle: 'long'
   });
-  return `Kamu adalah Youz AI, asisten virtual buatan Yuzz Ofc. Waktu sekarang: ${currentTime}. Jawab dalam Bahasa Indonesia yang santai dan informatif.${thinkingMode ? ' Gunakan reasoning mendalam sebelum menjawab.' : ''}`;
+  const rawName = String(userContext?.name || userContext?.fullName || userContext?.username || '').trim();
+  const userName = rawName ? rawName.replace(/\s+/g, ' ').slice(0, 60) : '';
+  const nameContext = userName ? ` Nama pengguna saat ini: ${userName}. Jika relevan, sapa namanya secara natural.` : '';
+  return `Kamu adalah Youz AI, asisten virtual buatan Yuzz Ofc. Waktu sekarang: ${currentTime}.${nameContext} Jawab dalam Bahasa Indonesia yang santai dan informatif.${thinkingMode ? ' Gunakan reasoning mendalam sebelum menjawab.' : ''}`;
 }
 
 function normalizeModelType(modelType) {
@@ -172,7 +175,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, content: `Gambar berhasil dibuat untuk prompt: ${imagePrompt}`, imageUrl: `data:image/png;base64,${imageBase64}`, action: 'generate', model: 'image-generator', limit: await getQuotaSnapshot(userKey) });
     }
 
-    const systemPrompt = buildSystemPrompt(thinkingMode);
+    const systemPrompt = buildSystemPrompt(thinkingMode, userContext);
     const chatMessages = action === 'generate' && imageData
       ? [{
           role: 'user',
@@ -214,6 +217,7 @@ export default async function handler(req, res) {
       success: providerResponse.success,
       content: providerResponse.content,
       model: action === 'generate' ? 'vision' : (action === 'search' ? 'web-search' : modelType),
+      hasSearch: action === 'search' || Boolean(enableSearch) || (providerResponse.sources || []).length > 0,
       sources: providerResponse.sources || [],
       action,
       limit: await getQuotaSnapshot(userKey)
