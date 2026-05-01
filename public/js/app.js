@@ -724,6 +724,11 @@ function updateModelIndicator() {
 
 function setActiveModel(model, persist = true) {
     const normalizedModel = ['gpt4o', 'gemini', 'claude'].includes(model) ? model : 'gpt4o';
+    const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
+    if (normalizedModel === 'gpt4o' && !isPremium) {
+        showLimitNotice({ limit: { usageDate: quotaState?.usageDate || new Date().toISOString().slice(0, 10) } });
+        return;
+    }
     activeModel = normalizedModel;
     settingsModelBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
@@ -763,7 +768,6 @@ function getUserContext() {
 
 function updateQuotaBadge(snapshot = null) {
     if (!quotaBadge) return;
-    quotaBadge.classList.add('hidden');
     if (snapshot) quotaState = snapshot;
     const plan = String(quotaState?.plan || 'free').toLowerCase();
     const isPremium = plan === 'premium';
@@ -793,6 +797,7 @@ function updateQuotaBadge(snapshot = null) {
     const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
     quotaBadge.textContent = `${plan === 'premium' ? 'Premium' : 'Free'} ${usage.chat}/${limits.chat} · Img ${usage.image}/${limits.image}`;
     quotaBadge.classList.toggle('premium', plan === 'premium');
+    quotaBadge.classList.remove('hidden');
 }
 
 
