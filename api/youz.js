@@ -22,7 +22,7 @@ function buildSystemPrompt(thinkingMode, userContext = {}) {
 
 function normalizeModelType(modelType) {
   if (!modelType) return 'openai';
-  return ['openai', 'gpt4o', 'gemini', 'claude'].includes(modelType) ? modelType : 'openai';
+  return ['openai', 'gpt4o', 'gemini', 'claude'].includes(modelType) ? modelType : 'gemini';
 }
 
 async function callRuneria({ apiKey, model, messages }) {
