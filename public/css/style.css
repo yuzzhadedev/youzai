@@ -466,6 +466,7 @@ body {
 }
 
 .menu-item {
+    width: 100%;
     padding: 10px 14px;
     display: flex;
     align-items: center;
@@ -473,6 +474,10 @@ body {
     cursor: pointer;
     border-radius: 8px;
     font-size: 13px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    text-align: left;
 }
 
 .menu-item:hover {

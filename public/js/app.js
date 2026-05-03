@@ -958,29 +958,51 @@ function sanitizePartialMarkdown(text = '') {
     return safe;
 }
 
-async function typeWriterEffect(el, text, speed = 40) {
+async function typeWriterEffect(el, text, speed = 22) {
     el.innerHTML = '';
-    let i = 0;
+    const fullText = String(text || '');
+    let index = 0;
+    let lastRendered = '';
+    let lastFrameTime = performance.now();
+    const minCharsPerFrame = 1;
+    const maxCharsPerFrame = 5;
+    const targetFrameMs = Math.max(14, Number(speed) || 22);
+
     return new Promise(resolve => {
-        function type() {
+        function renderFrame(now) {
             if (typingAbortRequested) {
                 resolve();
                 return;
             }
-            if (i < text.length) {
-                const partial = sanitizePartialMarkdown(text.slice(0, i + 1));
+
+            if (index >= fullText.length) {
+                el.innerHTML = parseSimpleMarkdown(fullText);
+                resolve();
+                return;
+            }
+
+            const elapsed = now - lastFrameTime;
+            const adaptiveChars = Math.max(
+                minCharsPerFrame,
+                Math.min(maxCharsPerFrame, Math.floor(elapsed / targetFrameMs) || 1)
+            );
+
+            index = Math.min(fullText.length, index + adaptiveChars);
+            const partial = sanitizePartialMarkdown(fullText.slice(0, index));
+
+            if (partial !== lastRendered) {
                 el.innerHTML = parseSimpleMarkdown(partial);
-                i++;
+                lastRendered = partial;
                 if (autoScrollDuringTyping) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
-                typingTimeout = setTimeout(type, speed);
-            } else {
-                el.innerHTML = parseSimpleMarkdown(text || '');
-                resolve();
             }
+
+            lastFrameTime = now;
+            typingTimeout = requestAnimationFrame(renderFrame);
         }
-        type();
+
+        typingTimeout = requestAnimationFrame(renderFrame);
     });
 }
 
@@ -989,7 +1011,7 @@ async function sendMessage(options = {}) {
     console.log('📤 sendMessage called');
     if (isProcessing && abortController) {
         typingAbortRequested = true;
-        clearTimeout(typingTimeout);
+        cancelAnimationFrame(typingTimeout);
         abortController.abort();
         return;
     }
@@ -1291,21 +1313,23 @@ function applyLanguage(lang) {
 }
 
 // ========== SEARCH SUGGESTIONS ==========
-messageInput.addEventListener('input', function() {
-    const query = this.value.trim();
-    if (query.length > 2) {
-        searchSuggestions.classList.remove('hidden');
-        const suggestionItems = searchSuggestions.querySelectorAll('.suggestion-item');
-        if (suggestionItems.length > 0) {
-            suggestionItems[0].setAttribute('data-query', `${query} berita terbaru`);
-            suggestionItems[0].innerHTML = `<i class="fas fa-newspaper"></i><span>"${query}" berita terbaru</span>`;
-            suggestionItems[1].setAttribute('data-query', `${query} penjelasan`);
-            suggestionItems[1].innerHTML = `<i class="fas fa-search"></i><span>"${query}" penjelasan</span>`;
+if (messageInput && searchSuggestions) {
+    messageInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length > 2) {
+            searchSuggestions.classList.remove('hidden');
+            const suggestionItems = searchSuggestions.querySelectorAll('.suggestion-item');
+            if (suggestionItems.length > 1) {
+                suggestionItems[0].setAttribute('data-query', `${query} berita terbaru`);
+                suggestionItems[0].innerHTML = `<i class="fas fa-newspaper"></i><span>"${query}" berita terbaru</span>`;
+                suggestionItems[1].setAttribute('data-query', `${query} penjelasan`);
+                suggestionItems[1].innerHTML = `<i class="fas fa-search"></i><span>"${query}" penjelasan</span>`;
+            }
+        } else {
+            searchSuggestions.classList.add('hidden');
         }
-    } else {
-        searchSuggestions.classList.add('hidden');
-    }
-});
+    });
+}
 
 document.querySelectorAll('.suggestion-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -1329,10 +1353,10 @@ menuBtn?.addEventListener('click', (e) => {
 });
 
 document.addEventListener('click', (e) => {
-    if (!menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+    if (menuDropdown && menuBtn && !menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
         menuDropdown.classList.remove('show');
     }
-    if (!searchSuggestions.contains(e.target) && e.target !== messageInput) {
+    if (searchSuggestions && e.target !== messageInput && !searchSuggestions.contains(e.target)) {
         searchSuggestions.classList.add('hidden');
     }
 });
