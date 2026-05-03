@@ -1,7 +1,7 @@
 // ========== STATE ==========
 let conversations = [];
 let activeConversationId = null;
-let activeModel = 'gpt4o'; // 'gpt4o', 'gemini'
+let activeModel = 'gemini'; // 'gpt4o', 'gemini', 'claude'
 let isProcessing = false;
 let currentUser = null;
 let abortController = null;
@@ -877,7 +877,7 @@ async function readApiResponse(res) {
 }
 
 async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, signal) {
-    const modelType = ['gpt4o', 'openai'].includes(activeModel) ? 'openai' : activeModel;
+    const modelType = activeModel;
     const res = await fetch('/api/youz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1617,11 +1617,10 @@ async function init() {
     loadFromStorage();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
-    setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
+    setActiveModel(localStorage.getItem('youz_model') || 'gemini', false);
     if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
-    setActiveModel(localStorage.getItem('youz_model') || 'gpt4o', false);
     activeConversationId = conversations[0]?.id;
     renderSidebar();
     if (activeConversationId) {
