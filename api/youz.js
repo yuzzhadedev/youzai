@@ -66,7 +66,7 @@ async function callOpenRouter({ apiKey, model, messages, enableSearch, maxTokens
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
-      'HTTP-Referer': process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
+      'HTTP-Referer': process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://youzai.my.id',
       'X-Title': 'Youz AI'
     },
     body: JSON.stringify(body)
