@@ -55,3 +55,31 @@ create table if not exists public.premium_requests (
 create index if not exists idx_usage_daily_user_date on public.usage_daily(user_key, usage_date);
 create index if not exists idx_chat_history_user_created on public.chat_history(user_key, created_at desc);
 create index if not exists idx_premium_requests_user_created on public.premium_requests(user_key, created_at desc);
+
+
+-- RLS + grants baseline for API access (anon/authenticated)
+-- NOTE: This grants READ-only access to all current tables in schema public.
+do $$
+declare
+  t record;
+begin
+  for t in
+    select tablename
+    from pg_tables
+    where schemaname = 'public'
+  loop
+    execute format('alter table public.%I enable row level security', t.tablename);
+    execute format('grant select on table public.%I to anon', t.tablename);
+    execute format('grant select on table public.%I to authenticated', t.tablename);
+
+    execute format('drop policy if exists "read_all_anon" on public.%I', t.tablename);
+    execute format('create policy "read_all_anon" on public.%I for select to anon using (true)', t.tablename);
+
+    execute format('drop policy if exists "read_all_authenticated" on public.%I', t.tablename);
+    execute format('create policy "read_all_authenticated" on public.%I for select to authenticated using (true)', t.tablename);
+  end loop;
+end
+$$;
+
+-- If you query a table with spaces, always use double quotes, e.g.:
+-- select * from public."Youz Ai";
