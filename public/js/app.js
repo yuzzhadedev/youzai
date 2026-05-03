@@ -961,6 +961,11 @@ function sanitizePartialMarkdown(text = '') {
 async function typeWriterEffect(el, text, speed = 22) {
     el.innerHTML = '';
     const fullText = String(text || '');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        el.innerHTML = parseSimpleMarkdown(fullText);
+        return;
+    }
     let index = 0;
     let lastRendered = '';
     let lastFrameTime = performance.now();
@@ -1125,7 +1130,7 @@ async function sendMessage(options = {}) {
         const contentEl = document.getElementById(`msg-content-${conv.messages.length - 1}`);
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
-            await typeWriterEffect(contentEl, response.content, 40);
+            await typeWriterEffect(contentEl, response.content);
             aiMessage.content = response.content || contentEl.textContent || '';
         } else {
             aiMessage.content = response.content || 'Maaf, tidak ada respons.';
