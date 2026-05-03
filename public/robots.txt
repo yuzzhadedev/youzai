@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://youzai.vercel.app/sitemap.xml
+Sitemap: https://youzai.my.id/sitemap.xml
