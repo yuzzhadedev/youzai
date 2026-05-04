@@ -537,7 +537,7 @@ function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+    return div.innerHTML;
 }
 
 function parseSimpleMarkdown(text) {
@@ -555,6 +555,7 @@ function parseSimpleMarkdown(text) {
     rendered = rendered.replace(/__(.+?)__/g, '<strong>$1</strong>');
     rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
     rendered = rendered.replace(/\[(\d+)\]/g, '<button type="button" class="inline-source-ref" data-source-index="$1">[$1]</button>');
+    rendered = rendered.replace(/\n/g, '<br>');
     return rendered;
 }
 
