@@ -257,6 +257,14 @@ function setProcessingUI(processing) {
         : '<i class="fas fa-arrow-up"></i>';
 }
 
+
+function updateSendButtonState() {
+    if (!sendBtn || isProcessing) return;
+    const hasText = (messageInput?.value || '').trim() !== '';
+    sendBtn.disabled = !hasText;
+    sendBtn.classList.toggle('disabled', !hasText);
+}
+
 function openSourcesSheet(sources = [], focusIndex = 0) {
     if (!sourcesList || !sourcesSheet) return;
     activeSources = sources;
@@ -529,7 +537,7 @@ function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
-    return div.innerHTML.replace(/\n/g, '<br>');
+    return div.innerHTML;
 }
 
 function parseSimpleMarkdown(text) {
@@ -547,6 +555,7 @@ function parseSimpleMarkdown(text) {
     rendered = rendered.replace(/__(.+?)__/g, '<strong>$1</strong>');
     rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
     rendered = rendered.replace(/\[(\d+)\]/g, '<button type="button" class="inline-source-ref" data-source-index="$1">[$1]</button>');
+    rendered = rendered.replace(/\n/g, '<br>');
     return rendered;
 }
 
@@ -1011,6 +1020,30 @@ async function typeWriterEffect(el, text, speed = 22) {
     });
 }
 
+
+async function streamChatSSE({ prompt, conversationId }) {
+    const qs = new URLSearchParams({ prompt: String(prompt || ''), conversationId: String(conversationId || ''), userId: currentUser?.id || '', email: currentUser?.email || '' });
+    const response = await fetch(`/api/youz?mode=stream&${qs.toString()}`, { headers: { Accept: 'text/event-stream' } });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let finalContent = '';
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split('\n\n');
+        buffer = chunks.pop() || '';
+        for (const chunk of chunks) {
+            const line = chunk.split('\n').find(l => l.startsWith('data:'));
+            if (!line) continue;
+            const data = JSON.parse(line.slice(5).trim());
+            if (data.type === 'token') finalContent = data.content || finalContent;
+        }
+    }
+    return { success: true, content: finalContent, model: activeModel, sources: [] };
+}
+
 // ========== SEND MESSAGE ==========
 async function sendMessage(options = {}) {
     console.log('📤 sendMessage called');
@@ -1069,6 +1102,7 @@ async function sendMessage(options = {}) {
     if (forcedText === null) {
         messageInput.value = '';
         messageInput.style.height = 'auto';
+        updateSendButtonState();
     }
     clearImageDraft();
     
@@ -1094,14 +1128,19 @@ async function sendMessage(options = {}) {
         const generateImageRequest = (!userMessage.image && shouldGenerateImageFromPrompt(text));
         
         const action = (userMessage.image || generateImageRequest) ? 'generate' : (enableSearch ? 'search' : 'chat');
-        const response = await callUnifiedAPI(
-            messages,
-            action,
-            userMessage.image || null,
-            text || 'Deskripsikan atau edit gambar ini.',
-            enableSearch,
-            abortController.signal
-        );
+        let response;
+        if (action === 'chat' && !userMessage.image) {
+            response = await streamChatSSE({ prompt: text, conversationId: conv.id });
+        } else {
+            response = await callUnifiedAPI(
+                messages,
+                action,
+                userMessage.image || null,
+                text || 'Deskripsikan atau edit gambar ini.',
+                enableSearch,
+                abortController.signal
+            );
+        }
         
         document.getElementById(loadingId)?.remove();
 
@@ -1166,6 +1205,7 @@ async function sendMessage(options = {}) {
         abortController = null;
         setProcessingUI(false);
         messageInput.focus();
+        updateSendButtonState();
     }
 }
 
@@ -1395,6 +1435,7 @@ messageInput?.addEventListener('keydown', (e) => {
 messageInput?.addEventListener('input', function() {
     this.style.height = 'auto';
     this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+    updateSendButtonState();
 });
 
 attachBtn?.addEventListener('click', () => {
@@ -1680,3 +1721,7 @@ init();
 
 limitNoticeClose?.addEventListener('click', ()=> limitNotice?.classList.add('hidden'));
 limitNoticeCta?.addEventListener('click', ()=> window.location.href='/beli-premium');
+
+
+sendBtn && (sendBtn.disabled = true);
+updateSendButtonState();
