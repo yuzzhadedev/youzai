@@ -1023,7 +1023,7 @@ async function typeWriterEffect(el, text, speed = 22) {
 
 async function streamChatSSE({ prompt, conversationId }) {
     const qs = new URLSearchParams({ prompt: String(prompt || ''), conversationId: String(conversationId || ''), userId: currentUser?.id || '', email: currentUser?.email || '' });
-    const response = await fetch(`/api/chat-stream?${qs.toString()}`, { headers: { Accept: 'text/event-stream' } });
+    const response = await fetch(`/api/youz?mode=stream&${qs.toString()}`, { headers: { Accept: 'text/event-stream' } });
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
