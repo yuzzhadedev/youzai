@@ -107,6 +107,9 @@ function loadFromStorage() {
     if (saved) {
         try {
             conversations = JSON.parse(saved);
+            if (Array.isArray(conversations)) {
+                conversations = conversations.map((conv) => ({ ...conv, serverId: conv?.serverId || null }));
+            }
         } catch (e) {
             conversations = [];
         }
@@ -128,6 +131,7 @@ function getConversationStorageKey() {
 function createNewConversation() {
     const newConv = {
         id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9),
+        serverId: null,
         title: 'Percakapan Baru',
         messages: [],
         createdAt: new Date().toISOString(),
@@ -187,6 +191,41 @@ async function syncUserFromServer() {
     } catch (error) {
         console.warn('Auth sync skipped:', error?.message || error);
     }
+}
+
+async function syncHistoryFromServerIfEmpty() {
+    if (!currentUser) return;
+    const userId = currentUser?.id || currentUser?.sub || currentUser?.user_id || currentUser?._id || '';
+    const email = currentUser?.email || '';
+    if (!userId && !email) return;
+    const hasLocalMessages = Array.isArray(conversations) && conversations.some((c) => (c?.messages || []).length > 0);
+    if (hasLocalMessages) return;
+    try {
+        const qs = new URLSearchParams({ mode: 'history', userId: String(userId || ''), email: String(email || '') });
+        const res = await fetch(`/api/youz?${qs.toString()}`);
+        const data = await readApiResponse(res);
+        const history = data?.history;
+        const serverConversation = history?.conversation;
+        const serverMessages = history?.messages;
+        if (!serverConversation || !Array.isArray(serverMessages) || serverMessages.length === 0) return;
+        const mappedMessages = serverMessages.map((msg) => ({
+            id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+            role: msg.role,
+            content: msg.content || '',
+            isComplete: true
+        }));
+        const newConv = {
+            id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9),
+            serverId: serverConversation.id || null,
+            title: serverConversation.title || 'Riwayat',
+            messages: mappedMessages,
+            createdAt: serverConversation.created_at || new Date().toISOString(),
+            updatedAt: serverConversation.updated_at || new Date().toISOString()
+        };
+        conversations = [newConv];
+        activeConversationId = newConv.id;
+        saveToStorage();
+    } catch {}
 }
 
 function updateUserUI() {
@@ -885,7 +924,7 @@ async function readApiResponse(res) {
     }
 }
 
-async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, signal) {
+async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, conversationId, signal) {
     const modelType = activeModel;
     const res = await fetch('/api/youz', {
         method: 'POST',
@@ -898,17 +937,12 @@ async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch,
             modelType, 
             imageData, 
             prompt,
-            userContext: getUserContext()
+            userContext: getUserContext(),
+            conversationId
         }),
         signal 
     });
     return await readApiResponse(res);
-}
-
-function shouldGenerateImageFromPrompt(text) {
-    const lowered = (text || '').toLowerCase();
-    const imageKeywords = ['generate gambar', 'buat gambar', 'bikin gambar', 'gambar ', 'image ', 'create image', 'buatkan ilustrasi', 'ilustrasi','buatkan gambar'];
-    return imageKeywords.some(keyword => lowered.includes(keyword));
 }
 
 function shouldUseWebSearchFromPrompt(text) {
@@ -1028,6 +1062,8 @@ async function streamChatSSE({ prompt, conversationId }) {
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     let finalContent = '';
+    let doneConversationId = null;
+    let errorMessage = null;
     while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -1039,9 +1075,12 @@ async function streamChatSSE({ prompt, conversationId }) {
             if (!line) continue;
             const data = JSON.parse(line.slice(5).trim());
             if (data.type === 'token') finalContent = data.content || finalContent;
+            if (data.type === 'error') errorMessage = data.message || 'Streaming gagal.';
+            if (data.type === 'done') doneConversationId = data.conversationId || doneConversationId;
         }
     }
-    return { success: true, content: finalContent, model: activeModel, sources: [] };
+    if (errorMessage) return { success: false, content: errorMessage, model: activeModel, sources: [], conversationId: doneConversationId };
+    return { success: true, content: finalContent, model: activeModel, sources: [], conversationId: doneConversationId };
 }
 
 // ========== SEND MESSAGE ==========
@@ -1080,7 +1119,7 @@ async function sendMessage(options = {}) {
     const userMessage = {
         id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
         role: 'user',
-        content: text || ((currentDraftImage || forcedImageData) ? '📷 Edit/generate gambar' : '')
+        content: text || ((currentDraftImage || forcedImageData) ? '📷 Kirim gambar' : '')
     };
     if (forcedImageData) {
         userMessage.image = forcedImageData;
@@ -1107,14 +1146,14 @@ async function sendMessage(options = {}) {
     clearImageDraft();
     
     const loadingId = 'loading-' + Date.now();
-    const previewImageGeneration = shouldGenerateImageFromPrompt(text);
+    const hasImageDraft = Boolean(userMessage.image);
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant" id="${loadingId}">
             <div class="message-avatar"><img src="/login/logo.png" alt="AI"></div>
             <div class="message-content">
                 <div class="thinking-indicator">
                     <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                    <span>${previewImageGeneration ? 'Membuat gambar...' : 'Thinking...'}</span>
+                    <span>${hasImageDraft ? 'Memproses gambar...' : 'Thinking...'}</span>
                 </div>
             </div>
         </div>
@@ -1123,14 +1162,13 @@ async function sendMessage(options = {}) {
     
     try {
         const messages = conv.messages.map(m => ({ role: m.role, content: m.content }));
-        const needSearch = shouldUseWebSearchFromPrompt(text);
-        const enableSearch = webSearchEnabled && needSearch;
-        const generateImageRequest = (!userMessage.image && shouldGenerateImageFromPrompt(text));
+        const needSearch = !userMessage.image && shouldUseWebSearchFromPrompt(text);
+        const enableSearch = !userMessage.image && webSearchEnabled && needSearch;
         
-        const action = (userMessage.image || generateImageRequest) ? 'generate' : (enableSearch ? 'search' : 'chat');
+        const action = enableSearch ? 'search' : 'chat';
         let response;
         if (action === 'chat' && !userMessage.image) {
-            response = await streamChatSSE({ prompt: text, conversationId: conv.id });
+            response = await streamChatSSE({ prompt: text, conversationId: conv.serverId || '' });
         } else {
             response = await callUnifiedAPI(
                 messages,
@@ -1138,6 +1176,7 @@ async function sendMessage(options = {}) {
                 userMessage.image || null,
                 text || 'Deskripsikan atau edit gambar ini.',
                 enableSearch,
+                conv.serverId || '',
                 abortController.signal
             );
         }
@@ -1145,12 +1184,13 @@ async function sendMessage(options = {}) {
         document.getElementById(loadingId)?.remove();
 
         if (response.limit) updateQuotaBadge(response.limit);
+        if (response.conversationId) conv.serverId = response.conversationId;
         
         const aiMessage = {
             id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
             role: 'assistant',
             content: '',
-            model: response.model || ((generateImageRequest || userMessage.image) ? 'image-generator' : (enableSearch ? 'web-search' : activeModel)),
+            model: response.model || (enableSearch ? 'web-search' : activeModel),
             hasSearch: Boolean(response.hasSearch) || enableSearch,
             isError: !response.success,
             feedback: null,
@@ -1685,13 +1725,14 @@ async function init() {
     await syncUserFromServer();
     await loadQuotaSnapshot();
     loadFromStorage();
+    await syncHistoryFromServerIfEmpty();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
     setActiveModel(localStorage.getItem('youz_model') || 'gemini', false);
     if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
-    activeConversationId = conversations[0]?.id;
+    activeConversationId = activeConversationId || conversations[0]?.id;
     renderSidebar();
     if (activeConversationId) {
         switchConversation(activeConversationId);

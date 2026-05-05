@@ -2,7 +2,7 @@ import { consumeQuota, resolveUserKey, getQuotaSnapshot, ensureConversation, sav
 
 const MODEL_MAP = {
   openai: 'openai/gpt-4.1',
-  gpt4o: 'openai/gpt-4.1',
+  gpt4o: 'openai/gpt-4o',
   gemini: 'google/gemini-2.0-flash-001',
   claude: 'anthropic/claude-sonnet-4.5'
 };
@@ -49,11 +49,12 @@ async function callOpenRouter({ apiKey, model, messages, enableSearch, maxTokens
 }
 
 async function processChatRequest(req, payload = {}) {
-  const { messages = [], action = 'chat', modelType: rawModelType = 'openai', imageData, prompt, enableSearch = false, thinkingMode = false, userContext = {} } = payload;
+  const { messages = [], action = 'chat', modelType: rawModelType = 'openai', imageData, prompt, enableSearch = false, thinkingMode = false, userContext = {}, conversationId = '' } = payload;
   const userKey = resolveUserKey(req, userContext);
   const modelType = normalizeModelType(rawModelType);
 
-  const quotaType = action === 'generate' ? 'image' : 'chat';
+  const hasImage = Boolean(imageData);
+  const quotaType = hasImage ? 'image' : 'chat';
   const quotaSnapshot = await getQuotaSnapshot(userKey);
   if (modelType === 'gpt4o' && quotaSnapshot?.plan !== 'premium') return { success: false, content: 'Model ChatGPT 4o hanya untuk pengguna Premium.', limit: { type: quotaType, ...quotaSnapshot } };
   const currentUsage = quotaSnapshot?.usage?.[quotaType] || 0;
@@ -63,10 +64,24 @@ async function processChatRequest(req, payload = {}) {
     return { success: false, content, limit: { type: quotaType, ...quotaSnapshot } };
   }
 
-  if (action === 'generate' && !imageData) return { success: false, content: 'Generate image tidak didukung pada endpoint gabungan ini.' };
+  if (hasImage && modelType === 'claude') {
+    return { success: false, content: 'Fitur gambar belum tersedia untuk model Claude. Silakan pilih Gemini.', limit: { type: quotaType, ...quotaSnapshot } };
+  }
 
   const systemPrompt = buildSystemPrompt(thinkingMode, userContext);
-  const chatMessages = [{ role: 'system', content: systemPrompt }, ...messages.slice(-10)];
+  const safePrompt = String(prompt || messages[messages.length - 1]?.content || '').trim();
+  const trimmed = messages.slice(-10);
+  const withoutLastUser = hasImage && trimmed[trimmed.length - 1]?.role === 'user' ? trimmed.slice(0, -1) : trimmed;
+  const chatMessages = [{ role: 'system', content: systemPrompt }, ...withoutLastUser];
+  if (hasImage) {
+    chatMessages.push({
+      role: 'user',
+      content: [
+        { type: 'text', text: safePrompt || 'Tolong analisis gambar ini.' },
+        { type: 'image_url', image_url: { url: imageData } }
+      ]
+    });
+  }
   const model = MODEL_MAP[modelType] || MODEL_MAP.openai;
   let providerResponse;
   if (modelType === 'claude') {
@@ -78,14 +93,15 @@ async function processChatRequest(req, payload = {}) {
     if (!openRouterKey) return { success: false, content: 'OPENROUTER_API_KEY belum dikonfigurasi.' };
     providerResponse = await callOpenRouter({ apiKey: openRouterKey, model, messages: chatMessages, enableSearch: action === 'search' || Boolean(enableSearch), maxTokens: action === 'search' ? 1500 : 1000 });
   }
-  if (providerResponse.success) await consumeQuota({ userKey, type: 'chat', amount: 1 });
+  if (providerResponse.success) await consumeQuota({ userKey, type: quotaType, amount: 1 });
   return {
     success: providerResponse.success,
     content: providerResponse.content,
-    model: action === 'generate' ? 'vision' : (action === 'search' ? 'web-search' : modelType),
+    model: hasImage ? 'vision' : (action === 'search' ? 'web-search' : modelType),
     hasSearch: action === 'search' || Boolean(enableSearch) || (providerResponse.sources || []).length > 0,
     sources: providerResponse.sources || [],
     action,
+    conversationId: conversationId || null,
     limit: await getQuotaSnapshot(userKey)
   };
 }
@@ -103,23 +119,40 @@ export default async function handler(req, res) {
     if (mode === 'stream') {
       const { conversationId, prompt = '', userId = '', email = '' } = req.query || {};
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive' });
-      const cid = await ensureConversation({ conversationId, userId, email, title: String(prompt).slice(0, 60) || 'New Chat' });
-      await saveConversationMessage({ conversationId: cid, role: 'user', content: String(prompt) });
-      const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', userContext: { id: userId, email } });
-      const text = String(response?.content || '');
-      let built = '';
-      for (const ch of text) { built += ch; res.write(`data: ${JSON.stringify({ type: 'token', token: ch, content: built })}\n\n`); await wait(35); }
-      await saveConversationMessage({ conversationId: cid, role: 'assistant', content: built });
-      res.write(`data: ${JSON.stringify({ type: 'done', conversationId: cid })}\n\n`);
-      return res.end();
+      try {
+        const cid = await ensureConversation({ conversationId, userId, email, title: String(prompt).slice(0, 60) || 'New Chat' });
+        await saveConversationMessage({ conversationId: cid, role: 'user', content: String(prompt) });
+        const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', userContext: { id: userId, email }, conversationId: cid });
+        const text = String(response?.content || '');
+        let built = '';
+        for (const ch of text) { built += ch; res.write(`data: ${JSON.stringify({ type: 'token', token: ch, content: built })}\n\n`); await wait(35); }
+        await saveConversationMessage({ conversationId: cid, role: 'assistant', content: built });
+        res.write(`data: ${JSON.stringify({ type: 'done', conversationId: cid })}\n\n`);
+        return res.end();
+      } catch (error) {
+        res.write(`data: ${JSON.stringify({ type: 'error', message: error.message || 'Gagal streaming' })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
+        return res.end();
+      }
     }
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const response = await processChatRequest(req, req.body || {});
-    return res.status(200).json(response);
+    const payload = req.body || {};
+    const userContext = payload.userContext || {};
+    const prompt = String(payload.prompt || payload.messages?.[payload.messages?.length - 1]?.content || '').trim();
+    let cid = String(payload.conversationId || '').trim();
+    if (userContext?.id || userContext?.email) {
+      cid = await ensureConversation({ conversationId: cid, userId: userContext.id || '', email: userContext.email || '', title: prompt.slice(0, 60) || 'New Chat' });
+      if (prompt) await saveConversationMessage({ conversationId: cid, role: 'user', content: prompt });
+    }
+    const response = await processChatRequest(req, { ...payload, conversationId: cid || payload.conversationId || '' });
+    if (cid && response?.success) {
+      await saveConversationMessage({ conversationId: cid, role: 'assistant', content: String(response.content || '') });
+    }
+    return res.status(200).json({ ...response, conversationId: cid || null });
   } catch (error) {
     return res.status(200).json({ success: false, content: `Kesalahan server: ${error.message}` });
   }
