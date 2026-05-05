@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pricing - Youz AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black:   #080808;
+      --deep:    #0d0c0b;
+      --surface: #131210;
+      --card:    #17150f;
+      --gold:    #c9a84c;
+      --gold2:   #e8c97a;
+      --gold3:   #7a5c1e;
+      --cream:   #f0e8d6;
+      --muted:   #6b6150;
+      --border:  #2a2418;
+      --border2: #3a3020;
+      --white:   #faf6ef;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--black);
+      color: var(--cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: .6;
+    }
+
+    /* ── AMBIENT GLOW ── */
+    .glow-top {
+      position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 900px; height: 500px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(201,168,76,.09) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── WRAPPER ── */
+    .wrap {
+      position: relative; z-index: 1;
+      max-width: 1020px; margin: 0 auto;
+      padding: 0 24px 0;
+    }
+
+    /* ── NAV BAR ── */
+    nav {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 0 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .nav-logo img {
+      width: 30px; height: 30px;
+      object-fit: contain; border-radius: 7px;
+    }
+    .nav-logo span {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 600;
+      color: var(--cream); letter-spacing: .04em;
+    }
+    .nav-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--gold);
+      border: 1px solid var(--gold3); border-radius: 20px;
+      padding: 4px 12px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 72px 0 60px;
+      position: relative;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-bottom: 22px;
+    }
+    .eyebrow-line { width: 32px; height: 1px; background: var(--gold3); }
+    .eyebrow-text {
+      font-size: 10px; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--gold);
+    }
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(44px, 7vw, 72px);
+      font-weight: 300;
+      line-height: 1.08;
+      color: var(--white);
+      margin-bottom: 18px;
+    }
+    .hero h1 em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--gold2) 0%, var(--gold) 60%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 15px; color: var(--muted);
+      max-width: 380px; margin: 0 auto;
+      line-height: 1.8; letter-spacing: .01em;
+    }
+
+    /* ── GRID ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--border2);
+      margin-bottom: 80px;
+    }
+
+    .plan {
+      background: var(--card);
+      padding: 40px 36px 44px;
+      position: relative;
+      overflow: hidden;
+      transition: background .3s;
+    }
+    .plan:hover { background: #1a1710; }
+
+    /* Premium gold accent */
+    .plan.premium {
+      background: linear-gradient(160deg, #1a1710 0%, #120f08 60%, #0e0c07 100%);
+    }
+    .plan.premium::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold3) 20%, var(--gold) 50%, var(--gold3) 80%, transparent 100%);
+    }
+    .plan.premium::after {
+      content: '';
+      position: absolute; top: -120px; right: -120px;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* Plan header */
+    .plan-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 9px; font-weight: 700; letter-spacing: .18em;
+      text-transform: uppercase;
+      padding: 4px 10px; border-radius: 20px; margin-bottom: 24px;
+      border: 1px solid var(--border2); color: var(--muted);
+    }
+    .plan.premium .plan-tag {
+      border-color: var(--gold3); color: var(--gold);
+      background: rgba(201,168,76,.08);
+    }
+    .plan-tag-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+    .plan-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px; font-weight: 400;
+      color: var(--white); margin-bottom: 6px;
+      letter-spacing: .01em;
+    }
+
+    .plan-price {
+      display: flex; align-items: baseline; gap: 4px;
+      margin-bottom: 30px;
+    }
+    .price-currency { font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 4px; align-self: flex-end; }
+    .price-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 54px; font-weight: 300; line-height: 1;
+      color: var(--white);
+    }
+    .plan.premium .price-main {
+      background: linear-gradient(135deg, var(--gold2), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .price-period { font-size: 12px; color: var(--muted); align-self: flex-end; margin-bottom: 6px; }
+
+    .divider-thin { height: 1px; background: var(--border2); margin-bottom: 24px; }
+
+    /* Features */
+    .features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
+    .features li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 13.5px; color: #9a8f7a; line-height: 1.5; letter-spacing: .01em;
+    }
+    .features li.active { color: var(--cream); }
+    .features li.inactive { opacity: .45; }
+    .feat-icon {
+      width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    .feat-icon.yes { background: rgba(201,168,76,.15); }
+    .feat-icon.no  { background: rgba(255,255,255,.04); }
+    .feat-icon svg { width: 9px; height: 9px; }
+
+    /* CTA */
+    .cta-wrap { position: relative; z-index: 1; }
+    .cta {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px 20px;
+      border-radius: 8px; text-decoration: none;
+      font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      border: 1px solid var(--border2); color: var(--muted);
+      transition: all .25s;
+    }
+    .cta:hover { border-color: var(--muted); color: var(--cream); }
+    .cta.primary {
+      background: linear-gradient(135deg, var(--gold3) 0%, var(--gold) 100%);
+      border-color: transparent; color: var(--black);
+      box-shadow: 0 4px 24px rgba(201,168,76,.25), 0 0 0 1px rgba(201,168,76,.3);
+    }
+    .cta.primary:hover {
+      box-shadow: 0 8px 32px rgba(201,168,76,.4), 0 0 0 1px rgba(201,168,76,.5);
+      transform: translateY(-1px);
+    }
+    .cta-arrow { margin-left: 8px; transition: transform .2s; }
+    .cta.primary:hover .cta-arrow { transform: translateX(3px); }
+
+    /* ── TRUST ROW ── */
+    .trust-row {
+      display: flex; align-items: center; justify-content: center; gap: 28px;
+      margin-bottom: 80px; flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; color: var(--muted); letter-spacing: .04em;
+    }
+    .trust-item svg { width: 14px; height: 14px; color: var(--gold); flex-shrink: 0; }
+    .trust-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--border2); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0 36px;
+      position: relative;
+    }
+    .footer-inner {
+      display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 32px;
+      margin-bottom: 36px;
+    }
+    .footer-brand {}
+    .footer-logo {
+      display: flex; align-items: center; gap: 9px; margin-bottom: 12px;
+      text-decoration: none;
+    }
+    .footer-logo img { width: 26px; height: 26px; border-radius: 6px; object-fit: contain; }
+    .footer-logo span {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px; font-weight: 600; color: var(--cream);
+    }
+    .footer-desc { font-size: 12.5px; color: var(--muted); line-height: 1.8; max-width: 220px; }
+
+    .footer-col-title {
+      font-size: 9px; font-weight: 700; letter-spacing: .16em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 14px;
+    }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .footer-links a {
+      font-size: 12.5px; color: var(--muted); text-decoration: none;
+      transition: color .2s; letter-spacing: .01em;
+    }
+    .footer-links a:hover { color: var(--cream); }
+
+    .footer-bottom {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 24px; border-top: 1px solid var(--border);
+      flex-wrap: wrap; gap: 12px;
+    }
+    .footer-copy { font-size: 11.5px; color: var(--muted); letter-spacing: .02em; }
+    .footer-note-right { font-size: 11px; color: var(--muted); opacity: .6; }
+
+    /* ── ANIMATIONS ── */
+    .fade-in {
+      opacity: 0; transform: translateY(18px);
+      animation: fadeUp .7s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    .fade-in:nth-child(1) { animation-delay: .05s; }
+    .fade-in:nth-child(2) { animation-delay: .15s; }
+    .fade-in:nth-child(3) { animation-delay: .25s; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .pricing-grid { grid-template-columns: 1fr; }
+      .plan { padding: 32px 24px 36px; }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+      .footer-brand { grid-column: 1 / -1; }
+      .trust-row { gap: 14px; }
+      .trust-sep { display: none; }
+    }
+    @media (max-width: 480px) {
+      .footer-inner { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="glow-top"></div>
+
+<div class="wrap">
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="/">
+      <img src="/login/logo.png" alt="Youz AI" onerror="this.style.display='none'">
+      <span>Youz AI</span>
+    </a>
+    <span class="nav-badge">Pricing</span>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero fade-in">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-line"></span>
+      <span class="eyebrow-text">Pilih Plan Kamu</span>
+      <span class="eyebrow-line"></span>
+    </div>
+    <h1>Akses AI yang<br><em>Benar-benar Powerful</em></h1>
+    <p>Mulai gratis, upgrade kapanpun kamu butuh lebih banyak kecepatan, limit, dan fitur eksklusif.</p>
+  </div>
+
+  <!-- PRICING GRID -->
+  <div class="pricing-grid fade-in">
+
+    <!-- FREE -->
+    <article class="plan">
+      <div class="plan-tag">
+        <span class="plan-tag-dot"></span> Free
+      </div>
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">
+        <span class="price-main">0</span>
+        <span class="price-period">/ bulan</span>
+      </div>
+      <div class="divider-thin"></div>
+      <ul class="features">
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Chat AI standar — Gemini 2.0 Flash &amp; Claude Sonnet 4.5
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Search web mode
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Thinking mode
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Chat 20/hari · Image 3/hari
+        </li>
+        <li class="inactive">
+          <span class="feat-icon no">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M3 3l4 4M7 3l-4 4" stroke="#6b6150" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+          Model premium ChatGPT 4o
+        </li>
+      </ul>
+      <div class="cta-wrap">
+        <a class="cta" href="/">
+          Gunakan Gratis
+        </a>
+      </div>
+    </article>
+
+    <!-- PREMIUM -->
+    <article class="plan premium">
+      <div class="plan-tag">
+        <span class="plan-tag-dot"></span> Premium
+      </div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">
+        <span class="price-currency">Rp</span>
+        <span class="price-main">10k</span>
+        <span class="price-period">/ bulan</span>
+      </div>
+      <div class="divider-thin"></div>
+      <ul class="features">
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Semua fitur di plan Free
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Unlock model premium — ChatGPT 4o
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Chat 120/hari · Image 15/hari
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Kecepatan respons AI fast
+        </li>
+        <li class="active">
+          <span class="feat-icon yes">
+            <svg viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2.2L8 3" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Prioritas pengembangan fitur eksklusif
+        </li>
+      </ul>
+      <div class="cta-wrap">
+        <a class="cta primary" href="/beli-premium">
+          Upgrade ke Premium
+          <span class="cta-arrow">→</span>
+        </a>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- TRUST ROW -->
+  <div class="trust-row fade-in">
+    <span class="trust-item">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-.5L8 2z" fill="currentColor"/></svg>
+      Konfirmasi manual admin
+    </span>
+    <span class="trust-sep"></span>
+    <span class="trust-item">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Chat terenkripsi
+    </span>
+    <span class="trust-sep"></span>
+    <span class="trust-item">
+      <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5.5v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Aktif dalam 1×24 jam
+    </span>
+    <span class="trust-sep"></span>
+    <span class="trust-item">
+      <svg viewBox="0 0 16 16" fill="none"><path d="M8 2C4.7 2 2 4.7 2 8s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 10.5L4.5 9H7V5.5h2V9h2.5L8 12.5z" fill="currentColor"/></svg>
+      QRIS · DANA · GoPay
+    </span>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+
+      <div class="footer-brand">
+        <a class="footer-logo" href="/">
+          <img src="/login/logo.png" alt="Youz AI" onerror="this.style.display='none'">
+          <span>Youz AI</span>
+        </a>
+        <p class="footer-desc">Asisten AI pintar yang siap membantu pekerjaan, kreasi, dan eksplorasi ide — kapan saja, di mana saja.</p>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Produk</div>
+        <ul class="footer-links">
+          <li><a href="/">Chat AI</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/beli-premium">Upgrade Premium</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Lainnya</div>
+        <ul class="footer-links">
+          <li><a href="#">Kebijakan Privasi</a></li>
+          <li><a href="#">Syarat &amp; Ketentuan</a></li>
+          <li><a href="#">Hubungi Admin</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 Youz AI — All rights reserved.</span>
+      <span class="footer-note-right">Info plan berdasarkan fitur &amp; limit yang aktif saat ini.</span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
