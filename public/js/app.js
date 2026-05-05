@@ -1089,7 +1089,10 @@ async function sendMessage(options = {}) {
     console.log('📤 sendMessage called');
     if (isProcessing && abortController) {
         typingAbortRequested = true;
-        cancelAnimationFrame(typingTimeout);
+        if (typingTimeout) {
+            cancelAnimationFrame(typingTimeout);
+            typingTimeout = null;
+        }
         abortController.abort();
         return;
     }
@@ -1244,6 +1247,8 @@ async function sendMessage(options = {}) {
     } finally {
         isProcessing = false;
         abortController = null;
+        typingAbortRequested = false;
+        typingTimeout = null;
         setProcessingUI(false);
         messageInput.focus();
         updateSendButtonState();
@@ -1433,8 +1438,11 @@ hamburgerBtn?.addEventListener('click', () => {
 menuBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     const rect = menuBtn.getBoundingClientRect();
-    menuDropdown.style.top = (rect.bottom + 5) + 'px';
-    menuDropdown.style.left = (rect.left - 220) + 'px';
+    const dropdownWidth = menuDropdown.offsetWidth || 220;
+    const padding = 10;
+    const left = Math.min(window.innerWidth - dropdownWidth - padding, Math.max(padding, rect.right - dropdownWidth));
+    menuDropdown.style.top = (rect.bottom + 8) + 'px';
+    menuDropdown.style.left = left + 'px';
     menuDropdown.classList.toggle('show');
 });
 
@@ -1661,7 +1669,7 @@ userSettingsBtn?.addEventListener('click', (e) => {
 userPremiumBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     toggleUserMenu(false);
-    window.location.href = '/beli-premium';
+    window.location.href = '/pricing';
 });
 
 userMenuBtn?.addEventListener('click', (e) => {
@@ -1764,7 +1772,7 @@ async function init() {
 init();
 
 limitNoticeClose?.addEventListener('click', ()=> limitNotice?.classList.add('hidden'));
-limitNoticeCta?.addEventListener('click', ()=> window.location.href='/beli-premium');
+limitNoticeCta?.addEventListener('click', ()=> window.location.href='/pricing');
 
 
 sendBtn && (sendBtn.disabled = true);
