@@ -841,7 +841,6 @@ function getUserContext() {
 }
 
 function updateQuotaBadge(snapshot = null) {
-    if (!quotaBadge) return;
     if (snapshot) quotaState = snapshot;
     const plan = String(quotaState?.plan || 'free').toLowerCase();
     const isPremium = plan === 'premium';
@@ -870,9 +869,11 @@ function updateQuotaBadge(snapshot = null) {
     }
     const usage = quotaState?.usage || { chat: 0, image: 0 };
     const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
-    quotaBadge.textContent = `${plan === 'premium' ? 'Premium' : 'Free'} ${usage.chat}/${limits.chat} · Img ${usage.image}/${limits.image}`;
-    quotaBadge.classList.toggle('premium', plan === 'premium');
-    quotaBadge.classList.remove('hidden');
+    if (quotaBadge) {
+        quotaBadge.textContent = `${plan === 'premium' ? 'Premium' : 'Free'} ${usage.chat}/${limits.chat} · Img ${usage.image}/${limits.image}`;
+        quotaBadge.classList.toggle('premium', plan === 'premium');
+        quotaBadge.classList.remove('hidden');
+    }
 }
 
 
@@ -1745,8 +1746,10 @@ async function init() {
         sidebar.classList.add('closed');
     }
     
-    updateCurrentTime();
-    setInterval(updateCurrentTime, 1000);
+    if (currentTimeSpan) {
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+    }
     
     const savedTheme = localStorage.getItem('youz_theme') || 'system';
     setThemePreference(savedTheme, false);
