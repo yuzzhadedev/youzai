@@ -2207,7 +2207,8 @@ body {
 
 
 .profile-premium-badge{display:inline-flex;align-items:center;width:max-content;margin-top:4px;padding:2px 8px;border-radius:999px;background:rgba(124,58,237,.15);color:#a78bfa;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
-.header-right .quota-badge{display:none!important;}
+.quota-badge{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.2px;background:var(--bg-input);border:1px solid var(--border);color:var(--text-secondary);white-space:nowrap;}
+.quota-badge.premium{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.35);color:#f59e0b;}
 .model-indicator{gap:6px;}
 .model-indicator i{display:none;}
 .model-indicator img{width:14px;height:14px;border-radius:50%;}

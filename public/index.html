@@ -119,6 +119,7 @@
                     <span class="model-indicator" id="modelIndicator">
                         <img src="/login/logo.png" alt="AI"> <span>ChatGPT</span>
                     </span>
+                    <span class="quota-badge hidden" id="quotaBadge"></span>
                     
                     <button class="header-new-chat-btn" id="headerNewChatBtn" type="button" title="Percakapan Baru" aria-label="Percakapan baru">
                         <i class="fas fa-pen-to-square"></i>
@@ -152,9 +153,6 @@
                         </button>
                         <button class="suggestion-btn" data-prompt="🤖 Apa itu kecerdasan buatan?" type="button">
                             <i class="fas fa-brain"></i> Apa itu AI?
-                        </button>
-                        <button class="suggestion-btn" data-prompt="🎨 Generate gambar pemandangan" type="button">
-                            <i class="fas fa-paint-brush"></i> Generate gambar
                         </button>
                         <button class="suggestion-btn" data-prompt="✍️ Buatkan puisi tentang teknologi" type="button">
                             <i class="fas fa-pen"></i> Buat puisi
@@ -242,18 +240,13 @@
                             <i class="fas fa-robot"></i>
                             <span>Apa itu artificial intelligence?</span>
                         </div>
-                        <div class="suggestion-item" data-query="Generate gambar pemandangan sunset">
-                            <i class="fas fa-paint-brush"></i>
-                            <span>Generate gambar pemandangan sunset</span>
-                        </div>
                     </div>
                 </div>
 
                 <div class="feature-hint" id="featureHint">
                     <span class="hint-item"><i class="fas fa-globe"></i> Search</span>
                     <span class="hint-item"><i class="fas fa-brain"></i> Thinking</span>
-                    <span class="hint-item"><i class="fas fa-paint-brush"></i> Generate</span>
-                    <span class="hint-item"><i class="fas fa-edit"></i> Edit</span>
+                    <span class="hint-item"><i class="fas fa-paperclip"></i> Lampirkan</span>
                 </div>
 
                 <input type="file" id="imageInput" accept="image/*" style="display: none;">
