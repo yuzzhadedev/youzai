@@ -450,7 +450,8 @@ body {
 .menu-dropdown {
     position: fixed;
     top: 60px;
-    left: 310px;
+    left: 84px;
+    max-width: calc(100vw - 20px);
     background: var(--bg-sidebar);
     border-radius: 16px;
     box-shadow: var(--shadow-lg);
@@ -887,8 +888,7 @@ body {
 }
 
 .message.pending .message-actions {
-    opacity: 0.45;
-    pointer-events: none;
+    display: none;
 }
 
 .message:hover .message-actions {
