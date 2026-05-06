@@ -101,6 +101,26 @@ let currentLanguage = localStorage.getItem('youz_language') || 'id';
 let isTouchingChat = false;
 let scrollPauseTimer = null;
 
+function createNanoId(size = 12) {
+    const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const cryptoObj = window.crypto || window.msCrypto;
+    let id = '';
+    if (cryptoObj?.getRandomValues) {
+        const bytes = new Uint8Array(size);
+        cryptoObj.getRandomValues(bytes);
+        for (let i = 0; i < size; i++) id += alphabet[bytes[i] % alphabet.length];
+        return id;
+    }
+    for (let i = 0; i < size; i++) id += alphabet[Math.floor(Math.random() * alphabet.length)];
+    return id;
+}
+
+function updateChatRoute(id = null, replace = false) {
+    const target = id ? `/chat/${encodeURIComponent(id)}` : '/chat/new';
+    if (window.location.pathname === target) return;
+    window.history[replace ? 'replaceState' : 'pushState']({}, '', target);
+}
+
 // ========== LOCALSTORAGE DATABASE ==========
 function loadFromStorage() {
     const saved = localStorage.getItem(getConversationStorageKey());
@@ -130,7 +150,7 @@ function getConversationStorageKey() {
 
 function createNewConversation() {
     const newConv = {
-        id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9),
+        id: createNanoId(16),
         serverId: null,
         title: 'Percakapan Baru',
         messages: [],
@@ -327,6 +347,9 @@ function closeSourcesSheet() {
 
 function openSettings(defaultTab = 'general') {
     settingsModal.classList.remove('hidden');
+    if (window.location.pathname !== '/settings') {
+        window.history.pushState({ modal: 'settings' }, '', '/settings');
+    }
     sidebar.classList.add('closed');
     if (currentUser) {
         profileName.value = currentUser.name || '';
@@ -340,6 +363,12 @@ function openSettings(defaultTab = 'general') {
     } else {
         tabGeneral?.click();
     }
+}
+
+function closeSettings() {
+    settingsModal.classList.add('hidden');
+    const conv = conversations.find((item) => item.id === activeConversationId);
+    updateChatRoute(conv && conv.messages?.length ? conv.id : null, true);
 }
 
 // ========== RENDER ==========
@@ -412,6 +441,7 @@ function switchConversation(id) {
         renderMessages(conv.messages);
         renderSidebar();
         saveToStorage();
+        updateChatRoute(conv.messages?.length ? conv.id : null);
     }
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
@@ -474,8 +504,6 @@ function createMessageElement(msg, index) {
     messageDiv.dataset.messageIndex = index;
     messageDiv.dataset.messageId = msg.id || `msg-${Date.now()}-${index}`;
     
-    const avatarIcon = isUser ? '<i class="fas fa-user"></i>' : '<img src="/login/logo.png" alt="Youz AI">';
-    
     let content = renderMessageContent(msg.content);
     if (msg.image) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
@@ -492,7 +520,6 @@ function createMessageElement(msg, index) {
     }
     
     messageDiv.innerHTML = `
-        <div class="message-avatar">${avatarIcon}</div>
         <div class="message-content-wrapper">
             <div class="message-content" id="msg-content-${index}">
                 ${content}
@@ -1173,7 +1200,6 @@ async function sendMessage(options = {}) {
     const hasImageDraft = Boolean(userMessage.image);
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant" id="${loadingId}">
-            <div class="message-avatar"><img src="/login/logo.png" alt="AI"></div>
             <div class="message-content">
                 <div class="thinking-indicator">
                     <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -1556,13 +1582,9 @@ aboutBtn?.addEventListener('click', () => {
 
 // ========== SETTINGS MODAL EVENTS ==========
 
-settingsCloseBtn?.addEventListener('click', () => {
-    settingsModal.classList.add('hidden');
-});
+settingsCloseBtn?.addEventListener('click', closeSettings);
 
-settingsOverlay?.addEventListener('click', () => {
-    settingsModal.classList.add('hidden');
-});
+settingsOverlay?.addEventListener('click', closeSettings);
 
 tabGeneral?.addEventListener('click', () => {
     tabGeneral.classList.add('active');
@@ -1646,7 +1668,7 @@ clearAllDataBtn?.addEventListener('click', () => {
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
-        settingsModal.classList.add('hidden');
+        closeSettings();
     }
 });
 
@@ -1762,7 +1784,13 @@ async function init() {
     if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
-    activeConversationId = activeConversationId || conversations[0]?.id;
+    const routeParts = window.location.pathname.split('/').filter(Boolean);
+    const routeId = routeParts[0] === 'chat' && routeParts[1] && routeParts[1] !== 'new'
+        ? decodeURIComponent(routeParts[1])
+        : null;
+    activeConversationId = (routeId && conversations.some((c) => c.id === routeId))
+        ? routeId
+        : (activeConversationId || conversations[0]?.id);
     renderSidebar();
     if (activeConversationId) {
         switchConversation(activeConversationId);
@@ -1787,10 +1815,33 @@ async function init() {
     applyLanguage(savedLang);
     if (languageSelect) languageSelect.value = savedLang;
     
+    if (window.location.pathname === '/settings') {
+        openSettings('general');
+    } else if (window.location.pathname === '/' || window.location.pathname.startsWith('/chat/')) {
+        const activeConv = conversations.find((c) => c.id === activeConversationId);
+        updateChatRoute(activeConv && activeConv.messages?.length ? activeConv.id : null, true);
+    }
     console.log('✅ Youz AI v2.8 initialized');
 }
 
 init();
+
+window.addEventListener('popstate', () => {
+    const path = window.location.pathname;
+    if (path === '/settings') return openSettings('general');
+    settingsModal.classList.add('hidden');
+    if (!path.startsWith('/chat/')) return;
+    const slug = path.split('/')[2];
+    if (slug === 'new') {
+        const draft = conversations.find((c) => (c.messages || []).length === 0);
+        if (draft) return switchConversation(draft.id);
+        createNewConversation();
+        return switchConversation(activeConversationId);
+    }
+    if (slug && conversations.some((c) => c.id === decodeURIComponent(slug))) {
+        switchConversation(decodeURIComponent(slug));
+    }
+});
 
 limitNoticeClose?.addEventListener('click', ()=> limitNotice?.classList.add('hidden'));
 limitNoticeCta?.addEventListener('click', ()=> window.location.href='/pricing');
