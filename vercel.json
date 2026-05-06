@@ -11,39 +11,39 @@
     },
     {
       "source": "/",
-      "destination": "/public/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/chat/new",
-      "destination": "/public/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/chat/(.*)",
-      "destination": "/public/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/settings",
-      "destination": "/public/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/login",
-      "destination": "/public/login/index.html"
+      "destination": "/login/index.html"
     },
     {
       "source": "/login/(.*)",
-      "destination": "/public/login/index.html"
+      "destination": "/login/index.html"
     },
     {
       "source": "/registrasi",
-      "destination": "/public/login/index.html"
+      "destination": "/login/index.html"
     },
     {
       "source": "/registrasi/(.*)",
-      "destination": "/public/login/index.html"
+      "destination": "/login/index.html"
     },
     {
       "source": "/(.*)",
-      "destination": "/public/$1"
+      "destination": "/$1"
     }
   ],
   "headers": [
