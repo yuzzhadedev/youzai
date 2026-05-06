@@ -92,7 +92,6 @@ const saveProfileBtn = document.getElementById('saveProfileBtn');
 const clearAllDataBtn = document.getElementById('clearAllDataBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
 const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
-const webSearchToggle = document.getElementById('webSearchToggle');
 const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
 const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
@@ -1545,7 +1544,6 @@ toolsBtn?.addEventListener('click', (e) => {
 
 toolWebSearch?.addEventListener('change', (e) => {
     webSearchEnabled = e.target.checked;
-    if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
     localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
 });
 
@@ -1636,12 +1634,6 @@ themeSystem?.addEventListener('click', () => setThemePreference('system'));
 
 languageSelect?.addEventListener('change', (e) => {
     applyLanguage(e.target.value);
-});
-
-webSearchToggle?.addEventListener('change', (e) => {
-    webSearchEnabled = e.target.checked;
-    if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
-    localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
 });
 
 
@@ -1781,7 +1773,6 @@ async function init() {
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
     setActiveModel(localStorage.getItem('youz_model') || 'gemini', false);
-    if (webSearchToggle) webSearchToggle.checked = webSearchEnabled;
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
     const routeParts = window.location.pathname.split('/').filter(Boolean);
