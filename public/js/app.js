@@ -579,6 +579,22 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function decodeHtmlEntities(text) {
+    if (!text || typeof text !== 'string') return '';
+    if (!/[&][a-z#0-9]+;/i.test(text)) return text;
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    return textarea.value;
+}
+
+function normalizeResponseText(text) {
+    const raw = decodeHtmlEntities(String(text || ''));
+    if (!raw.includes('\\n') && /\\\\n/.test(raw)) {
+        return raw.replace(/\\\\n/g, '\\n');
+    }
+    return raw;
+}
+
 function parseSimpleMarkdown(text) {
     if (!text) return '';
     let rendered = escapeHtml(text);
@@ -1020,6 +1036,7 @@ async function typeWriterEffect(el, text, speed = 22) {
     return new Promise(resolve => {
         function renderFrame(now) {
             if (typingAbortRequested) {
+                if (lastRendered) el.innerHTML = parseSimpleMarkdown(lastRendered);
                 resolve();
                 return;
             }
@@ -1056,9 +1073,12 @@ async function typeWriterEffect(el, text, speed = 22) {
 }
 
 
-async function streamChatSSE({ prompt, conversationId }) {
+async function streamChatSSE({ prompt, conversationId, signal }) {
     const qs = new URLSearchParams({ prompt: String(prompt || ''), conversationId: String(conversationId || ''), userId: currentUser?.id || '', email: currentUser?.email || '' });
-    const response = await fetch(`/api/youz?mode=stream&${qs.toString()}`, { headers: { Accept: 'text/event-stream' } });
+    const response = await fetch(`/api/youz?mode=stream&${qs.toString()}`, { headers: { Accept: 'text/event-stream' }, signal });
+    if (!response.ok || !response.body) {
+        throw new Error(`Streaming gagal (${response.status})`);
+    }
     const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
@@ -1172,7 +1192,7 @@ async function sendMessage(options = {}) {
         const action = enableSearch ? 'search' : 'chat';
         let response;
         if (action === 'chat' && !userMessage.image) {
-            response = await streamChatSSE({ prompt: text, conversationId: conv.serverId || '' });
+            response = await streamChatSSE({ prompt: text, conversationId: conv.serverId || '', signal: abortController.signal });
         } else {
             response = await callUnifiedAPI(
                 messages,
@@ -1186,6 +1206,7 @@ async function sendMessage(options = {}) {
         }
         
         document.getElementById(loadingId)?.remove();
+        response.content = normalizeResponseText(response.content);
 
         if (response.limit) updateQuotaBadge(response.limit);
         if (response.conversationId) conv.serverId = response.conversationId;
@@ -1214,10 +1235,10 @@ async function sendMessage(options = {}) {
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content);
-            aiMessage.content = response.content || contentEl.textContent || '';
+            aiMessage.content = normalizeResponseText(response.content || contentEl.textContent || '');
         } else {
-            aiMessage.content = response.content || 'Maaf, tidak ada respons.';
-            if (contentEl) contentEl.innerHTML = escapeHtml(aiMessage.content);
+            aiMessage.content = normalizeResponseText(response.content || 'Maaf, tidak ada respons.');
+            if (contentEl) contentEl.innerHTML = parseSimpleMarkdown(aiMessage.content);
         }
         aiMessage.isComplete = true;
         saveToStorage();
