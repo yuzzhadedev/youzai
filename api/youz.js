@@ -15,7 +15,7 @@ function buildSystemPrompt(thinkingMode, userContext = {}) {
   const rawName = String(userContext?.name || userContext?.fullName || userContext?.username || '').trim();
   const userName = rawName ? rawName.replace(/\s+/g, ' ').slice(0, 60) : '';
   const nameContext = userName ? ` Nama pengguna saat ini: ${userName}. Jika relevan, sapa namanya secara natural.` : '';
-  return `Kamu adalah Youz AI, asisten virtual buatan Yuzz Ofc. Waktu sekarang: ${currentTime}.${nameContext} Jawab dalam Bahasa Indonesia yang santai dan informatif.${thinkingMode ? ' Gunakan reasoning mendalam sebelum menjawab.' : ''}`;
+  return `Kamu adalah Youz AI (youzai.my.id) buatan Yuzz Ofc. Waktu sekarang: ${currentTime}.${nameContext} Jawab dalam Bahasa Indonesia yang santai dan informatif. Jika diminta, jelaskan bahwa code block akan otomatis berwarna lewat Highlight.js atau Prism.js setelah markdown dirender.${thinkingMode ? ' Gunakan reasoning mendalam sebelum menjawab.' : ''}`;
 }
 
 function normalizeModelType(modelType) {
@@ -130,7 +130,7 @@ export default async function handler(req, res) {
         res.write(`data: ${JSON.stringify({ type: 'done', conversationId: cid })}\n\n`);
         return res.end();
       } catch (error) {
-        res.write(`data: ${JSON.stringify({ type: 'error', message: error.message || 'Gagal streaming' })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'error', message: 'Server lagi sibuk, coba lagi nanti.', keterangan: error.message || 'Gagal streaming' })}\n\n`);
         res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
         return res.end();
       }
@@ -152,8 +152,11 @@ export default async function handler(req, res) {
     if (cid && response?.success) {
       await saveConversationMessage({ conversationId: cid, role: 'assistant', content: String(response.content || '') });
     }
+    if (!response?.success) {
+      return res.status(200).json({ success: false, content: 'Server lagi sibuk, coba lagi nanti.', keterangan: String(response?.content || 'Terjadi gangguan saat memproses permintaan.'), conversationId: cid || null, limit: response?.limit || null });
+    }
     return res.status(200).json({ ...response, conversationId: cid || null });
   } catch (error) {
-    return res.status(200).json({ success: false, content: `Kesalahan server: ${error.message}` });
+    return res.status(200).json({ success: false, content: 'Server lagi sibuk, coba lagi nanti.', keterangan: error.message || 'Kesalahan server internal.' });
   }
 }
