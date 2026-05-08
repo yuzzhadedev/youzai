@@ -735,6 +735,46 @@ body {
     min-width: 0;
 }
 
+.message-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0 6px 6px;
+}
+
+.message-meta .message-meta-chevron {
+    opacity: 0.75;
+}
+
+.message-side-source {
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 1px solid var(--border);
+    background: var(--bg-input);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.message-side-source:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.message.user .message-side-source {
+    display: none;
+}
+
 .message-content {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     padding: 8px 12px;
@@ -859,6 +899,17 @@ body {
     padding-top: 2px;
     opacity: 1;
     transition: opacity 0.15s;
+}
+
+.message-actions-left,
+.message-actions-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.message-actions-right {
+    margin-left: auto;
 }
 
 .message.pending .message-actions {
@@ -1132,6 +1183,178 @@ body {
     position: relative;
 }
 
+.composer-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 1400;
+}
+
+.composer-menu {
+    position: absolute;
+    left: 16px;
+    width: min(360px, calc(100% - 32px));
+    bottom: calc(100% + 10px);
+    background: #0b0c10;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    padding: 10px;
+    z-index: 1450;
+    max-height: min(62vh, 520px);
+    overflow: auto;
+}
+
+.composer-menu-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 8px 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    border-radius: 14px;
+}
+
+.composer-menu-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.composer-menu-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.9);
+    flex: 0 0 auto;
+}
+
+.composer-menu-label {
+    background: #fff;
+    color: #090a0c;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.composer-menu-toggle {
+    justify-content: space-between;
+}
+
+.composer-menu-toggle .composer-menu-label {
+    margin-right: auto;
+}
+
+.composer-menu-toggle input[type="checkbox"] {
+    appearance: none;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    position: relative;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.composer-menu-toggle input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.92);
+    transition: transform 0.18s ease;
+}
+
+.composer-menu-toggle input[type="checkbox"]:checked {
+    background: rgba(59, 130, 246, 0.7);
+    border-color: rgba(59, 130, 246, 0.7);
+}
+
+.composer-menu-toggle input[type="checkbox"]:checked::after {
+    transform: translateX(18px);
+}
+
+.composer-menu-section {
+    margin-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+}
+
+.composer-menu-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.72);
+    padding: 0 6px 8px;
+}
+
+.composer-menu-models {
+    display: grid;
+    gap: 8px;
+}
+
+.composer-menu-model-item {
+    width: 100%;
+    text-align: left;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.92);
+    border-radius: 14px;
+    padding: 10px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.composer-menu-model-item small {
+    display: block;
+    opacity: 0.72;
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+.composer-menu-model-item.active {
+    border-color: rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
+}
+
+.composer-menu-model-item.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.composer-menu-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.16);
+    color: rgba(239, 68, 68, 0.95);
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    flex: 0 0 auto;
+}
+
+.composer-plus-btn i {
+    transition: transform 0.18s ease;
+}
+
+.composer-plus-btn.is-open i {
+    transform: rotate(45deg);
+}
+
 .composer-toolbar {
     display: flex;
     gap: 8px;
@@ -1368,7 +1591,7 @@ body {
 }
 
 .sources-btn {
-    margin-left: 10px;
+    margin-left: 12px;
 }
 
 .sources-btn.is-empty {

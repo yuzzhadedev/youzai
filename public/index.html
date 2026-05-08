@@ -174,47 +174,37 @@
             </div>
 
             <div class="chat-input-area">
-                <div class="tools-menu hidden" id="toolsMenu">
-                    <div class="tools-menu-title">Alat</div>
-                    <label class="tool-item">
-                        <input type="checkbox" id="toolWebSearch" checked>
-                        <span><i class="fas fa-globe"></i> Search web mode</span>
-                        </label>
-                    <label class="tool-item">
-                        <input type="checkbox" id="toolThinking" checked>
-                        <span><i class="fas fa-brain"></i> Thinking mode</span>
+                <div class="composer-menu-backdrop hidden" id="composerMenuBackdrop"></div>
+                <div class="composer-menu hidden" id="composerMenu" role="dialog" aria-label="Menu">
+                    <button class="composer-menu-item" id="composerMenuPhoto" type="button">
+                        <span class="composer-menu-icon"><i class="fas fa-image"></i></span>
+                        <span class="composer-menu-label">Foto</span>
+                    </button>
+                    <label class="composer-menu-item composer-menu-toggle">
+                        <span class="composer-menu-icon"><i class="fas fa-brain"></i></span>
+                        <span class="composer-menu-label">Berpikir/Thinking</span>
+                        <input type="checkbox" id="toolThinking" checked aria-label="Berpikir/Thinking">
                     </label>
+                    <label class="composer-menu-item composer-menu-toggle">
+                        <span class="composer-menu-icon"><i class="fas fa-globe"></i></span>
+                        <span class="composer-menu-label">Search/Pencarian Web</span>
+                        <input type="checkbox" id="toolWebSearch" checked aria-label="Search/Pencarian Web">
+                    </label>
+                    <div class="composer-menu-section">
+                        <div class="composer-menu-section-title">Models <span class="upgrade-badge" id="premiumUpgradeBadge">Upgrade</span></div>
+                        <div class="composer-menu-models" id="modelMenuList"></div>
+                        <small class="model-panel-note" id="modelPanelNote"></small>
+                    </div>
                 </div>
                 <div class="search-input-container">
-                    <div class="input-container stacked">
+                    <div class="input-container" id="composerContainer">
+                        <button class="attach-btn composer-plus-btn" id="attachBtn" type="button" title="Menu" aria-label="Buka menu">
+                            <i class="fas fa-plus"></i>
+                        </button>
                         <textarea id="messageInput" placeholder="Message YouzAi..." rows="1" autofocus></textarea>
-                        <div class="composer-toolbar">
-                            <button class="model-select-btn" id="modelSelectBtn" type="button" aria-label="Pilih model AI">
-                                <img src="/login/logo.png" alt="AI"> <span id="modelSelectBtnText">ChatGPT</span>
-                            </button>
-                            <div class="model-select-panel hidden" id="modelSelectPanel">
-                                <div class="model-group-title">STANDAR MODELS</div>
-                                <button class="panel-model-item" data-model="gemini" type="button"><span>Gemini 2.0 Flash <small>chat • image • search • analisis</small></span></button>
-                                <button class="panel-model-item" data-model="claude" type="button"><span>Claude Sonnet 4.5 <small>chat • image • search • analisis</small></span></button>
-                                <div class="model-group-title premium-title">PREMIUM MODELS <span class="upgrade-badge" id="premiumUpgradeBadge">Upgrade</span></div>
-                                <button class="panel-model-item premium-model locked" data-model="gpt4o" type="button"><span>ChatGPT 4o <small>chat • image • search • analisis</small></span><i class="fas fa-lock"></i></button>
-                                <small class="model-panel-note" id="modelPanelNote"><i class="fas fa-lock"></i> Premium Plan is currently available.</small>
-                            </div>
-                            <select id="modelSelect" class="model-select hidden" aria-label="Pilih model AI">
-                                <option value="gpt4o">ChatGPT 4o</option>
-                                <option value="gemini">Gemini 2.0 Flash</option>
-                                <option value="claude">Claude Sonnet 4.5</option>
-                            </select>
-                            <button class="tools-btn" id="toolsBtn" type="button" aria-label="Buka alat">
-                                <i class="fas fa-sliders-h"></i> Alat
-                            </button>
-                            <button class="attach-btn" id="attachBtn" type="button" title="Kirim Foto" aria-label="Kirim foto">
-                                <i class="fas fa-paperclip"></i>
-                            </button>
-                            <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
-                                <i class="fas fa-arrow-up"></i> <span id="sendBtnText">Send Message</span>
-                            </button>
-                        </div>
+                        <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim">
+                            <i class="fas fa-arrow-up"></i> <span id="sendBtnText">Send Message</span>
+                        </button>
                     </div>
 
                     <div class="search-suggestions hidden" id="searchSuggestions">

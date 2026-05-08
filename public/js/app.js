@@ -14,6 +14,28 @@ let thinkingModeEnabled = false;
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
 let quotaState = null;
+const MODEL_CATALOG = {
+    gemini: {
+        label: 'Gemini 2.0 Flash',
+        detail: 'chat • multimodal • web',
+        tier: 'standard',
+        available: true
+    },
+    claude: {
+        label: 'Claude Sonnet',
+        detail: 'maintenance',
+        tier: 'standard',
+        available: false,
+        badge: 'Maintenance'
+    },
+    gpt4o: {
+        label: 'ChatGPT 4o',
+        detail: 'chat • multimodal • web',
+        tier: 'premium',
+        available: true,
+        requiresPremium: true
+    }
+};
 
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
@@ -32,6 +54,10 @@ const modelSelectBtnText = document.getElementById('modelSelectBtnText');
 const modelSelectPanel = document.getElementById('modelSelectPanel');
 const toolsBtn = document.getElementById('toolsBtn');
 const toolsMenu = document.getElementById('toolsMenu');
+const composerMenu = document.getElementById('composerMenu');
+const composerMenuBackdrop = document.getElementById('composerMenuBackdrop');
+const composerMenuPhoto = document.getElementById('composerMenuPhoto');
+const modelMenuList = document.getElementById('modelMenuList');
 const toolWebSearch = document.getElementById('toolWebSearch');
 const toolThinking = document.getElementById('toolThinking');
 const imageInput = document.getElementById('imageInput');
@@ -319,8 +345,18 @@ function setProcessingUI(processing) {
 function updateSendButtonState() {
     if (!sendBtn || isProcessing) return;
     const hasText = (messageInput?.value || '').trim() !== '';
-    sendBtn.disabled = !hasText;
-    sendBtn.classList.toggle('disabled', !hasText);
+    const hasImage = Boolean(currentDraftImage);
+    const enabled = hasText || hasImage;
+    sendBtn.disabled = !enabled;
+    sendBtn.classList.toggle('disabled', !enabled);
+}
+
+function toggleComposerMenu(forceShow = null) {
+    if (!composerMenu || !composerMenuBackdrop || !attachBtn) return;
+    const nextShow = forceShow === null ? composerMenu.classList.contains('hidden') : forceShow;
+    composerMenu.classList.toggle('hidden', !nextShow);
+    composerMenuBackdrop.classList.toggle('hidden', !nextShow);
+    attachBtn.classList.toggle('is-open', nextShow);
 }
 
 function openSourcesSheet(sources = [], focusIndex = 0) {
@@ -518,38 +554,58 @@ function createMessageElement(msg, index) {
         feedbackIndicator = '<span class="feedback-indicator"><i class="fas fa-thumbs-down"></i> Tidak disukai</span>';
     }
     
+    const showMeta = !isUser && (thinkingModeEnabled || msg.isComplete === false || typeof msg.thinkingMs === 'number');
+    const metaText = !isUser
+        ? (msg.isComplete === false
+            ? 'AI sedang berpikir'
+            : (typeof msg.thinkingMs === 'number' ? `Selesai berpikir selama ${formatThinkingDuration(msg.thinkingMs)}` : ''))
+        : '';
+    const metaHtml = showMeta && metaText
+        ? `<div class="message-meta"><span>${escapeHtml(metaText)}</span><span class="message-meta-chevron">›</span></div>`
+        : '';
+    const sideSourceText = !isUser && !msg.isError && shouldShowSourcesButton(msg) ? getSourcesSummaryText(msg.sources || []) : '';
+    const sideSourceHtml = sideSourceText
+        ? `<button class="message-side-source" type="button" title="Kutipan" data-index="${index}">${escapeHtml(sideSourceText)}</button>`
+        : '';
+
     messageDiv.innerHTML = `
         <div class="message-content-wrapper">
+            ${metaHtml}
             <div class="message-content" id="msg-content-${index}">
                 ${content}
             </div>
             ${!isUser && !msg.isError ? `
                 <div class="message-actions">
-                    <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content || '')}" title="Salin" ${msg.isComplete === false ? 'disabled' : ''}>
-                        <i class="far fa-copy"></i>
-                        <span>Salin</span>
-                    </button>
-                    <button class="action-btn like-btn ${msg.feedback === 'like' ? 'liked' : ''}" data-index="${index}" title="Suka" ${msg.isComplete === false ? 'disabled' : ''}>
-                        <i class="far fa-thumbs-up"></i>
-                        <span>Suka</span>
-                    </button>
-                    <button class="action-btn dislike-btn ${msg.feedback === 'dislike' ? 'disliked' : ''}" data-index="${index}" title="Tidak Suka" ${msg.isComplete === false ? 'disabled' : ''}>
-                        <i class="far fa-thumbs-down"></i>
-                        <span>Tidak Suka</span>
-                    </button>
-                    <button class="action-btn regenerate-btn" data-index="${index}" title="Respon Ulang" ${msg.isComplete === false ? 'disabled' : ''}>
-                        <i class="fas fa-redo-alt"></i>
-                        <span>Ulang</span>
-                    </button>
-                    ${shouldShowSourcesButton(msg) ? `
-                    <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
-                        <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
-                        <span>Sumber</span>
-                    </button>
-                    ` : ''}
-                    ${feedbackIndicator}
+                    <div class="message-actions-left">
+                        <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content || '')}" title="Salin" ${msg.isComplete === false ? 'disabled' : ''}>
+                            <i class="far fa-copy"></i>
+                            <span>Salin</span>
+                        </button>
+                        <button class="action-btn like-btn ${msg.feedback === 'like' ? 'liked' : ''}" data-index="${index}" title="Suka" ${msg.isComplete === false ? 'disabled' : ''}>
+                            <i class="far fa-thumbs-up"></i>
+                            <span>Suka</span>
+                        </button>
+                        <button class="action-btn dislike-btn ${msg.feedback === 'dislike' ? 'disliked' : ''}" data-index="${index}" title="Tidak Suka" ${msg.isComplete === false ? 'disabled' : ''}>
+                            <i class="far fa-thumbs-down"></i>
+                            <span>Tidak Suka</span>
+                        </button>
+                        <button class="action-btn regenerate-btn" data-index="${index}" title="Respon Ulang" ${msg.isComplete === false ? 'disabled' : ''}>
+                            <i class="fas fa-redo-alt"></i>
+                            <span>Ulang</span>
+                        </button>
+                    </div>
+                    <div class="message-actions-right">
+                        ${shouldShowSourcesButton(msg) ? `
+                        <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
+                            <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
+                            <span>Sumber</span>
+                        </button>
+                        ` : ''}
+                        ${feedbackIndicator}
+                    </div>
                 </div>
             ` : ''}
+            ${sideSourceHtml}
         </div>
     `;
     
@@ -567,6 +623,8 @@ function createMessageElement(msg, index) {
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
         const sourcesBtn = messageDiv.querySelector('.sources-btn');
         if (sourcesBtn) sourcesBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0));
+        const sideSourceBtn = messageDiv.querySelector('.message-side-source');
+        if (sideSourceBtn) sideSourceBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0));
         
         messageDiv.querySelectorAll('.source-chip').forEach(chip => {
             chip.addEventListener('click', () => {
@@ -702,6 +760,28 @@ function shouldShowSourcesButton(msg) {
     const hasSources = Array.isArray(msg?.sources) && msg.sources.length > 0;
     const isImageResponse = Boolean(msg?.generatedImage);
     return hasSearchResult && hasSources && !isImageResponse;
+}
+
+function formatThinkingDuration(ms) {
+    const value = Number(ms);
+    if (!Number.isFinite(value) || value < 0) return '';
+    if (value < 1000) return 'sepersekian detik';
+    if (value < 60_000) return `${Math.round(value / 100) / 10} detik`;
+    const minutes = Math.floor(value / 60_000);
+    const seconds = Math.round((value - minutes * 60_000) / 1000);
+    if (minutes <= 0) return `${seconds} detik`;
+    if (seconds <= 0) return `${minutes} menit`;
+    return `${minutes} menit ${seconds} detik`;
+}
+
+function getSourcesSummaryText(sources = []) {
+    const normalized = normalizeSources(sources);
+    if (!normalized.length) return '';
+    const first = normalized[0];
+    const label = first?.domain || (() => {
+        try { return new URL(first.url).hostname.replace(/^www\./, ''); } catch { return 'Sumber'; }
+    })();
+    return normalized.length > 1 ? `${label} +${normalized.length - 1}` : label;
 }
 
 function renderPlainTextContent(text) {
@@ -848,9 +928,49 @@ function updateModelIndicator() {
     }
 }
 
-function setActiveModel(model, persist = true) {
-    const normalizedModel = ['gpt4o', 'gemini', 'claude'].includes(model) ? model : 'gpt4o';
+function renderModelMenu() {
+    if (!modelMenuList) return;
     const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
+    const order = ['gemini', 'claude', 'gpt4o'];
+    modelMenuList.innerHTML = '';
+    order.forEach((key) => {
+        const spec = MODEL_CATALOG[key];
+        if (!spec) return;
+        const locked = Boolean(spec.requiresPremium) && !isPremium;
+        const disabled = !spec.available || locked;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `composer-menu-model-item${key === activeModel ? ' active' : ''}${disabled ? ' disabled' : ''}`;
+        btn.dataset.model = key;
+        const badge = spec.badge
+            ? `<span class="composer-menu-badge">${escapeHtml(spec.badge)}</span>`
+            : (locked ? '<i class="fas fa-lock"></i>' : '');
+        btn.innerHTML = `<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span>${badge}`;
+        btn.addEventListener('click', () => {
+            if (disabled) {
+                if (!spec.available) alert('Claude Sonnet sedang maintenance.');
+                return;
+            }
+            setActiveModel(key);
+            toggleComposerMenu(false);
+        });
+        modelMenuList.appendChild(btn);
+    });
+    if (modelPanelNote) {
+        const note = isPremium
+            ? 'Premium Model has been opened'
+            : 'Premium Plan is currently available.';
+        modelPanelNote.textContent = note;
+    }
+}
+
+function setActiveModel(model, persist = true) {
+    const normalizedModel = MODEL_CATALOG[model] ? model : 'gemini';
+    const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
+    if (!MODEL_CATALOG[normalizedModel]?.available) {
+        alert('Claude Sonnet sedang maintenance.');
+        return;
+    }
     if (normalizedModel === 'gpt4o' && !isPremium) {
         showLimitNotice({ limit: { usageDate: quotaState?.usageDate || new Date().toISOString().slice(0, 10) } });
         return;
@@ -859,9 +979,8 @@ function setActiveModel(model, persist = true) {
     settingsModelBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.model === activeModel);
     });
-    if (modelSelect) modelSelect.value = activeModel;
-    if (modelSelectBtnText) modelSelectBtnText.textContent = modelSelect?.selectedOptions?.[0]?.textContent || 'ChatGPT 4o';
     updateModelIndicator();
+    renderModelMenu();
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
     }
@@ -869,18 +988,6 @@ function setActiveModel(model, persist = true) {
 
 settingsModelBtns.forEach(btn => {
     btn.addEventListener('click', () => setActiveModel(btn.dataset.model));
-});
-modelSelect?.addEventListener('change', (e) => setActiveModel(e.target.value));
-modelSelectBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    modelSelectPanel?.classList.toggle('hidden');
-});
-document.querySelectorAll('.panel-model-item').forEach((btn) => {
-    btn.addEventListener('click', () => {
-        if (btn.classList.contains('locked')) return;
-        setActiveModel(btn.dataset.model);
-        modelSelectPanel?.classList.add('hidden');
-    });
 });
 
 
@@ -896,29 +1003,16 @@ function updateQuotaBadge(snapshot = null) {
     if (snapshot) quotaState = snapshot;
     const plan = String(quotaState?.plan || 'free').toLowerCase();
     const isPremium = plan === 'premium';
-    document.querySelectorAll('.panel-model-item.premium-model').forEach((el) => {
-        el.classList.toggle('locked', !isPremium);
-        const icon = el.querySelector('i');
-        if (icon) {
-            icon.classList.remove('fa-lock', 'fa-unlock');
-            icon.classList.add(isPremium ? 'fa-unlock' : 'fa-lock');
-        }
-    });
     premiumUpgradeBadge?.classList.toggle('hidden', isPremium);
     if (profilePlanBadge) {
         profilePlanBadge.textContent = isPremium ? 'Premium' : 'Free';
         profilePlanBadge.classList.toggle('is-free', !isPremium);
         profilePlanBadge.classList.toggle('premium', isPremium);
     }
-
-    if (modelPanelNote) {
-        modelPanelNote.innerHTML = isPremium
-            ? '<i class="fas fa-unlock"></i> Premium Model has been opened'
-            : '<i class="fas fa-lock"></i> Premium Plan is currently available.';
-    }
     if (isPremium && !['gpt4o','claude','gemini'].includes(activeModel)) {
         setActiveModel('gpt4o');
     }
+    renderModelMenu();
     const usage = quotaState?.usage || { chat: 0, image: 0 };
     const limits = quotaState?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
     if (quotaBadge) {
@@ -1017,6 +1111,7 @@ function showImageDraft(file) {
         draftFileName.textContent = file.name;
         draftFileSize.textContent = formatFileSize(file.size);
         imageDraftContainer.classList.remove('hidden');
+        updateSendButtonState();
     };
     reader.readAsDataURL(file);
 }
@@ -1026,6 +1121,7 @@ function clearImageDraft() {
     draftImage.src = '';
     imageDraftContainer.classList.add('hidden');
     imageInput.value = '';
+    updateSendButtonState();
 }
 
 function formatFileSize(bytes) {
@@ -1040,6 +1136,7 @@ function showImageDraftFromData(dataURL) {
     draftFileName.textContent = 'Gambar';
     draftFileSize.textContent = '';
     imageDraftContainer.classList.remove('hidden');
+    updateSendButtonState();
 }
 
 // ========== TYPING EFFECT ==========
@@ -1208,11 +1305,14 @@ async function sendMessage(options = {}) {
     const loadingId = 'loading-' + Date.now();
     const hasImageDraft = Boolean(userMessage.image);
     chatMessages.insertAdjacentHTML('beforeend', `
-        <div class="message assistant" id="${loadingId}">
-            <div class="message-content">
-                <div class="thinking-indicator">
-                    <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                    <span>${hasImageDraft ? 'Memproses gambar...' : 'Thinking...'}</span>
+        <div class="message assistant pending" id="${loadingId}">
+            <div class="message-content-wrapper">
+                <div class="message-meta"><span>AI sedang berpikir</span><span class="message-meta-chevron">›</span></div>
+                <div class="message-content">
+                    <div class="thinking-indicator">
+                        <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                        <span>${hasImageDraft ? 'Memproses gambar...' : 'AI sedang berpikir'}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1220,6 +1320,7 @@ async function sendMessage(options = {}) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
     try {
+        const thinkingStart = performance.now();
         const messages = conv.messages.map(m => ({ role: m.role, content: m.content }));
         const needSearch = !userMessage.image && shouldUseWebSearchFromPrompt(text);
         const enableSearch = !userMessage.image && webSearchEnabled && needSearch;
@@ -1239,6 +1340,7 @@ async function sendMessage(options = {}) {
                 abortController.signal
             );
         }
+        const thinkingMs = performance.now() - thinkingStart;
         
         document.getElementById(loadingId)?.remove();
         response.content = normalizeResponseText(response.content);
@@ -1255,7 +1357,8 @@ async function sendMessage(options = {}) {
             isError: !response.success,
             feedback: null,
             sources: mergeSources(response.sources || [], extractSourcesFromText(response.content || '')),
-            isComplete: false
+            isComplete: false,
+            thinkingMs
         };
         if (response.imageUrl) {
             aiMessage.generatedImage = response.imageUrl;
@@ -1543,13 +1646,16 @@ messageInput?.addEventListener('input', function() {
     updateSendButtonState();
 });
 
-attachBtn?.addEventListener('click', () => {
-    imageInput.click();
+attachBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleComposerMenu();
 });
 
-toolsBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    toolsMenu?.classList.toggle('hidden');
+composerMenuBackdrop?.addEventListener('click', () => toggleComposerMenu(false));
+composerMenu?.addEventListener('click', (e) => e.stopPropagation());
+composerMenuPhoto?.addEventListener('click', () => {
+    toggleComposerMenu(false);
+    imageInput.click();
 });
 
 toolWebSearch?.addEventListener('change', (e) => {
@@ -1748,6 +1854,9 @@ document.addEventListener('click', (e) => {
     if (userMenuDropdown && !userMenuDropdown.contains(e.target) && e.target !== userMenuBtn) {
         toggleUserMenu(false);
     }
+    if (composerMenu && attachBtn && !composerMenu.contains(e.target) && !attachBtn.contains(e.target)) {
+        toggleComposerMenu(false);
+    }
     if (toolsMenu && toolsBtn && !toolsMenu.contains(e.target) && !toolsBtn.contains(e.target)) {
         toolsMenu.classList.add('hidden');
     }
@@ -1783,6 +1892,7 @@ async function init() {
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
     thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
     setActiveModel(localStorage.getItem('youz_model') || 'gemini', false);
+    renderModelMenu();
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
     const routeParts = window.location.pathname.split('/').filter(Boolean);
