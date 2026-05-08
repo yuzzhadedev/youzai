@@ -17,20 +17,20 @@ let quotaState = null;
 const MODEL_CATALOG = {
     gemini: {
         label: 'Gemini 2.0 Flash',
-        detail: 'chat • multimodal • web',
+        detail: 'Google — Previous gen flash',
         tier: 'standard',
         available: true
     },
     claude: {
-        label: 'Claude Sonnet',
-        detail: 'maintenance',
+        label: 'Claude Sonnet 4.5',
+        detail: 'Anthropic — Best all-around',
         tier: 'standard',
         available: false,
         badge: 'Maintenance'
     },
     gpt4o: {
         label: 'ChatGPT 4o',
-        detail: 'chat • multimodal • web',
+        detail: 'OpenAI — Premium Model due to limited Credit',
         tier: 'premium',
         available: true,
         requiresPremium: true
@@ -57,7 +57,8 @@ const toolsMenu = document.getElementById('toolsMenu');
 const composerMenu = document.getElementById('composerMenu');
 const composerMenuBackdrop = document.getElementById('composerMenuBackdrop');
 const composerMenuPhoto = document.getElementById('composerMenuPhoto');
-const modelMenuList = document.getElementById('modelMenuList');
+const modelMenuStandardList = document.getElementById('modelMenuStandardList');
+const modelMenuPremiumList = document.getElementById('modelMenuPremiumList');
 const toolWebSearch = document.getElementById('toolWebSearch');
 const toolThinking = document.getElementById('toolThinking');
 const imageInput = document.getElementById('imageInput');
@@ -349,6 +350,16 @@ function updateSendButtonState() {
     const enabled = hasText || hasImage;
     sendBtn.disabled = !enabled;
     sendBtn.classList.toggle('disabled', !enabled);
+}
+
+function hardResetProcessingState() {
+    isProcessing = false;
+    typingAbortRequested = false;
+    typingTimeout = null;
+    abortController = null;
+    document.querySelectorAll('.message.assistant.pending').forEach((el) => el.remove());
+    setProcessingUI(false);
+    updateSendButtonState();
 }
 
 function toggleComposerMenu(forceShow = null) {
@@ -929,10 +940,11 @@ function updateModelIndicator() {
 }
 
 function renderModelMenu() {
-    if (!modelMenuList) return;
+    if (!modelMenuStandardList || !modelMenuPremiumList) return;
     const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
     const order = ['gemini', 'claude', 'gpt4o'];
-    modelMenuList.innerHTML = '';
+    modelMenuStandardList.innerHTML = '';
+    modelMenuPremiumList.innerHTML = '';
     order.forEach((key) => {
         const spec = MODEL_CATALOG[key];
         if (!spec) return;
@@ -954,12 +966,13 @@ function renderModelMenu() {
             setActiveModel(key);
             toggleComposerMenu(false);
         });
-        modelMenuList.appendChild(btn);
+        if (spec.tier === 'premium') modelMenuPremiumList.appendChild(btn);
+        else modelMenuStandardList.appendChild(btn);
     });
     if (modelPanelNote) {
         const note = isPremium
-            ? 'Premium Model has been opened'
-            : 'Premium Plan is currently available.';
+            ? 'Premium models unlocked.'
+            : 'Upgrade untuk akses premium models.';
         modelPanelNote.textContent = note;
     }
 }
@@ -1093,13 +1106,8 @@ async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch,
 }
 
 function shouldUseWebSearchFromPrompt(text) {
-    const lowered = (text || '').toLowerCase();
-    const searchKeywords = [
-        'cari', 'search', 'berita', 'terbaru', 'update', 'hari ini',
-        'cuaca', 'harga', 'merek', 'rekomendasi', 'news', 'weather',
-        'trend', 'tren', 'rilis', 'release', 'review'
-    ];
-    return searchKeywords.some(keyword => lowered.includes(keyword));
+    if (!webSearchEnabled) return false;
+    return String(text || '').trim().length > 0;
 }
 
 // ========== IMAGE DRAFT ==========
@@ -1247,6 +1255,9 @@ async function sendMessage(options = {}) {
             typingTimeout = null;
         }
         abortController.abort();
+        window.setTimeout(() => {
+            if (isProcessing) hardResetProcessingState();
+        }, 120);
         return;
     }
     
@@ -1307,11 +1318,11 @@ async function sendMessage(options = {}) {
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant pending" id="${loadingId}">
             <div class="message-content-wrapper">
-                <div class="message-meta"><span>AI sedang berpikir</span><span class="message-meta-chevron">›</span></div>
+                <div class="message-meta"><span>${thinkingModeEnabled ? 'AI sedang berpikir' : '•••'}</span><span class="message-meta-chevron">›</span></div>
                 <div class="message-content">
                     <div class="thinking-indicator">
                         <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                        <span>${hasImageDraft ? 'Memproses gambar...' : 'AI sedang berpikir'}</span>
+                        <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span>
                     </div>
                 </div>
             </div>
@@ -1322,8 +1333,7 @@ async function sendMessage(options = {}) {
     try {
         const thinkingStart = performance.now();
         const messages = conv.messages.map(m => ({ role: m.role, content: m.content }));
-        const needSearch = !userMessage.image && shouldUseWebSearchFromPrompt(text);
-        const enableSearch = !userMessage.image && webSearchEnabled && needSearch;
+        const enableSearch = !userMessage.image && shouldUseWebSearchFromPrompt(text);
         
         const action = enableSearch ? 'search' : 'chat';
         let response;
