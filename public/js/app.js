@@ -595,6 +595,7 @@ function createMessageElement(msg, index) {
         });
     });
 
+    applyCodeHighlighting(messageDiv);
     return messageDiv;
 }
 
@@ -706,6 +707,15 @@ function shouldShowSourcesButton(msg) {
 function renderPlainTextContent(text) {
     const safe = escapeHtml(text || '');
     return safe.replace(/<br>/g, '<br><span class="typing-cursor">▌</span>').replace(/<span class="typing-cursor">▌<\/span>$/, '') + '<span class="typing-cursor">▌</span>';
+}
+
+function applyCodeHighlighting(scope = document) {
+    if (!window.hljs || !scope) return;
+    scope.querySelectorAll('pre code').forEach((block) => {
+        if (block.dataset.highlighted === 'true') return;
+        window.hljs.highlightElement(block);
+        block.dataset.highlighted = 'true';
+    });
 }
 
 function renderMessageContent(text) {

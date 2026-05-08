@@ -15,7 +15,7 @@ function buildSystemPrompt(thinkingMode, userContext = {}) {
   const rawName = String(userContext?.name || userContext?.fullName || userContext?.username || '').trim();
   const userName = rawName ? rawName.replace(/\s+/g, ' ').slice(0, 60) : '';
   const nameContext = userName ? ` Nama pengguna saat ini: ${userName}. Jika relevan, sapa namanya secara natural.` : '';
-  return `Kamu adalah Youz AI (youzai.my.id) buatan Yuzz Ofc. Waktu sekarang: ${currentTime}.${nameContext} Jawab dalam Bahasa Indonesia yang santai dan informatif. Jika diminta, jelaskan bahwa code block akan otomatis berwarna lewat Highlight.js atau Prism.js setelah markdown dirender.${thinkingMode ? ' Gunakan reasoning mendalam sebelum menjawab.' : ''}`;
+  return `Kamu adalah Youz AI (youzai.my.id) buatan Yuzz Ofc. Waktu sekarang: ${currentTime}.${nameContext} Jawab dalam Bahasa Indonesia yang santai dan informatif.${thinkingMode ? ' Gunakan reasoning mendalam sebelum menjawab.' : ''}`;
 }
 
 function normalizeModelType(modelType) {
