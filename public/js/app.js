@@ -565,8 +565,9 @@ function createMessageElement(msg, index) {
         feedbackIndicator = '<span class="feedback-indicator"><i class="fas fa-thumbs-down"></i> Tidak disukai</span>';
     }
     
-    const showMeta = !isUser && (thinkingModeEnabled || msg.isComplete === false || typeof msg.thinkingMs === 'number');
-    const metaText = !isUser
+    const shouldShowThinkingMeta = thinkingModeEnabled;
+    const showMeta = !isUser && shouldShowThinkingMeta && (msg.isComplete === false || typeof msg.thinkingMs === 'number');
+    const metaText = !isUser && shouldShowThinkingMeta
         ? (msg.isComplete === false
             ? 'AI sedang berpikir'
             : (typeof msg.thinkingMs === 'number' ? `Selesai berpikir selama ${formatThinkingDuration(msg.thinkingMs)}` : ''))
