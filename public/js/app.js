@@ -34,6 +34,8 @@ const toolsBtn = document.getElementById('toolsBtn');
 const toolsMenu = document.getElementById('toolsMenu');
 const toolWebSearch = document.getElementById('toolWebSearch');
 const toolThinking = document.getElementById('toolThinking');
+const toolModelSelect = document.getElementById('toolModelSelect');
+const toolPhoto = document.getElementById('toolPhoto');
 const imageInput = document.getElementById('imageInput');
 const newChatBtn = document.getElementById('newChatBtn');
 const clearAllBtn = document.getElementById('clearAllBtn');
@@ -1212,7 +1214,7 @@ async function sendMessage(options = {}) {
             <div class="message-content">
                 <div class="thinking-indicator">
                     <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                    <span>${hasImageDraft ? 'Memproses gambar...' : 'Thinking...'}</span>
+                    <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'Ai Sedang berpikir' : 'Selesai berpikir selama sepersekian detik')}</span>
                 </div>
             </div>
         </div>
@@ -1549,7 +1551,9 @@ attachBtn?.addEventListener('click', () => {
 
 toolsBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
+    const isHidden = toolsMenu?.classList.contains('hidden');
     toolsMenu?.classList.toggle('hidden');
+    toolsBtn.classList.toggle('open', Boolean(isHidden));
 });
 
 toolWebSearch?.addEventListener('change', (e) => {
@@ -1557,6 +1561,18 @@ toolWebSearch?.addEventListener('change', (e) => {
     localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
 });
 
+
+toolModelSelect?.addEventListener('click', () => {
+    modelSelectPanel?.classList.remove('hidden');
+    toolsMenu?.classList.add('hidden');
+    toolsBtn?.classList.remove('open');
+});
+
+toolPhoto?.addEventListener('click', () => {
+    imageInput?.click();
+    toolsMenu?.classList.add('hidden');
+    toolsBtn?.classList.remove('open');
+});
 toolThinking?.addEventListener('change', (e) => {
     thinkingModeEnabled = e.target.checked;
     localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
@@ -1750,6 +1766,7 @@ document.addEventListener('click', (e) => {
     }
     if (toolsMenu && toolsBtn && !toolsMenu.contains(e.target) && !toolsBtn.contains(e.target)) {
         toolsMenu.classList.add('hidden');
+        toolsBtn.classList.remove('open');
     }
     if (modelSelectPanel && modelSelectBtn && !modelSelectPanel.contains(e.target) && !modelSelectBtn.contains(e.target)) {
         modelSelectPanel.classList.add('hidden');

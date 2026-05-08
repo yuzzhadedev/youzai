@@ -2253,3 +2253,19 @@ body {
 * { -webkit-tap-highlight-color: transparent; }
 button:focus, button:focus-visible, .action-btn:focus, .panel-model-item:focus { outline: none !important; box-shadow: none !important; }
 .profile-premium-badge.is-free{background:rgba(148,163,184,.18);color:#cbd5e1;}
+
+
+.message-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.sources-btn { margin-left: 0; order: 5; }
+.regenerate-btn { margin-right: 8px; }
+
+.thinking-indicator { font-size: 13px; color: #b8bdc7; }
+
+.composer-toolbar { justify-content: space-between; }
+.composer-toolbar .send-btn { margin-left: auto; }
+.tools-btn { width:34px; height:34px; padding:0; justify-content:center; font-size:18px; transition: transform .2s ease; }
+.tools-btn.open i { transform: rotate(45deg); }
+.tools-menu { max-height: 50vh; overflow: auto; }
+.tool-item { width:100%; background: transparent; border:0; text-align:left; cursor:pointer; }
+.maintenance-badge { font-size: 10px; background:#7f1d1d; color:#fecaca; border:1px solid #b91c1c; border-radius:999px; padding:3px 7px; }
+.panel-model-item { display:flex; align-items:center; justify-content:space-between; gap:8px; }

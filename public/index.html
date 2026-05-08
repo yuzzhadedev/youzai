@@ -175,15 +175,17 @@
 
             <div class="chat-input-area">
                 <div class="tools-menu hidden" id="toolsMenu">
-                    <div class="tools-menu-title">Alat</div>
+                    <div class="tools-menu-title">Panel Menu</div>
                     <label class="tool-item">
                         <input type="checkbox" id="toolWebSearch" checked>
-                        <span><i class="fas fa-globe"></i> Search web mode</span>
+                        <span><i class="fas fa-globe"></i> Search/Pencarian Web</span>
                         </label>
                     <label class="tool-item">
                         <input type="checkbox" id="toolThinking" checked>
-                        <span><i class="fas fa-brain"></i> Thinking mode</span>
+                        <span><i class="fas fa-brain"></i> Berpikir/Thinking Otomatis</span>
                     </label>
+                    <button class="tool-item tool-model-select" id="toolModelSelect" type="button"><span><i class="fas fa-microchip"></i> Models Area</span></button>
+                    <button class="tool-item" id="toolPhoto" type="button"><span><i class="fas fa-image"></i> Foto</span></button>
                 </div>
                 <div class="search-input-container">
                     <div class="input-container stacked">
@@ -195,18 +197,18 @@
                             <div class="model-select-panel hidden" id="modelSelectPanel">
                                 <div class="model-group-title">STANDAR MODELS</div>
                                 <button class="panel-model-item" data-model="gemini" type="button"><span>Gemini 2.0 Flash <small>chat • image • search • analisis</small></span></button>
-                                <button class="panel-model-item" data-model="claude" type="button"><span>Claude Sonnet 4.5 <small>chat • image • search • analisis</small></span></button>
+                                <button class="panel-model-item" data-model="claude" type="button"><span>Claude Sonnet 4.5 <small>maintenance</small></span><span class="maintenance-badge">Maintenance</span></button>
                                 <div class="model-group-title premium-title">PREMIUM MODELS <span class="upgrade-badge" id="premiumUpgradeBadge">Upgrade</span></div>
                                 <button class="panel-model-item premium-model locked" data-model="gpt4o" type="button"><span>ChatGPT 4o <small>chat • image • search • analisis</small></span><i class="fas fa-lock"></i></button>
                                 <small class="model-panel-note" id="modelPanelNote"><i class="fas fa-lock"></i> Premium Plan is currently available.</small>
                             </div>
                             <select id="modelSelect" class="model-select hidden" aria-label="Pilih model AI">
-                                <option value="gpt4o">ChatGPT 4o</option>
-                                <option value="gemini">Gemini 2.0 Flash</option>
-                                <option value="claude">Claude Sonnet 4.5</option>
+                                <option value="gpt4o">ChatGPT (Official)</option>
+                                <option value="gemini">Gemini 2.0 Flash (Official)</option>
+                                <option value="claude">Claude Sonnet 4.5 (Maintenance)</option>
                             </select>
-                            <button class="tools-btn" id="toolsBtn" type="button" aria-label="Buka alat">
-                                <i class="fas fa-sliders-h"></i> Alat
+                            <button class="tools-btn" id="toolsBtn" type="button" aria-label="Buka panel menu">
+                                <i class="fas fa-plus"></i>
                             </button>
                             <button class="attach-btn" id="attachBtn" type="button" title="Kirim Foto" aria-label="Kirim foto">
                                 <i class="fas fa-paperclip"></i>
