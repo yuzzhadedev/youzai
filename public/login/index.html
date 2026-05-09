@@ -487,42 +487,54 @@
 
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
-      const fd = new FormData(loginForm);
-      const payload = { email: fd.get('email'), password: fd.get('password') };
-      const res = await fetch('/api/auth/email-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) return showToast(data.message || 'Login gagal.', 'error');
-      localStorage.setItem('youz_user', JSON.stringify(data.user));
-      showToast('Login berhasil!', 'success');
-      setTimeout(() => { window.location.href = '/'; }, 700);
+      try {
+        const fd = new FormData(loginForm);
+        const payload = { email: fd.get('email'), password: fd.get('password') };
+        const res = await fetch('/api/auth/email-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) return showToast(data.message || 'Login gagal.', 'error');
+        localStorage.setItem('youz_user', JSON.stringify(data.user));
+        showToast('Login berhasil!', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 700);
+      } catch (error) {
+        showToast('Jaringan bermasalah. Coba lagi.', 'error');
+      }
     };
 
     registerForm.onsubmit = async (e) => {
       e.preventDefault();
-      const fd = new FormData(registerForm);
-      const payload = { name: fd.get('name'), email: fd.get('email'), password: fd.get('password') };
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) return showToast(data.message || 'Registrasi gagal.', 'error');
-      localStorage.setItem('youz_user', JSON.stringify(data.user));
-      showToast('Registrasi berhasil!', 'success');
-      setTimeout(() => { window.location.href = '/'; }, 700);
+      try {
+        const fd = new FormData(registerForm);
+        const payload = { name: fd.get('name'), email: fd.get('email'), password: fd.get('password') };
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) return showToast(data.message || 'Registrasi gagal.', 'error');
+        localStorage.setItem('youz_user', JSON.stringify(data.user));
+        showToast('Registrasi berhasil!', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 700);
+      } catch (error) {
+        showToast('Jaringan bermasalah. Coba lagi.', 'error');
+      }
     };
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('user')) {
-      const user = JSON.parse(decodeURIComponent(urlParams.get('user')));
-      localStorage.setItem('youz_user', JSON.stringify(user));
-      showToast('Login berhasil!', 'success');
-      setTimeout(() => { window.location.href = '/'; }, 1000);
+      try {
+        const user = JSON.parse(decodeURIComponent(urlParams.get('user')));
+        localStorage.setItem('youz_user', JSON.stringify(user));
+        showToast('Login berhasil!', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 1000);
+      } catch (error) {
+        showToast('Data login tidak valid. Silakan login ulang.', 'error');
+      }
     } else if (urlParams.get('error')) {
       showToast('Login gagal. Silakan coba lagi.', 'error');
     }
