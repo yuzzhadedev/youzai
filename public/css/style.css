@@ -2474,3 +2474,10 @@ body {
 * { -webkit-tap-highlight-color: transparent; }
 button:focus, button:focus-visible, .action-btn:focus, .panel-model-item:focus { outline: none !important; box-shadow: none !important; }
 .profile-premium-badge.is-free{background:rgba(148,163,184,.18);color:#cbd5e1;}
+
+
+.secure-logo {
+    -webkit-user-drag: none;
+    user-select: none;
+    pointer-events: auto;
+}
