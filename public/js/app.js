@@ -711,6 +711,15 @@ function parseSimpleMarkdown(text) {
     return rendered;
 }
 
+function buildTypingPreviewMarkdown(text = '') {
+    let preview = String(text || '');
+    const fenceCount = (preview.match(/```/g) || []).length;
+    if (fenceCount % 2 === 1) preview += '\n```';
+    const backticks = (preview.match(/`/g) || []).length;
+    if (backticks % 2 === 1) preview += '`';
+    return preview;
+}
+
 function normalizeSources(sources = []) {
     return (Array.isArray(sources) ? sources : [])
         .map((source) => {
@@ -1156,7 +1165,6 @@ function sanitizePartialMarkdown(text = '') {
     safe = safe.replace(/\([^)]*$/g, '');
     safe = safe.replace(/\*\*[^*]*$/g, '');
     safe = safe.replace(/\*[^*]*$/g, '');
-    safe = safe.replace(/`[^`]*$/g, '');
     return safe;
 }
 
@@ -1197,10 +1205,11 @@ async function typeWriterEffect(el, text, speed = 22) {
 
             index = Math.min(fullText.length, index + adaptiveChars);
             const partial = sanitizePartialMarkdown(fullText.slice(0, index));
+            const stablePartial = buildTypingPreviewMarkdown(partial);
 
-            if (partial !== lastRendered) {
-                el.innerHTML = parseSimpleMarkdown(partial);
-                lastRendered = partial;
+            if (stablePartial !== lastRendered) {
+                el.innerHTML = parseSimpleMarkdown(stablePartial);
+                lastRendered = stablePartial;
                 if (autoScrollDuringTyping) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
