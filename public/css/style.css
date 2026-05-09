@@ -620,7 +620,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-width: 920px;
+    max-width: 1080px;
     width: 100%;
     margin: 0 auto;
 }
@@ -711,7 +711,7 @@ body {
 .message {
     display: flex;
     gap: 0;
-    max-width: 90%;
+    max-width: min(92%, 940px);
     animation: slideIn 0.2s ease;
 }
 
@@ -2466,7 +2466,7 @@ body {
 .code-language{font-size:11px;text-transform:lowercase;color:#d1d5db;font-family:'Fira Code','Courier New',monospace;}
 .code-copy-btn{background:#3b3f41;color:#e5e7eb;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;}
 .code-block pre{margin:0;padding:12px;overflow:auto;max-width:100%;}
-.code-block code{display:block;color:#d4d4d4;background:transparent!important;font-family:'Fira Code','Courier New',monospace;font-size:12px;line-height:1.5;white-space:pre;min-width:max-content;}
+.code-block code{display:block;color:#d4d4d4;background:transparent!important;font-family:'Fira Code','Courier New',monospace;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;min-width:0;}
 .code-block pre::-webkit-scrollbar{height:10px;width:10px;}
 .code-block pre::-webkit-scrollbar-thumb{background:#4b5563;border-radius:999px;}
 

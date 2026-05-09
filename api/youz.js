@@ -42,7 +42,7 @@ async function callOpenRouter({ apiKey, model, messages, enableSearch, maxTokens
   const text = await response.text();
   let data;
   try { data = JSON.parse(text); } catch { return { success: false, content: 'Response tidak valid dari OpenRouter.' }; }
-  if (!response.ok) return { success: false, content: `OpenRouter error: ${data.error?.message || 'Unknown error'}` };
+  if (!response.ok) return { success: false, content: `OpenRouter error: ${data.error?.message || 'Unknown error'}`, providerError: true };
   const rawSources = data.citations || data.sources || data.choices?.[0]?.message?.citations || data.choices?.[0]?.message?.annotations || [];
   const sources = (Array.isArray(rawSources) ? rawSources : []).map((source) => ({ title: source.title || source.name || source.url || 'Sumber', url: source.url || source.link || source.uri || '', snippet: source.snippet || source.text || source.description || '' })).filter((source) => source.url);
   return { success: true, content: data.choices?.[0]?.message?.content || 'Tidak ada respons.', sources };
@@ -93,6 +93,16 @@ async function processChatRequest(req, payload = {}) {
     if (!openRouterKey) return { success: false, content: 'OPENROUTER_API_KEY belum dikonfigurasi.' };
     providerResponse = await callOpenRouter({ apiKey: openRouterKey, model, messages: chatMessages, enableSearch: action === 'search' || Boolean(enableSearch), maxTokens: action === 'search' ? 1500 : 1000 });
   }
+  if (!providerResponse.success && (action === 'search' || Boolean(enableSearch))) {
+    const fallbackResponse = await callOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY, model, messages: chatMessages, enableSearch: false, maxTokens: 1000 });
+    if (fallbackResponse.success) {
+      providerResponse = {
+        ...fallbackResponse,
+        content: `${fallbackResponse.content}\n\n⚠️ Web search lagi bermasalah, jadi jawaban ini pakai pengetahuan model tanpa browsing live.`
+      };
+    }
+  }
+
   if (providerResponse.success) await consumeQuota({ userKey, type: quotaType, amount: 1 });
   return {
     success: providerResponse.success,
@@ -153,10 +163,10 @@ export default async function handler(req, res) {
       await saveConversationMessage({ conversationId: cid, role: 'assistant', content: String(response.content || '') });
     }
     if (!response?.success) {
-      return res.status(200).json({ success: false, content: 'Server lagi sibuk, coba lagi nanti.', keterangan: String(response?.content || 'Terjadi gangguan saat memproses permintaan.'), conversationId: cid || null, limit: response?.limit || null });
+      return res.status(200).json({ success: false, content: String(response?.content || 'Terjadi gangguan saat memproses permintaan.'), keterangan: String(response?.content || 'Terjadi gangguan saat memproses permintaan.'), conversationId: cid || null, limit: response?.limit || null });
     }
     return res.status(200).json({ ...response, conversationId: cid || null });
   } catch (error) {
-    return res.status(200).json({ success: false, content: 'Server lagi sibuk, coba lagi nanti.', keterangan: error.message || 'Kesalahan server internal.' });
+    return res.status(200).json({ success: false, content: 'Terjadi kesalahan server internal. Coba lagi beberapa saat.', keterangan: error.message || 'Kesalahan server internal.' });
   }
 }
