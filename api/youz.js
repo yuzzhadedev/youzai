@@ -1,5 +1,7 @@
 import { consumeQuota, resolveUserKey, getQuotaSnapshot, ensureConversation, saveConversationMessage, getConversationWithMessages } from '../lib/db.js';
 
+const SEARCH_MODEL = 'openai/gpt-4o-search-preview';
+
 const MODEL_MAP = {
   openai: 'openai/gpt-4.1',
   gpt4o: 'openai/gpt-4o',
@@ -23,6 +25,49 @@ function normalizeModelType(modelType) {
   return ['openai', 'gpt4o', 'gemini', 'claude'].includes(modelType) ? modelType : 'gemini';
 }
 
+function shouldGenerateImage(prompt = '', action = 'chat') {
+  const text = String(prompt || '').toLowerCase();
+  if (!text.trim()) return false;
+  if (action === 'image') return true;
+  return /(generate|buatkan|buat|gambar|ilustrasi|poster|logo|image)/.test(text)
+    && /(generate|buat|gambar|image)/.test(text);
+}
+
+async function generateImageWithHuggingFace(prompt, userKey) {
+  const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.HF_API_KEY;
+  if (!hfKey) {
+    return { success: false, content: 'HUGGINGFACE_API_KEY belum dikonfigurasi.' };
+  }
+  const modelId = 'black-forest-labs/FLUX.1-schnell';
+  const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}` , {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      inputs: String(prompt || 'Generate gambar artistik berkualitas tinggi.'),
+      parameters: { guidance_scale: 3.5, num_inference_steps: 4 },
+      options: { wait_for_model: true, use_cache: false }
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    return { success: false, content: `Hugging Face error: ${errText || response.status}` };
+  }
+
+  const arrayBuffer = await response.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString('base64');
+  const imageUrl = `data:image/png;base64,${base64}`;
+  await consumeQuota({ userKey, type: 'image', amount: 1 });
+  return {
+    success: true,
+    content: 'Gambar berhasil dibuat dengan FLUX.1-schnell.',
+    imageUrl,
+    model: 'black-forest-labs/FLUX.1-schnell',
+    hasSearch: false,
+    sources: []
+  };
+}
+
 async function callRuneria({ apiKey, model, messages }) { /* unchanged */
   const response = await fetch('https://runeria.fun/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model, messages, stream: false }) });
   const data = await response.json();
@@ -32,7 +77,7 @@ async function callRuneria({ apiKey, model, messages }) { /* unchanged */
 
 async function callOpenRouter({ apiKey, model, messages, enableSearch, maxTokens = 1000 }) {
   const body = { model, messages, max_tokens: maxTokens, temperature: 0.7 };
-  if (enableSearch) {
+  if (enableSearch && model !== SEARCH_MODEL) {
     if (model.includes('gemini')) body.tools = [{ googleSearch: {} }];
     else body.plugins = [{ id: 'web', max_results: 5 }];
   }
@@ -70,6 +115,14 @@ async function processChatRequest(req, payload = {}) {
 
   const systemPrompt = buildSystemPrompt(thinkingMode, userContext);
   const safePrompt = String(prompt || messages[messages.length - 1]?.content || '').trim();
+  const wantsImageGeneration = !hasImage && shouldGenerateImage(safePrompt, action);
+  if (wantsImageGeneration) {
+    const generated = await generateImageWithHuggingFace(safePrompt, userKey);
+    if (!generated.success) {
+      return { ...generated, limit: await getQuotaSnapshot(userKey), conversationId: conversationId || null };
+    }
+    return { ...generated, action: 'image', conversationId: conversationId || null, limit: await getQuotaSnapshot(userKey) };
+  }
   const trimmed = messages.slice(-10);
   const withoutLastUser = hasImage && trimmed[trimmed.length - 1]?.role === 'user' ? trimmed.slice(0, -1) : trimmed;
   const chatMessages = [{ role: 'system', content: systemPrompt }, ...withoutLastUser];
@@ -82,7 +135,9 @@ async function processChatRequest(req, payload = {}) {
       ]
     });
   }
-  const model = MODEL_MAP[modelType] || MODEL_MAP.openai;
+  const isSearchRequest = action === 'search' || Boolean(enableSearch);
+  const baseModel = MODEL_MAP[modelType] || MODEL_MAP.openai;
+  const model = isSearchRequest ? SEARCH_MODEL : baseModel;
   let providerResponse;
   if (modelType === 'claude') {
     const runeriaKey = process.env.RUNERIA_API_KEY;
@@ -107,8 +162,8 @@ async function processChatRequest(req, payload = {}) {
   return {
     success: providerResponse.success,
     content: providerResponse.content,
-    model: hasImage ? 'vision' : (action === 'search' ? 'web-search' : modelType),
-    hasSearch: action === 'search' || Boolean(enableSearch) || (providerResponse.sources || []).length > 0,
+    model: hasImage ? 'vision' : (isSearchRequest ? 'web-search' : modelType),
+    hasSearch: isSearchRequest || (providerResponse.sources || []).length > 0,
     sources: providerResponse.sources || [],
     action,
     conversationId: conversationId || null,

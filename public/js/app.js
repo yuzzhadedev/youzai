@@ -499,7 +499,7 @@ function renderMessages(messages) {
         chatMessages.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">
-                    <img src="/login/logo.png" alt="Youz AI Logo">
+                    <img src="/asset/logo.png" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
                 </div>
                 <h3>Youz AI</h3>
                 <p>Asisten AI cerdas buatan Yuzz Ofc</p>
@@ -1955,6 +1955,7 @@ async function init() {
     console.log('✅ Youz AI v2.8 initialized');
 }
 
+protectLogos();
 init();
 
 window.addEventListener('popstate', () => {
