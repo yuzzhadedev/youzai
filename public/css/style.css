@@ -2332,40 +2332,56 @@ body {
 /* ===== FIX KHUSUS MOBILE ===== */
 @media (max-width: 768px) {
     body {
-        position: fixed;
         width: 100%;
         height: 100vh;
         height: 100dvh;
+        overflow: hidden;
     }
-    
+
     .app {
         height: 100vh;
         height: 100dvh;
     }
-    
+
     .sidebar {
         width: 85%;
         max-width: 280px;
+        z-index: 1700;
         padding-bottom: max(12px, env(safe-area-inset-bottom));
     }
-    
+
     .main {
         width: 100%;
         margin-left: 0 !important;
     }
-    
+
     .chat-header {
         padding: 5px 8px;
     }
-    
+
     .chat-messages {
         padding: 8px;
     }
-    
+
     .chat-input-area {
         padding: 5px 8px 8px;
     }
-    
+
+    .composer-menu-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1750;
+    }
+
+    .composer-menu {
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-width: none;
+        bottom: calc(80px + env(safe-area-inset-bottom));
+        z-index: 1760;
+    }
+
     .input-container {
         margin-bottom: 0;
     }

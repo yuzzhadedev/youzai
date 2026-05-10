@@ -1611,6 +1611,10 @@ document.querySelectorAll('.suggestion-item').forEach(item => {
 
 // ========== EVENT LISTENERS ==========
 hamburgerBtn?.addEventListener('click', () => {
+    const willOpenSidebar = sidebar.classList.contains('closed');
+    if (willOpenSidebar) {
+        toggleComposerMenu(false);
+    }
     sidebar.classList.toggle('closed');
 });
 
@@ -1668,6 +1672,9 @@ messageInput?.addEventListener('input', function() {
 
 attachBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (window.innerWidth <= 768 && !sidebar.classList.contains('closed')) {
+        sidebar.classList.add('closed');
+    }
     toggleComposerMenu();
 });
 
