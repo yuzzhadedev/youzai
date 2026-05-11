@@ -995,7 +995,10 @@ function setActiveModel(model, persist = true) {
         return;
     }
     if (normalizedModel === 'gpt4o' && !isPremium) {
-        showLimitNotice({ limit: { usageDate: quotaState?.usageDate || new Date().toISOString().slice(0, 10) } });
+        showPremiumModelNotice(normalizedModel);
+        if (activeModel !== 'gemini') activeModel = 'gemini';
+        updateModelIndicator();
+        renderModelMenu();
         return;
     }
     activeModel = normalizedModel;
@@ -1050,6 +1053,14 @@ function showLimitNotice(data) {
     if (!limitNotice || !limitNoticeText) return;
     const reset = data?.limit?.usageDate || new Date().toISOString().slice(0,10);
     limitNoticeText.textContent = `Anda telah mencapai batas. Upgrade ke YouzAi Premium atau coba lagi setelah reset limit (${reset}).`;
+    limitNotice.classList.remove('hidden');
+    limitNoticeCta?.classList.remove('hidden');
+}
+
+function showPremiumModelNotice(model = 'gpt4o') {
+    if (!limitNotice || !limitNoticeText) return;
+    const label = MODEL_CATALOG?.[model]?.label || 'Model premium';
+    limitNoticeText.textContent = `${label} hanya tersedia untuk akun Premium. Silakan upgrade untuk membuka akses model ini.`;
     limitNotice.classList.remove('hidden');
     limitNoticeCta?.classList.remove('hidden');
 }
@@ -1891,7 +1902,7 @@ document.addEventListener('click', (e) => {
 });
 
 window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 768 && sidebar) {
         sidebar.classList.remove('closed');
     }
 });
@@ -1961,7 +1972,7 @@ init();
 window.addEventListener('popstate', () => {
     const path = window.location.pathname;
     if (path === '/settings') return openSettings('general');
-    settingsModal.classList.add('hidden');
+    settingsModal?.classList.add('hidden');
     if (!path.startsWith('/chat/')) return;
     const slug = path.split('/')[2];
     if (slug === 'new') {

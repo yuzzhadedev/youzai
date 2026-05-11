@@ -1,5 +1,12 @@
 export default function handler(req, res) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return res.status(500).json({
+      success: false,
+      message: 'GOOGLE_CLIENT_ID belum dikonfigurasi.'
+    });
+  }
+
   const host = req.headers['x-forwarded-host'] || req.headers.host || process.env.VERCEL_URL || 'youzai.my.id';
   const proto = req.headers['x-forwarded-proto'] || (host.includes('localhost') ? 'http' : 'https');
   const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${proto}://${host}/api/auth/callback`;
