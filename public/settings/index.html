@@ -3,140 +3,879 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings • Youz AI</title>
+  <title>Pengaturan • Youz AI</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    body{background:var(--bg-primary);color:var(--text-primary);margin:0;overflow:auto}
-    .settings-page{max-width:960px;margin:32px auto;padding:0 16px 40px}
-    .settings-page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
-    .back-btn{border:1px solid var(--border-color);padding:10px 14px;border-radius:10px;background:var(--bg-secondary);color:var(--text-primary);text-decoration:none}
-    .section-card{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow-md)}
-    .section-card h2{font-size:20px;margin-bottom:4px}
-    .section-desc{color:var(--text-secondary);margin-bottom:16px}
-    .sub-group{margin-bottom:14px}
-    .sub-group h3{font-size:15px;margin-bottom:10px}
-    .theme-options{display:flex;flex-wrap:wrap;gap:10px}
-    .theme-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:10px 14px;border-radius:10px;cursor:pointer}
-    .theme-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
-    .inline-input{width:100%;max-width:420px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary)}
-    .stack{display:flex;flex-direction:column;gap:10px}
-    .action-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:10px 14px;border-radius:10px;cursor:pointer;text-align:left}
-    .action-btn.danger{border-color:#fca5a5;color:#ef4444}
-    .login-method{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);width:fit-content}
-    .method-icon{font-size:14px}
-    .plan-badges{display:flex;gap:10px}
-    .badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--border)}
-    .badge.active{background:#ede9fe;color:#6d28d9;border-color:#c4b5fd}
-    .confirm-text{font-size:13px;color:var(--text-secondary);margin-top:8px}
+    body {
+      margin: 0;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      overflow: auto;
+      min-height: 100vh;
+    }
+
+    .settings-shell {
+      max-width: 1024px;
+      margin: 0 auto;
+      padding: 18px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      gap: 14px;
+    }
+
+    .topbar {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+      padding: 12px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 34px;
+      height: 34px;
+      object-fit: contain;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .brand-title strong {
+      font-size: 13px;
+      line-height: 1.2;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-title span {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .pill-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      padding: 9px 12px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .pill-link:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .user-menu {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      max-width: 260px;
+    }
+
+    .user-trigger img {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+
+    .user-trigger span {
+      font-size: 12px;
+      font-weight: 700;
+      max-width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      min-width: 240px;
+      padding: 8px;
+      z-index: 2000;
+    }
+
+    .dropdown.hidden {
+      display: none !important;
+    }
+
+    .dropdown-item {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      text-align: left;
+      padding: 10px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .dropdown-item:hover {
+      background: var(--bg-input);
+    }
+
+    .dropdown-item.danger {
+      color: var(--danger);
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 6px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow-sm);
+      padding: 16px 16px;
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card-title h2 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+
+    .card-title small {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 10px;
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--bg-input) 78%, var(--bg-sidebar));
+    }
+
+    .row + .row {
+      margin-top: 10px;
+    }
+
+    .row-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .row-left strong {
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row-left span {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.35;
+    }
+
+    .input, .select {
+      width: 100%;
+      max-width: 320px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .select {
+      cursor: pointer;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--bg-sidebar);
+      color: var(--text-primary);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .btn.danger {
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .switch {
+      appearance: none;
+      width: 44px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.35);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      transition: transform 0.18s ease;
+    }
+
+    .switch:checked {
+      background: rgba(59, 130, 246, 0.8);
+      border-color: rgba(59, 130, 246, 0.8);
+    }
+
+    .switch:checked::after {
+      transform: translateX(18px);
+    }
+
+    .muted-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .footer {
+      margin-top: auto;
+      padding: 14px 4px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    .footer a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: var(--primary);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .card.span-2 {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .pill-link span {
+        display: none;
+      }
+      .user-trigger span {
+        display: none;
+      }
+      .input, .select {
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <main class="settings-page">
-    <div class="settings-page-header">
-      <h1>Pengaturan</h1>
-      <a class="back-btn" href="/">← Kembali ke Chat</a>
-    </div>
+  <div class="settings-shell">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <img class="secure-logo" src="/asset/logo.png" alt="Youz AI" draggable="false" oncontextmenu="return false;">
+        <div class="brand-title">
+          <strong>Pengaturan</strong>
+          <span id="subtitleText">Kelola preferensi & akun</span>
+        </div>
+      </a>
 
-    <section class="section-card">
-      <h2>🌐 General</h2>
-      <p class="section-desc">Pengaturan umum aplikasi</p>
-      <div class="sub-group">
-        <h3>Theme</h3>
-        <div class="theme-options">
-          <button class="theme-btn" id="themeLight" type="button">Light (Terang)</button>
-          <button class="theme-btn" id="themeDark" type="button">Dark (Gelap)</button>
-          <button class="theme-btn" id="themeSystem" type="button">System (Mengikuti sistem perangkat)</button>
+      <div class="topbar-actions">
+        <a class="pill-link" href="/">
+          <i class="fas fa-comment-dots"></i><span>Kembali ke Chat</span>
+        </a>
+        <a class="pill-link" href="/pricing">
+          <i class="fas fa-crown"></i><span>Pricing</span>
+        </a>
+        <div class="user-menu">
+          <button class="user-trigger" id="userTrigger" type="button" aria-label="Menu pengguna">
+            <img id="userAvatar" src="" alt="Avatar">
+            <span id="userDisplayName">Guest</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown hidden" id="userDropdown">
+            <button class="dropdown-item" id="goChatBtn" type="button">
+              <i class="fas fa-comment"></i> Chat
+            </button>
+            <button class="dropdown-item" id="goLoginBtn" type="button">
+              <i class="fas fa-right-to-bracket"></i> Masuk / Daftar
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item danger" id="logoutBtn" type="button">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
         </div>
       </div>
-      <div class="sub-group">
-        <h3>Language</h3>
-        <select id="languageSelect" class="inline-input">
-          <option value="id">Bahasa Indonesia</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-    </section>
+    </header>
 
-    <section class="section-card">
-      <h2>👤 Account / Profile</h2>
-      <p class="section-desc">Informasi akun pengguna</p>
-      <div class="sub-group stack">
-        <input class="inline-input" id="nameInput" type="text" placeholder="Nama" />
-        <input class="inline-input" id="emailInput" type="email" placeholder="Email" />
-      </div>
-      <div class="sub-group">
-        <h3>Metode login</h3>
-        <div class="stack">
-          <div class="login-method"><span class="method-icon">🟢</span> Google Login</div>
-          <div class="login-method"><span class="method-icon">🔐</span> Register / Email Login</div>
+    <main class="grid">
+      <section class="card">
+        <div class="card-title">
+          <h2><i class="fas fa-palette"></i> Tampilan</h2>
+          <small id="themeHint">Tema & bahasa</small>
         </div>
-      </div>
-      <div class="stack">
-        <button class="action-btn" type="button">Ubah Password</button>
-        <button class="action-btn danger" id="deleteAccountBtn" type="button">Hapus Akun</button>
-        <p class="confirm-text">Konfirmasi keamanan: “Apakah Anda yakin ingin menghapus akun?”</p>
-      </div>
-    </section>
 
-    <section class="section-card">
-      <h2>💎 Plan / Billing</h2>
-      <p class="section-desc">Informasi paket dan langganan</p>
-      <div class="sub-group">
-        <h3>Status plan saat ini</h3>
-        <div class="plan-badges">
-          <span class="badge">FREE</span>
-          <span class="badge active">PREMIUM</span>
+        <div class="row">
+          <div class="row-left">
+            <strong id="themeTitle">Tema</strong>
+            <span id="themeDesc">Light, dark, atau mengikuti sistem.</span>
+          </div>
+          <select class="select" id="themeSelect" aria-label="Tema">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
         </div>
-      </div>
-      <div class="stack">
-        <button class="action-btn" type="button">Cek fitur premium</button>
-        <button class="action-btn" type="button">Upgrade plan</button>
-        <button class="action-btn" type="button">Riwayat pembayaran</button>
-        <button class="action-btn" type="button">Informasi masa aktif premium</button>
-      </div>
-    </section>
 
-    <section class="section-card">
-      <h2>🗂️ Data</h2>
-      <p class="section-desc">Manajemen data pengguna</p>
-      <div class="stack">
-        <button class="action-btn danger" id="deleteChatsBtn" type="button">Hapus Semua Percakapan</button>
-        <p class="confirm-text">Konfirmasi sebelum menghapus</p>
-        <button class="action-btn" id="exportBtn" type="button">Ekspor Data</button>
-        <p class="confirm-text">Download data/chat pengguna</p>
-      </div>
-    </section>
-  </main>
+        <div class="row">
+          <div class="row-left">
+            <strong id="langTitle">Bahasa</strong>
+            <span id="langDesc">Mengubah label UI.</span>
+          </div>
+          <select class="select" id="languageSelect" aria-label="Bahasa">
+            <option value="id">Indonesia</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="muted-note" id="appearanceNote">Perubahan tersimpan otomatis di perangkat ini.</div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <h2><i class="fas fa-sliders-h"></i> Fitur AI</h2>
+          <small id="featureHint">Toggles</small>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="searchTitle">Search Web</strong>
+            <span id="searchDesc">Menambahkan sumber web pada jawaban.</span>
+          </div>
+          <input class="switch" id="webSearchToggle" type="checkbox" aria-label="Search web">
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="thinkingTitle">Thinking</strong>
+            <span id="thinkingDesc">Menampilkan status berpikir (meta).</span>
+          </div>
+          <input class="switch" id="thinkingToggle" type="checkbox" aria-label="Thinking">
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="modelTitle">Model default</strong>
+            <span id="modelDesc">Dipakai untuk chat standar.</span>
+          </div>
+          <select class="select" id="modelSelect" aria-label="Model">
+            <option value="gemini">Gemini</option>
+            <option value="claude">Claude</option>
+            <option value="gpt4o">ChatGPT 4o</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="card-title">
+          <h2><i class="fas fa-user"></i> Akun</h2>
+          <small id="accountHint">Profil & data</small>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="nameTitle">Nama</strong>
+            <span id="nameDesc">Nama tampil di sidebar.</span>
+          </div>
+          <input class="input" id="nameInput" type="text" placeholder="Nama">
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="emailTitle">Email</strong>
+            <span id="emailDesc">Email akun (read-only).</span>
+          </div>
+          <input class="input" id="emailInput" type="email" placeholder="Email" disabled>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="saveTitle">Simpan perubahan</strong>
+            <span id="saveDesc">Akan sinkron ke server jika kamu login.</span>
+          </div>
+          <button class="btn primary" id="saveProfileBtn" type="button">
+            <i class="fas fa-save"></i><span id="saveBtnLabel">Simpan</span>
+          </button>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="exportTitle">Ekspor data</strong>
+            <span id="exportDesc">Download chat & profil dari localStorage.</span>
+          </div>
+          <button class="btn" id="exportBtn" type="button">
+            <i class="fas fa-download"></i><span id="exportBtnLabel">Ekspor</span>
+          </button>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="clearTitle">Hapus semua percakapan</strong>
+            <span id="clearDesc">Menghapus riwayat chat lokal di perangkat ini.</span>
+          </div>
+          <button class="btn danger" id="deleteChatsBtn" type="button">
+            <i class="fas fa-trash-alt"></i><span id="clearBtnLabel">Hapus</span>
+          </button>
+        </div>
+
+        <div class="muted-note" id="accountNote">Untuk sinkronisasi profil/riwayat lintas perangkat, login terlebih dahulu.</div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span id="footerLeft">© 2026 Youz AI · Yuzz Ofc</span>
+      <span>
+        <a href="/" id="footerChatLink">Chat</a> ·
+        <a href="/pricing" id="footerPricingLink">Pricing</a> ·
+        <a href="/login" id="footerLoginLink">Login</a>
+      </span>
+    </footer>
+  </div>
 
   <script>
-    const themeButtons={light:document.getElementById('themeLight'),dark:document.getElementById('themeDark'),system:document.getElementById('themeSystem')};
-    const languageSelect=document.getElementById('languageSelect');
-    function applyTheme(theme){
-      document.documentElement.setAttribute('data-theme',theme==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):theme);
-      Object.entries(themeButtons).forEach(([k,b])=>b.classList.toggle('active',k===theme));
-      localStorage.setItem('youz_theme',theme);
-    }
-    const savedTheme=localStorage.getItem('youz_theme')||'system';
-    const savedLang=localStorage.getItem('youz_language')||'id';
-    applyTheme(savedTheme); languageSelect.value=savedLang;
-    Object.entries(themeButtons).forEach(([k,b])=>b.addEventListener('click',()=>applyTheme(k)));
-    languageSelect.addEventListener('change',e=>localStorage.setItem('youz_language',e.target.value));
+    const i18n = {
+      id: {
+        subtitle: 'Kelola preferensi & akun',
+        themeHint: 'Tema & bahasa',
+        themeTitle: 'Tema',
+        themeDesc: 'Light, dark, atau mengikuti sistem.',
+        langTitle: 'Bahasa',
+        langDesc: 'Mengubah label UI.',
+        appearanceNote: 'Perubahan tersimpan otomatis di perangkat ini.',
+        featureHint: 'Toggles',
+        searchTitle: 'Search Web',
+        searchDesc: 'Menambahkan sumber web pada jawaban.',
+        thinkingTitle: 'Thinking',
+        thinkingDesc: 'Menampilkan status berpikir (meta).',
+        modelTitle: 'Model default',
+        modelDesc: 'Dipakai untuk chat standar.',
+        accountHint: 'Profil & data',
+        nameTitle: 'Nama',
+        nameDesc: 'Nama tampil di sidebar.',
+        emailTitle: 'Email',
+        emailDesc: 'Email akun (read-only).',
+        saveTitle: 'Simpan perubahan',
+        saveDesc: 'Akan sinkron ke server jika kamu login.',
+        saveBtn: 'Simpan',
+        exportTitle: 'Ekspor data',
+        exportDesc: 'Download chat & profil dari localStorage.',
+        exportBtn: 'Ekspor',
+        clearTitle: 'Hapus semua percakapan',
+        clearDesc: 'Menghapus riwayat chat lokal di perangkat ini.',
+        clearBtn: 'Hapus',
+        accountNote: 'Untuk sinkronisasi profil/riwayat lintas perangkat, login terlebih dahulu.',
+        goLogin: 'Masuk / Daftar',
+        logout: 'Logout',
+        confirmClear: 'Hapus semua percakapan lokal?',
+        saved: 'Tersimpan.',
+        needLogin: 'Kamu belum login.',
+        saveFailed: 'Gagal menyimpan.',
+        exportFile: 'youz-ai-export'
+      },
+      en: {
+        subtitle: 'Manage preferences & account',
+        themeHint: 'Theme & language',
+        themeTitle: 'Theme',
+        themeDesc: 'Light, dark, or follow system.',
+        langTitle: 'Language',
+        langDesc: 'Changes UI labels.',
+        appearanceNote: 'Changes are saved locally on this device.',
+        featureHint: 'Toggles',
+        searchTitle: 'Web Search',
+        searchDesc: 'Adds web sources to answers.',
+        thinkingTitle: 'Thinking',
+        thinkingDesc: 'Shows thinking meta/status.',
+        modelTitle: 'Default model',
+        modelDesc: 'Used for standard chat.',
+        accountHint: 'Profile & data',
+        nameTitle: 'Name',
+        nameDesc: 'Displayed in the sidebar.',
+        emailTitle: 'Email',
+        emailDesc: 'Account email (read-only).',
+        saveTitle: 'Save changes',
+        saveDesc: 'Will sync to server if you are logged in.',
+        saveBtn: 'Save',
+        exportTitle: 'Export data',
+        exportDesc: 'Download chats & profile from localStorage.',
+        exportBtn: 'Export',
+        clearTitle: 'Clear all chats',
+        clearDesc: 'Deletes local chat history on this device.',
+        clearBtn: 'Clear',
+        accountNote: 'To sync profile/history across devices, please sign in.',
+        goLogin: 'Sign in / Register',
+        logout: 'Logout',
+        confirmClear: 'Delete all local conversations?',
+        saved: 'Saved.',
+        needLogin: 'You are not signed in.',
+        saveFailed: 'Failed to save.',
+        exportFile: 'youz-ai-export'
+      }
+    };
 
-    document.getElementById('deleteAccountBtn')?.addEventListener('click',()=>{
-      if(confirm('Apakah Anda yakin ingin menghapus akun?')) alert('Permintaan hapus akun diterima.');
+    const els = {
+      subtitleText: document.getElementById('subtitleText'),
+      themeHint: document.getElementById('themeHint'),
+      themeTitle: document.getElementById('themeTitle'),
+      themeDesc: document.getElementById('themeDesc'),
+      langTitle: document.getElementById('langTitle'),
+      langDesc: document.getElementById('langDesc'),
+      appearanceNote: document.getElementById('appearanceNote'),
+      featureHint: document.getElementById('featureHint'),
+      searchTitle: document.getElementById('searchTitle'),
+      searchDesc: document.getElementById('searchDesc'),
+      thinkingTitle: document.getElementById('thinkingTitle'),
+      thinkingDesc: document.getElementById('thinkingDesc'),
+      modelTitle: document.getElementById('modelTitle'),
+      modelDesc: document.getElementById('modelDesc'),
+      accountHint: document.getElementById('accountHint'),
+      nameTitle: document.getElementById('nameTitle'),
+      nameDesc: document.getElementById('nameDesc'),
+      emailTitle: document.getElementById('emailTitle'),
+      emailDesc: document.getElementById('emailDesc'),
+      saveTitle: document.getElementById('saveTitle'),
+      saveDesc: document.getElementById('saveDesc'),
+      saveBtnLabel: document.getElementById('saveBtnLabel'),
+      exportTitle: document.getElementById('exportTitle'),
+      exportDesc: document.getElementById('exportDesc'),
+      exportBtnLabel: document.getElementById('exportBtnLabel'),
+      clearTitle: document.getElementById('clearTitle'),
+      clearDesc: document.getElementById('clearDesc'),
+      clearBtnLabel: document.getElementById('clearBtnLabel'),
+      accountNote: document.getElementById('accountNote'),
+      goLoginBtn: document.getElementById('goLoginBtn'),
+      logoutBtn: document.getElementById('logoutBtn')
+    };
+
+    function getLang() {
+      const saved = localStorage.getItem('youz_language') || 'id';
+      return saved === 'en' ? 'en' : 'id';
+    }
+
+    function applyLang(lang) {
+      const t = i18n[lang] || i18n.id;
+      document.documentElement.lang = lang;
+      Object.entries(els).forEach(([k, el]) => {
+        if (!el) return;
+        if (k === 'goLoginBtn') el.innerHTML = `<i class="fas fa-right-to-bracket"></i> ${t.goLogin}`;
+        else if (k === 'logoutBtn') el.innerHTML = `<i class="fas fa-sign-out-alt"></i> ${t.logout}`;
+        else if (k === 'saveBtnLabel') el.textContent = t.saveBtn;
+        else if (k === 'exportBtnLabel') el.textContent = t.exportBtn;
+        else if (k === 'clearBtnLabel') el.textContent = t.clearBtn;
+        else if (t[k]) el.textContent = t[k];
+      });
+    }
+
+    function setThemePreference(theme, persist = true) {
+      const selected = ['light', 'dark', 'system'].includes(theme) ? theme : 'system';
+      if (selected === 'system') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', selected);
+      }
+      if (persist) localStorage.setItem('youz_theme', selected);
+    }
+
+    function getUser() {
+      try { return JSON.parse(localStorage.getItem('youz_user') || 'null'); } catch { return null; }
+    }
+
+    function setUser(user) {
+      if (!user) localStorage.removeItem('youz_user');
+      else localStorage.setItem('youz_user', JSON.stringify(user));
+    }
+
+    function getAvatarUrl(user) {
+      if (user?.picture) return user.picture;
+      const name = encodeURIComponent(user?.name || user?.fullName || user?.username || 'User');
+      return `https://ui-avatars.com/api/?name=${name}&background=3b82f6&color=fff`;
+    }
+
+    function syncUserUI() {
+      const user = getUser();
+      const userDisplayName = document.getElementById('userDisplayName');
+      const userAvatar = document.getElementById('userAvatar');
+      const goLoginBtn = document.getElementById('goLoginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const nameInput = document.getElementById('nameInput');
+      const emailInput = document.getElementById('emailInput');
+      const saveProfileBtn = document.getElementById('saveProfileBtn');
+      const showLoggedIn = Boolean(user?.email || user?.id || user?.sub);
+
+      if (userAvatar) userAvatar.src = getAvatarUrl(user || {});
+      if (userDisplayName) userDisplayName.textContent = showLoggedIn ? (user?.name || user?.fullName || 'User') : 'Guest';
+
+      if (goLoginBtn) goLoginBtn.classList.toggle('hidden', showLoggedIn);
+      if (logoutBtn) logoutBtn.classList.toggle('hidden', !showLoggedIn);
+
+      if (nameInput) nameInput.value = showLoggedIn ? (user?.name || user?.fullName || '') : '';
+      if (emailInput) emailInput.value = showLoggedIn ? (user?.email || '') : '';
+      if (saveProfileBtn) saveProfileBtn.disabled = !showLoggedIn;
+    }
+
+    const userTrigger = document.getElementById('userTrigger');
+    const userDropdown = document.getElementById('userDropdown');
+    const goChatBtn = document.getElementById('goChatBtn');
+    const goLoginBtn = document.getElementById('goLoginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    function toggleDropdown(forceOpen = null) {
+      if (!userDropdown) return;
+      const nextOpen = forceOpen === null ? userDropdown.classList.contains('hidden') : forceOpen;
+      userDropdown.classList.toggle('hidden', !nextOpen);
+    }
+
+    userTrigger?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDropdown();
     });
-    document.getElementById('deleteChatsBtn')?.addEventListener('click',()=>{
-      if(confirm('Hapus semua percakapan?')) alert('Semua percakapan terhapus.');
+
+    document.addEventListener('click', (e) => {
+      if (!userDropdown) return;
+      const inside = userDropdown.contains(e.target) || userTrigger?.contains(e.target);
+      if (!inside) toggleDropdown(false);
     });
-    document.getElementById('exportBtn')?.addEventListener('click',()=>{
-      const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString()},null,2)], { type: 'application/json' });
+
+    goChatBtn?.addEventListener('click', () => window.location.href = '/');
+    goLoginBtn?.addEventListener('click', () => window.location.href = '/login');
+    logoutBtn?.addEventListener('click', () => window.location.href = '/api/auth/logout');
+
+    const themeSelect = document.getElementById('themeSelect');
+    const languageSelect = document.getElementById('languageSelect');
+    const webSearchToggle = document.getElementById('webSearchToggle');
+    const thinkingToggle = document.getElementById('thinkingToggle');
+    const modelSelect = document.getElementById('modelSelect');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const deleteChatsBtn = document.getElementById('deleteChatsBtn');
+
+    const savedTheme = localStorage.getItem('youz_theme') || 'system';
+    const savedLang = getLang();
+    setThemePreference(savedTheme, false);
+    applyLang(savedLang);
+
+    if (themeSelect) themeSelect.value = savedTheme;
+    if (languageSelect) languageSelect.value = savedLang;
+
+    if (webSearchToggle) webSearchToggle.checked = localStorage.getItem('youz_web_search_enabled') !== '0';
+    if (thinkingToggle) thinkingToggle.checked = localStorage.getItem('youz_thinking_enabled') !== '0';
+    if (modelSelect) modelSelect.value = localStorage.getItem('youz_model') || 'gemini';
+
+    themeSelect?.addEventListener('change', (e) => setThemePreference(e.target.value));
+    languageSelect?.addEventListener('change', (e) => {
+      const next = e.target.value === 'en' ? 'en' : 'id';
+      localStorage.setItem('youz_language', next);
+      applyLang(next);
+    });
+
+    webSearchToggle?.addEventListener('change', (e) => localStorage.setItem('youz_web_search_enabled', e.target.checked ? '1' : '0'));
+    thinkingToggle?.addEventListener('change', (e) => localStorage.setItem('youz_thinking_enabled', e.target.checked ? '1' : '0'));
+    modelSelect?.addEventListener('change', (e) => localStorage.setItem('youz_model', e.target.value));
+
+    async function readApiResponse(res) {
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) return await res.json();
+      const raw = await res.text();
+      try { return JSON.parse(raw); } catch { return { success: false, message: raw || `HTTP ${res.status}` }; }
+    }
+
+    saveProfileBtn?.addEventListener('click', async () => {
+      const lang = getLang();
+      const t = i18n[lang] || i18n.id;
+      const user = getUser();
+      if (!user) return alert(t.needLogin);
+      const nameInput = document.getElementById('nameInput');
+      const payload = { name: String(nameInput?.value || '').trim(), email: user?.email || '' };
+      if (!payload.name) return;
+      saveProfileBtn.disabled = true;
+      try {
+        const res = await fetch('/api/auth/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await readApiResponse(res);
+        if (data?.success && data.user) {
+          setUser({ ...user, ...data.user });
+          syncUserUI();
+          alert(t.saved);
+          return;
+        }
+        setUser({ ...user, name: payload.name });
+        syncUserUI();
+        alert(data?.message || t.saved);
+      } catch {
+        alert(t.saveFailed);
+      } finally {
+        saveProfileBtn.disabled = false;
+      }
+    });
+
+    exportBtn?.addEventListener('click', () => {
+      const lang = getLang();
+      const t = i18n[lang] || i18n.id;
+      const data = {
+        conversations: (() => {
+          const user = getUser();
+          const key = user?.email || user?.id || 'guest';
+          const storageKey = `youz_ai_conversations_${String(key).toLowerCase()}`;
+          try { return JSON.parse(localStorage.getItem(storageKey) || '[]'); } catch { return []; }
+        })(),
+        user: getUser(),
+        exportDate: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `youz-data-export-${Date.now()}.json`;
+      a.download = `${t.exportFile}-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
+
+    deleteChatsBtn?.addEventListener('click', () => {
+      const lang = getLang();
+      const t = i18n[lang] || i18n.id;
+      if (!confirm(t.confirmClear)) return;
+      const user = getUser();
+      const key = user?.email || user?.id || 'guest';
+      const storageKey = `youz_ai_conversations_${String(key).toLowerCase()}`;
+      localStorage.removeItem(storageKey);
+      alert(t.saved);
+    });
+
+    syncUserUI();
   </script>
 </body>
 </html>
