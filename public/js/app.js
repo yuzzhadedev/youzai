@@ -150,7 +150,7 @@ function createNanoId(size = 12) {
 }
 
 function updateChatRoute(id = null, replace = false) {
-    const target = id ? `/chat/${encodeURIComponent(id)}` : '/chat/new';
+    const target = id ? `/c/${encodeURIComponent(id)}` : '/c/new';
     if (window.location.pathname === target) return;
     window.history[replace ? 'replaceState' : 'pushState']({}, '', target);
 }
@@ -401,9 +401,7 @@ function closeSourcesSheet() {
 
 function openSettings(defaultTab = 'general') {
     settingsModal.classList.remove('hidden');
-    if (window.location.pathname !== '/settings') {
-        window.history.pushState({ modal: 'settings' }, '', '/settings');
-    }
+    
     sidebar.classList.add('closed');
     if (currentUser) {
         profileName.value = currentUser.name || '';
@@ -421,8 +419,6 @@ function openSettings(defaultTab = 'general') {
 
 function closeSettings() {
     settingsModal.classList.add('hidden');
-    const conv = conversations.find((item) => item.id === activeConversationId);
-    updateChatRoute(conv && conv.messages?.length ? conv.id : null, true);
 }
 
 // ========== RENDER ==========
@@ -1924,7 +1920,7 @@ async function init() {
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
     if (toolThinking) toolThinking.checked = thinkingModeEnabled;
     const routeParts = window.location.pathname.split('/').filter(Boolean);
-    const routeId = routeParts[0] === 'chat' && routeParts[1] && routeParts[1] !== 'new'
+    const routeId = routeParts[0] === 'c' && routeParts[1] && routeParts[1] !== 'new'
         ? decodeURIComponent(routeParts[1])
         : null;
     activeConversationId = (routeId && conversations.some((c) => c.id === routeId))
@@ -1954,9 +1950,7 @@ async function init() {
     applyLanguage(savedLang);
     if (languageSelect) languageSelect.value = savedLang;
     
-    if (window.location.pathname === '/settings') {
-        openSettings('general');
-    } else if (window.location.pathname === '/' || window.location.pathname.startsWith('/chat/')) {
+    if (window.location.pathname === '/' || window.location.pathname.startsWith('/c/')) {
         const activeConv = conversations.find((c) => c.id === activeConversationId);
         updateChatRoute(activeConv && activeConv.messages?.length ? activeConv.id : null, true);
     }
@@ -1968,9 +1962,8 @@ init();
 
 window.addEventListener('popstate', () => {
     const path = window.location.pathname;
-    if (path === '/settings') return openSettings('general');
     settingsModal.classList.add('hidden');
-    if (!path.startsWith('/chat/')) return;
+    if (!path.startsWith('/c/')) return;
     const slug = path.split('/')[2];
     if (slug === 'new') {
         const draft = conversations.find((c) => (c.messages || []).length === 0);

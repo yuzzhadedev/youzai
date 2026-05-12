@@ -14,16 +14,16 @@
       "destination": "/index.html"
     },
     {
-      "source": "/chat/new",
+      "source": "/c/new",
       "destination": "/index.html"
     },
     {
-      "source": "/chat/(.*)",
+      "source": "/c/(.*)",
       "destination": "/index.html"
     },
     {
       "source": "/settings",
-      "destination": "/index.html"
+      "destination": "/settings/index.html"
     },
     {
       "source": "/login",
