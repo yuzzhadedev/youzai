@@ -6,11 +6,28 @@
   <title>Settings • Youz AI</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    body{background:var(--bg-primary);color:var(--text-primary);margin:0}
-    .settings-page{max-width:920px;margin:32px auto;padding:0 16px 40px}
-    .settings-page .settings-container{position:static;transform:none;width:100%;max-width:none;box-shadow:var(--shadow-lg)}
-    .settings-page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    body{background:var(--bg-primary);color:var(--text-primary);margin:0;overflow:auto}
+    .settings-page{max-width:960px;margin:32px auto;padding:0 16px 40px}
+    .settings-page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
     .back-btn{border:1px solid var(--border-color);padding:10px 14px;border-radius:10px;background:var(--bg-secondary);color:var(--text-primary);text-decoration:none}
+    .section-card{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow-md)}
+    .section-card h2{font-size:20px;margin-bottom:4px}
+    .section-desc{color:var(--text-secondary);margin-bottom:16px}
+    .sub-group{margin-bottom:14px}
+    .sub-group h3{font-size:15px;margin-bottom:10px}
+    .theme-options{display:flex;flex-wrap:wrap;gap:10px}
+    .theme-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:10px 14px;border-radius:10px;cursor:pointer}
+    .theme-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+    .inline-input{width:100%;max-width:420px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary)}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .action-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:10px 14px;border-radius:10px;cursor:pointer;text-align:left}
+    .action-btn.danger{border-color:#fca5a5;color:#ef4444}
+    .login-method{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);width:fit-content}
+    .method-icon{font-size:14px}
+    .plan-badges{display:flex;gap:10px}
+    .badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--border)}
+    .badge.active{background:#ede9fe;color:#6d28d9;border-color:#c4b5fd}
+    .confirm-text{font-size:13px;color:var(--text-secondary);margin-top:8px}
   </style>
 </head>
 <body>
@@ -20,27 +37,77 @@
       <a class="back-btn" href="/">← Kembali ke Chat</a>
     </div>
 
-    <div class="settings-container">
-      <div class="settings-header"><h2>Preferensi</h2></div>
-      <div class="settings-content" id="generalContent">
-        <div class="settings-section">
-          <h3>Tema</h3>
-          <div class="theme-options">
-            <button class="theme-btn" id="themeLight" type="button">Light</button>
-            <button class="theme-btn" id="themeDark" type="button">Dark</button>
-            <button class="theme-btn" id="themeSystem" type="button">System</button>
-          </div>
-        </div>
-        <div class="settings-section">
-          <h3>Bahasa</h3>
-          <select id="languageSelect" class="input" style="width:100%;max-width:280px;">
-            <option value="id">Bahasa Indonesia</option>
-            <option value="en">English</option>
-          </select>
+    <section class="section-card">
+      <h2>🌐 General</h2>
+      <p class="section-desc">Pengaturan umum aplikasi</p>
+      <div class="sub-group">
+        <h3>Theme</h3>
+        <div class="theme-options">
+          <button class="theme-btn" id="themeLight" type="button">Light (Terang)</button>
+          <button class="theme-btn" id="themeDark" type="button">Dark (Gelap)</button>
+          <button class="theme-btn" id="themeSystem" type="button">System (Mengikuti sistem perangkat)</button>
         </div>
       </div>
-    </div>
+      <div class="sub-group">
+        <h3>Language</h3>
+        <select id="languageSelect" class="inline-input">
+          <option value="id">Bahasa Indonesia</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h2>👤 Account / Profile</h2>
+      <p class="section-desc">Informasi akun pengguna</p>
+      <div class="sub-group stack">
+        <input class="inline-input" id="nameInput" type="text" placeholder="Nama" />
+        <input class="inline-input" id="emailInput" type="email" placeholder="Email" />
+      </div>
+      <div class="sub-group">
+        <h3>Metode login</h3>
+        <div class="stack">
+          <div class="login-method"><span class="method-icon">🟢</span> Google Login</div>
+          <div class="login-method"><span class="method-icon">🔐</span> Register / Email Login</div>
+        </div>
+      </div>
+      <div class="stack">
+        <button class="action-btn" type="button">Ubah Password</button>
+        <button class="action-btn danger" id="deleteAccountBtn" type="button">Hapus Akun</button>
+        <p class="confirm-text">Konfirmasi keamanan: “Apakah Anda yakin ingin menghapus akun?”</p>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h2>💎 Plan / Billing</h2>
+      <p class="section-desc">Informasi paket dan langganan</p>
+      <div class="sub-group">
+        <h3>Status plan saat ini</h3>
+        <div class="plan-badges">
+          <span class="badge">FREE</span>
+          <span class="badge active">PREMIUM</span>
+        </div>
+      </div>
+      <div class="stack">
+        <button class="action-btn" type="button">Cek fitur premium</button>
+        <button class="action-btn" type="button">Upgrade plan</button>
+        <button class="action-btn" type="button">Riwayat pembayaran</button>
+        <button class="action-btn" type="button">Informasi masa aktif premium</button>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <h2>🗂️ Data</h2>
+      <p class="section-desc">Manajemen data pengguna</p>
+      <div class="stack">
+        <button class="action-btn danger" id="deleteChatsBtn" type="button">Hapus Semua Percakapan</button>
+        <p class="confirm-text">Konfirmasi sebelum menghapus</p>
+        <button class="action-btn" id="exportBtn" type="button">Ekspor Data</button>
+        <p class="confirm-text">Download data/chat pengguna</p>
+      </div>
+    </section>
   </main>
+
   <script>
     const themeButtons={light:document.getElementById('themeLight'),dark:document.getElementById('themeDark'),system:document.getElementById('themeSystem')};
     const languageSelect=document.getElementById('languageSelect');
@@ -49,12 +116,27 @@
       Object.entries(themeButtons).forEach(([k,b])=>b.classList.toggle('active',k===theme));
       localStorage.setItem('youz_theme',theme);
     }
-    function applyLanguage(lang){localStorage.setItem('youz_language',lang)}
     const savedTheme=localStorage.getItem('youz_theme')||'system';
     const savedLang=localStorage.getItem('youz_language')||'id';
     applyTheme(savedTheme); languageSelect.value=savedLang;
     Object.entries(themeButtons).forEach(([k,b])=>b.addEventListener('click',()=>applyTheme(k)));
-    languageSelect.addEventListener('change',e=>applyLanguage(e.target.value));
+    languageSelect.addEventListener('change',e=>localStorage.setItem('youz_language',e.target.value));
+
+    document.getElementById('deleteAccountBtn')?.addEventListener('click',()=>{
+      if(confirm('Apakah Anda yakin ingin menghapus akun?')) alert('Permintaan hapus akun diterima.');
+    });
+    document.getElementById('deleteChatsBtn')?.addEventListener('click',()=>{
+      if(confirm('Hapus semua percakapan?')) alert('Semua percakapan terhapus.');
+    });
+    document.getElementById('exportBtn')?.addEventListener('click',()=>{
+      const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString()},null,2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `youz-data-export-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   </script>
 </body>
 </html>

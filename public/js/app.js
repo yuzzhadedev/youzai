@@ -1837,8 +1837,8 @@ userLogoutBtn?.addEventListener('click', (e) => {
 
 userSettingsBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    openSettings('general');
     toggleUserMenu(false);
+    window.location.href = '/settings';
 });
 
 userPremiumBtn?.addEventListener('click', (e) => {
