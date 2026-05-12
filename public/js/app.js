@@ -37,6 +37,14 @@ const MODEL_CATALOG = {
     }
 };
 
+function protectLogos() {
+    document.querySelectorAll('img.secure-logo').forEach((img) => {
+        img.setAttribute('draggable', 'false');
+        img.addEventListener('dragstart', (e) => e.preventDefault());
+        img.addEventListener('contextmenu', (e) => e.preventDefault());
+    });
+}
+
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
