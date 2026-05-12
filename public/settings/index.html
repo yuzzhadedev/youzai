@@ -388,6 +388,36 @@
         max-width: 100%;
       }
     }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: min(420px, calc(100vw - 36px));
+      z-index: 5000;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .toast.hidden {
+      display: none !important;
+    }
+
+    .toast i {
+      color: var(--primary);
+    }
+
+    .toast.danger i {
+      color: #ef4444;
+    }
   </style>
 </head>
 <body>
@@ -498,6 +528,56 @@
         </div>
       </section>
 
+      <section class="card">
+        <div class="card-title">
+          <h2><i class="fas fa-crown"></i> Langganan</h2>
+          <small id="planHint">Paket & billing</small>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="planTitle">Paket aktif</strong>
+            <span id="planDesc">Status paket akun kamu saat ini.</span>
+          </div>
+          <select class="select" id="planSelect" aria-label="Paket" disabled>
+            <option value="free">Free</option>
+            <option value="premium">Premium</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="paymentTitle">Metode pembayaran</strong>
+            <span id="paymentDesc">Dipakai saat mengajukan premium.</span>
+          </div>
+          <select class="select" id="paymentMethodSelect" aria-label="Metode pembayaran">
+            <option value="qris">QRIS</option>
+            <option value="dana">DANA</option>
+            <option value="gopay">GoPay</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="notesTitle">Catatan</strong>
+            <span id="notesDesc">Opsional: nomor/username atau info lain.</span>
+          </div>
+          <input class="input" id="paymentNotesInput" type="text" placeholder="Contoh: @username / No. HP">
+        </div>
+
+        <div class="row">
+          <div class="row-left">
+            <strong id="requestTitle">Ajukan premium</strong>
+            <span id="requestDesc">Request akan diproses admin.</span>
+          </div>
+          <button class="btn primary" id="requestPremiumBtn" type="button">
+            <i class="fas fa-paper-plane"></i><span id="requestBtnLabel">Ajukan</span>
+          </button>
+        </div>
+
+        <div class="muted-note" id="planNote">Paket premium aktif setelah admin mengonfirmasi pembayaran.</div>
+      </section>
+
       <section class="card span-2">
         <div class="card-title">
           <h2><i class="fas fa-user"></i> Akun</h2>
@@ -564,6 +644,8 @@
     </footer>
   </div>
 
+  <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+
   <script>
     const i18n = {
       id: {
@@ -581,6 +663,17 @@
         thinkingDesc: 'Menampilkan status berpikir (meta).',
         modelTitle: 'Model default',
         modelDesc: 'Dipakai untuk chat standar.',
+        planHint: 'Paket & billing',
+        planTitle: 'Paket aktif',
+        planDesc: 'Status paket akun kamu saat ini.',
+        paymentTitle: 'Metode pembayaran',
+        paymentDesc: 'Dipakai saat mengajukan premium.',
+        notesTitle: 'Catatan',
+        notesDesc: 'Opsional: nomor/username atau info lain.',
+        requestTitle: 'Ajukan premium',
+        requestDesc: 'Request akan diproses admin.',
+        requestBtn: 'Ajukan',
+        planNote: 'Paket premium aktif setelah admin mengonfirmasi pembayaran.',
         accountHint: 'Profil & data',
         nameTitle: 'Nama',
         nameDesc: 'Nama tampil di sidebar.',
@@ -602,6 +695,8 @@
         saved: 'Tersimpan.',
         needLogin: 'Kamu belum login.',
         saveFailed: 'Gagal menyimpan.',
+        premiumRequested: 'Permintaan premium terkirim.',
+        premiumFailed: 'Gagal mengajukan premium.',
         exportFile: 'youz-ai-export'
       },
       en: {
@@ -619,6 +714,17 @@
         thinkingDesc: 'Shows thinking meta/status.',
         modelTitle: 'Default model',
         modelDesc: 'Used for standard chat.',
+        planHint: 'Plan & billing',
+        planTitle: 'Current plan',
+        planDesc: 'Your account plan status.',
+        paymentTitle: 'Payment method',
+        paymentDesc: 'Used when requesting premium.',
+        notesTitle: 'Notes',
+        notesDesc: 'Optional: phone/username or any details.',
+        requestTitle: 'Request premium',
+        requestDesc: 'Request will be reviewed by admin.',
+        requestBtn: 'Request',
+        planNote: 'Premium becomes active after admin confirms payment.',
         accountHint: 'Profile & data',
         nameTitle: 'Name',
         nameDesc: 'Displayed in the sidebar.',
@@ -640,6 +746,8 @@
         saved: 'Saved.',
         needLogin: 'You are not signed in.',
         saveFailed: 'Failed to save.',
+        premiumRequested: 'Premium request submitted.',
+        premiumFailed: 'Failed to request premium.',
         exportFile: 'youz-ai-export'
       }
     };
@@ -659,6 +767,17 @@
       thinkingDesc: document.getElementById('thinkingDesc'),
       modelTitle: document.getElementById('modelTitle'),
       modelDesc: document.getElementById('modelDesc'),
+      planHint: document.getElementById('planHint'),
+      planTitle: document.getElementById('planTitle'),
+      planDesc: document.getElementById('planDesc'),
+      paymentTitle: document.getElementById('paymentTitle'),
+      paymentDesc: document.getElementById('paymentDesc'),
+      notesTitle: document.getElementById('notesTitle'),
+      notesDesc: document.getElementById('notesDesc'),
+      requestTitle: document.getElementById('requestTitle'),
+      requestDesc: document.getElementById('requestDesc'),
+      requestBtnLabel: document.getElementById('requestBtnLabel'),
+      planNote: document.getElementById('planNote'),
       accountHint: document.getElementById('accountHint'),
       nameTitle: document.getElementById('nameTitle'),
       nameDesc: document.getElementById('nameDesc'),
@@ -693,6 +812,7 @@
         else if (k === 'saveBtnLabel') el.textContent = t.saveBtn;
         else if (k === 'exportBtnLabel') el.textContent = t.exportBtn;
         else if (k === 'clearBtnLabel') el.textContent = t.clearBtn;
+        else if (k === 'requestBtnLabel') el.textContent = t.requestBtn;
         else if (t[k]) el.textContent = t[k];
       });
     }
@@ -776,9 +896,14 @@
     const webSearchToggle = document.getElementById('webSearchToggle');
     const thinkingToggle = document.getElementById('thinkingToggle');
     const modelSelect = document.getElementById('modelSelect');
+    const planSelect = document.getElementById('planSelect');
+    const paymentMethodSelect = document.getElementById('paymentMethodSelect');
+    const paymentNotesInput = document.getElementById('paymentNotesInput');
+    const requestPremiumBtn = document.getElementById('requestPremiumBtn');
     const saveProfileBtn = document.getElementById('saveProfileBtn');
     const exportBtn = document.getElementById('exportBtn');
     const deleteChatsBtn = document.getElementById('deleteChatsBtn');
+    const toastEl = document.getElementById('toast');
 
     const savedTheme = localStorage.getItem('youz_theme') || 'system';
     const savedLang = getLang();
@@ -810,16 +935,138 @@
       try { return JSON.parse(raw); } catch { return { success: false, message: raw || `HTTP ${res.status}` }; }
     }
 
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(message, variant = 'info') {
+      if (!toastEl) return;
+      toastEl.classList.toggle('danger', variant === 'danger');
+      toastEl.innerHTML = `${variant === 'danger' ? '<i class="fas fa-circle-exclamation"></i>' : '<i class="fas fa-circle-check"></i>'}<span>${escapeHtml(message)}</span>`;
+      toastEl.classList.remove('hidden');
+      window.clearTimeout(showToast._t);
+      showToast._t = window.setTimeout(() => toastEl.classList.add('hidden'), 2600);
+    }
+
+    function collectSettings() {
+      return {
+        theme: themeSelect?.value || (localStorage.getItem('youz_theme') || 'system'),
+        language: languageSelect?.value === 'en' ? 'en' : 'id',
+        model: modelSelect?.value || (localStorage.getItem('youz_model') || 'gemini'),
+        web_search_enabled: Boolean(webSearchToggle?.checked),
+        thinking_enabled: Boolean(thinkingToggle?.checked)
+      };
+    }
+
+    let autosaveTimer = null;
+    async function saveSettingsToServer({ silent = true } = {}) {
+      const user = getUser();
+      if (!user?.email && !user?.id && !user?.sub) return;
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(collectSettings())
+        });
+        const data = await readApiResponse(res);
+        if (!data?.success) {
+          if (!silent) showToast(data?.message || 'Gagal menyimpan.', 'danger');
+          return;
+        }
+        if (!silent) showToast((i18n[getLang()] || i18n.id).saved);
+      } catch {
+        if (!silent) showToast((i18n[getLang()] || i18n.id).saveFailed, 'danger');
+      }
+    }
+
+    function scheduleAutosave() {
+      window.clearTimeout(autosaveTimer);
+      autosaveTimer = window.setTimeout(() => saveSettingsToServer({ silent: true }), 650);
+    }
+
+    themeSelect?.addEventListener('change', () => scheduleAutosave());
+    languageSelect?.addEventListener('change', () => scheduleAutosave());
+    webSearchToggle?.addEventListener('change', () => scheduleAutosave());
+    thinkingToggle?.addEventListener('change', () => scheduleAutosave());
+    modelSelect?.addEventListener('change', () => scheduleAutosave());
+
+    async function syncServerState() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await readApiResponse(res);
+        if (data?.authenticated && data.user) {
+          setUser(data.user);
+          syncUserUI();
+          if (planSelect) planSelect.value = data.user?.plan === 'premium' ? 'premium' : 'free';
+          if (requestPremiumBtn) requestPremiumBtn.disabled = data.user?.plan === 'premium';
+        } else {
+          if (planSelect) planSelect.value = 'free';
+          if (requestPremiumBtn) requestPremiumBtn.disabled = true;
+        }
+      } catch {}
+
+      try {
+        const res = await fetch('/api/settings');
+        const data = await readApiResponse(res);
+        const settings = data?.settings || null;
+        if (!settings) return;
+
+        if (settings.theme) {
+          localStorage.setItem('youz_theme', settings.theme);
+          setThemePreference(settings.theme, false);
+          if (themeSelect) themeSelect.value = settings.theme;
+        }
+
+        if (settings.language) {
+          localStorage.setItem('youz_language', settings.language);
+          applyLang(settings.language);
+          if (languageSelect) languageSelect.value = settings.language;
+        }
+
+        if (typeof settings.web_search_enabled === 'boolean') {
+          localStorage.setItem('youz_web_search_enabled', settings.web_search_enabled ? '1' : '0');
+          if (webSearchToggle) webSearchToggle.checked = settings.web_search_enabled;
+        }
+
+        if (typeof settings.thinking_enabled === 'boolean') {
+          localStorage.setItem('youz_thinking_enabled', settings.thinking_enabled ? '1' : '0');
+          if (thinkingToggle) thinkingToggle.checked = settings.thinking_enabled;
+        }
+
+        if (settings.model) {
+          localStorage.setItem('youz_model', settings.model);
+          if (modelSelect) modelSelect.value = settings.model;
+        }
+      } catch {}
+
+      try {
+        const res = await fetch('/api/premium');
+        const data = await readApiResponse(res);
+        const methods = Array.isArray(data?.methods) ? data.methods : null;
+        if (paymentMethodSelect && methods && methods.length > 0) {
+          paymentMethodSelect.innerHTML = methods
+            .map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(String(m).toUpperCase())}</option>`)
+            .join('');
+        }
+      } catch {}
+    }
+
     saveProfileBtn?.addEventListener('click', async () => {
       const lang = getLang();
       const t = i18n[lang] || i18n.id;
       const user = getUser();
-      if (!user) return alert(t.needLogin);
+      if (!user) return showToast(t.needLogin, 'danger');
       const nameInput = document.getElementById('nameInput');
       const payload = { name: String(nameInput?.value || '').trim(), email: user?.email || '' };
       if (!payload.name) return;
       saveProfileBtn.disabled = true;
       try {
+        await saveSettingsToServer({ silent: true });
         const res = await fetch('/api/auth/profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -829,16 +1076,43 @@
         if (data?.success && data.user) {
           setUser({ ...user, ...data.user });
           syncUserUI();
-          alert(t.saved);
+          showToast(t.saved);
           return;
         }
         setUser({ ...user, name: payload.name });
         syncUserUI();
-        alert(data?.message || t.saved);
+        showToast(data?.message || t.saved);
       } catch {
-        alert(t.saveFailed);
+        showToast(t.saveFailed, 'danger');
       } finally {
         saveProfileBtn.disabled = false;
+      }
+    });
+
+    requestPremiumBtn?.addEventListener('click', async () => {
+      const lang = getLang();
+      const t = i18n[lang] || i18n.id;
+      const user = getUser();
+      if (!user?.email && !user?.id && !user?.sub) return showToast(t.needLogin, 'danger');
+      requestPremiumBtn.disabled = true;
+      try {
+        const method = paymentMethodSelect?.value || 'qris';
+        const notes = String(paymentNotesInput?.value || '').trim();
+        const res = await fetch('/api/premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userContext: user, method, notes })
+        });
+        const data = await readApiResponse(res);
+        if (data?.success) {
+          showToast(data?.content || t.premiumRequested);
+          return;
+        }
+        showToast(data?.content || data?.message || t.premiumFailed, 'danger');
+      } catch {
+        showToast(t.premiumFailed, 'danger');
+      } finally {
+        requestPremiumBtn.disabled = false;
       }
     });
 
@@ -876,6 +1150,7 @@
     });
 
     syncUserUI();
+    syncServerState();
   </script>
 </body>
 </html>
