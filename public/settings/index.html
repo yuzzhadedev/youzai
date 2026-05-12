@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings • Youz AI</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body{background:var(--bg-primary);color:var(--text-primary);margin:0}
+    .settings-page{max-width:920px;margin:32px auto;padding:0 16px 40px}
+    .settings-page .settings-container{position:static;transform:none;width:100%;max-width:none;box-shadow:var(--shadow-lg)}
+    .settings-page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .back-btn{border:1px solid var(--border-color);padding:10px 14px;border-radius:10px;background:var(--bg-secondary);color:var(--text-primary);text-decoration:none}
+  </style>
+</head>
+<body>
+  <main class="settings-page">
+    <div class="settings-page-header">
+      <h1>Pengaturan</h1>
+      <a class="back-btn" href="/">← Kembali ke Chat</a>
+    </div>
+
+    <div class="settings-container">
+      <div class="settings-header"><h2>Preferensi</h2></div>
+      <div class="settings-content" id="generalContent">
+        <div class="settings-section">
+          <h3>Tema</h3>
+          <div class="theme-options">
+            <button class="theme-btn" id="themeLight" type="button">Light</button>
+            <button class="theme-btn" id="themeDark" type="button">Dark</button>
+            <button class="theme-btn" id="themeSystem" type="button">System</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Bahasa</h3>
+          <select id="languageSelect" class="input" style="width:100%;max-width:280px;">
+            <option value="id">Bahasa Indonesia</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const themeButtons={light:document.getElementById('themeLight'),dark:document.getElementById('themeDark'),system:document.getElementById('themeSystem')};
+    const languageSelect=document.getElementById('languageSelect');
+    function applyTheme(theme){
+      document.documentElement.setAttribute('data-theme',theme==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):theme);
+      Object.entries(themeButtons).forEach(([k,b])=>b.classList.toggle('active',k===theme));
+      localStorage.setItem('youz_theme',theme);
+    }
+    function applyLanguage(lang){localStorage.setItem('youz_language',lang)}
+    const savedTheme=localStorage.getItem('youz_theme')||'system';
+    const savedLang=localStorage.getItem('youz_language')||'id';
+    applyTheme(savedTheme); languageSelect.value=savedLang;
+    Object.entries(themeButtons).forEach(([k,b])=>b.addEventListener('click',()=>applyTheme(k)));
+    languageSelect.addEventListener('change',e=>applyLanguage(e.target.value));
+  </script>
+</body>
+</html>
