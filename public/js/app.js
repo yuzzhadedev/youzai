@@ -107,6 +107,61 @@ const sourcesList = document.getElementById('sourcesList');
 // ========== TAMBAHAN: HEADER NEW CHAT BUTTON ==========
 const headerNewChatBtn = document.getElementById('headerNewChatBtn');
 
+function ensureUiFeedbackElements() {
+    if (!document.getElementById('appToastWrap')) {
+        const wrap = document.createElement('div');
+        wrap.id = 'appToastWrap';
+        wrap.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+        document.body.appendChild(wrap);
+    }
+    if (!document.getElementById('appConfirmOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'appConfirmOverlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:10000;';
+        overlay.innerHTML = `<div style="width:min(420px,100%);background:var(--bg-sidebar);color:var(--text-primary);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow-lg)"><h3 id="appConfirmTitle" style="margin:0 0 6px">Konfirmasi</h3><p id="appConfirmMessage" style="margin:0 0 14px;color:var(--text-secondary)"></p><div style="display:flex;justify-content:flex-end;gap:8px"><button id="appConfirmCancel" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary)">Batal</button><button id="appConfirmOk" style="padding:8px 12px;border-radius:8px;border:1px solid #ef4444;background:#ef4444;color:#fff">Lanjutkan</button></div></div>`;
+        document.body.appendChild(overlay);
+    }
+}
+
+function showAppToast(message, type = 'success') {
+    ensureUiFeedbackElements();
+    const wrap = document.getElementById('appToastWrap');
+    const toast = document.createElement('div');
+    const bg = type === 'error' ? 'rgba(220,38,38,.95)' : type === 'warn' ? 'rgba(217,119,6,.95)' : 'rgba(5,150,105,.95)';
+    toast.style.cssText = `background:${bg};color:#fff;padding:10px 12px;border-radius:10px;box-shadow:var(--shadow-lg);font-size:13px;min-width:220px;text-align:center;`;
+    toast.textContent = message;
+    wrap.appendChild(toast);
+    setTimeout(() => toast.remove(), 2400);
+}
+
+function confirmAction(message, title = 'Konfirmasi') {
+    ensureUiFeedbackElements();
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('appConfirmOverlay');
+        const msg = document.getElementById('appConfirmMessage');
+        const t = document.getElementById('appConfirmTitle');
+        const cancelBtn = document.getElementById('appConfirmCancel');
+        const okBtn = document.getElementById('appConfirmOk');
+        t.textContent = title;
+        msg.textContent = message;
+        overlay.style.display = 'flex';
+
+        const cleanup = (result) => {
+            overlay.style.display = 'none';
+            overlay.removeEventListener('click', onOverlay);
+            cancelBtn.removeEventListener('click', onCancel);
+            okBtn.removeEventListener('click', onOk);
+            resolve(result);
+        };
+        const onOverlay = (e) => { if (e.target === overlay) cleanup(false); };
+        const onCancel = () => cleanup(false);
+        const onOk = () => cleanup(true);
+        overlay.addEventListener('click', onOverlay);
+        cancelBtn.addEventListener('click', onCancel);
+        okBtn.addEventListener('click', onOk);
+    });
+}
+
 // ========== TAMBAHAN: SIDEBAR LINKS & SETTINGS ==========
 const settingsModal = document.getElementById('settingsModal');
 const settingsOverlay = document.getElementById('settingsOverlay');
@@ -841,7 +896,7 @@ async function copyMessage(content, btn) {
         console.log('✅ Pesan disalin');
     } catch (err) {
         console.error('Gagal menyalin:', err);
-        alert('Gagal menyalin pesan');
+        showAppToast('Gagal menyalin pesan', 'error');
     }
 }
 
@@ -879,7 +934,7 @@ async function regenerateResponse(messageIndex) {
     }
     
     if (!userMessage) {
-        alert('Tidak dapat menemukan pertanyaan untuk direspon ulang.');
+        showAppToast('Tidak dapat menemukan pertanyaan untuk direspon ulang.', 'warn');
         return;
     }
     
@@ -894,7 +949,7 @@ async function regenerateResponse(messageIndex) {
 
 // ========== ACTIONS ==========
 function deleteConversation(id) {
-    if (!confirm('Hapus percakapan ini?')) return;
+    confirmAction('Hapus percakapan ini?').then((ok) => { if (!ok) return;
     
     conversations = conversations.filter(c => c.id !== id);
     saveToStorage();
@@ -909,6 +964,10 @@ function deleteConversation(id) {
     }
     
     renderSidebar();
+    showAppToast('Percakapan dihapus.');
+});
+return;
+    
 }
 
 // ========== TIME UPDATE ==========
@@ -974,7 +1033,7 @@ function renderModelMenu() {
         btn.innerHTML = `<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span>${badge}`;
         btn.addEventListener('click', () => {
             if (disabled) {
-                if (!spec.available) alert('Claude Sonnet sedang maintenance.');
+                if (!spec.available) showAppToast('Claude Sonnet sedang maintenance.', 'warn');
                 return;
             }
             setActiveModel(key);
@@ -995,7 +1054,7 @@ function setActiveModel(model, persist = true) {
     const normalizedModel = MODEL_CATALOG[model] ? model : 'gemini';
     const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
     if (!MODEL_CATALOG[normalizedModel]?.available) {
-        alert('Claude Sonnet sedang maintenance.');
+        showAppToast('Claude Sonnet sedang maintenance.', 'warn');
         return;
     }
     if (normalizedModel === 'gpt4o' && !isPremium) {
@@ -1704,17 +1763,19 @@ imageInput?.addEventListener('change', (e) => {
 removeDraftBtn?.addEventListener('click', clearImageDraft);
 
 clearAllBtn?.addEventListener('click', () => {
-    if (confirm('Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.')) {
+    confirmAction('Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.').then((ok) => {
+    if (ok) {
         conversations = [];
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
         menuDropdown.classList.remove('show');
+        showAppToast('Semua percakapan berhasil dihapus.');
     }
 });
 
 aboutBtn?.addEventListener('click', () => {
-    alert('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
+    confirmAction('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
     menuDropdown.classList.remove('show');
 });
 
@@ -1786,7 +1847,7 @@ saveProfileBtn?.addEventListener('click', async () => {
         else currentUser.name = profileName.value;
         localStorage.setItem('youz_user', JSON.stringify(currentUser));
         updateUserUI();
-        alert(currentLanguage === 'id' ? 'Profil berhasil disimpan!' : 'Profile saved successfully!');
+        showAppToast(currentLanguage === 'id' ? 'Profil berhasil disimpan!' : 'Profile saved successfully!');
     }
 });
 
@@ -1795,12 +1856,14 @@ clearAllDataBtn?.addEventListener('click', () => {
         'Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.' : 
         'Delete ALL conversations? This action cannot be undone.';
     
-    if (confirm(confirmMsg)) {
+    confirmAction(confirmMsg).then((ok) => {
+    if (ok) {
         conversations = [];
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
         closeSettings();
+        showAppToast(currentLanguage === 'id' ? 'Semua data percakapan dihapus.' : 'All conversation data deleted.');
     }
 });
 
@@ -1825,7 +1888,7 @@ userProfileBtn?.addEventListener('click', (e) => {
         openSettings('profile');
         toggleUserMenu(false);
     } else {
-        alert(currentLanguage === 'id' ? 'Silakan login terlebih dahulu.' : 'Please login first.');
+        showAppToast(currentLanguage === 'id' ? 'Silakan login terlebih dahulu.' : 'Please login first.', 'warn');
     }
 });
 

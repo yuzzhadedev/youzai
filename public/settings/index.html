@@ -6,127 +6,154 @@
   <title>Settings • Youz AI</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    body{background:var(--bg-primary);color:var(--text-primary);margin:0;overflow:auto}
-    .settings-page{max-width:960px;margin:32px auto;padding:0 16px 40px}
-    .settings-page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
-    .back-btn{border:1px solid var(--border-color);padding:10px 14px;border-radius:10px;background:var(--bg-secondary);color:var(--text-primary);text-decoration:none}
-    .section-card{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:var(--shadow-md)}
-    .section-card h2{font-size:20px;margin-bottom:4px}
-    .section-desc{color:var(--text-secondary);margin-bottom:16px}
+    body{background:radial-gradient(circle at top right,#dbeafe 0%,transparent 45%),var(--bg-main);color:var(--text-primary);margin:0;overflow:auto}
+    :root[data-theme="dark"] body{background:radial-gradient(circle at top right,rgba(59,130,246,.2) 0%,transparent 45%),var(--bg-main)}
+    .settings-page{max-width:1080px;margin:24px auto;padding:0 16px 44px}
+    .settings-page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;padding:18px;background:var(--bg-sidebar);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow-md)}
+    .header-title h1{font-size:28px;letter-spacing:-.02em}
+    .header-title p{color:var(--text-secondary);font-size:14px;margin-top:4px}
+    .back-btn{border:1px solid var(--border);padding:10px 14px;border-radius:12px;background:var(--bg-input);color:var(--text-primary);text-decoration:none;font-weight:600}
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .section-card{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow-md)}
+    .section-card.full{grid-column:1/-1}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+    .section-card h2{font-size:18px}
+    .section-desc{color:var(--text-secondary);font-size:13px}
     .sub-group{margin-bottom:14px}
-    .sub-group h3{font-size:15px;margin-bottom:10px}
-    .theme-options{display:flex;flex-wrap:wrap;gap:10px}
-    .theme-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:10px 14px;border-radius:10px;cursor:pointer}
+    .sub-group h3{font-size:13px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+    .theme-options{display:flex;flex-wrap:wrap;gap:8px}
+    .theme-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:600}
     .theme-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
-    .inline-input{width:100%;max-width:420px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary)}
+    .inline-input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary)}
     .stack{display:flex;flex-direction:column;gap:10px}
-    .action-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:10px 14px;border-radius:10px;cursor:pointer;text-align:left}
-    .action-btn.danger{border-color:#fca5a5;color:#ef4444}
+    .action-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:11px 12px;border-radius:12px;cursor:pointer;text-align:left;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+    .action-btn:hover{border-color:var(--primary)}
+    .action-btn.danger{border-color:rgba(239,68,68,.45);color:#ef4444}
     .login-method{display:flex;gap:8px;align-items:center;padding:8px 10px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);width:fit-content}
-    .method-icon{font-size:14px}
     .plan-badges{display:flex;gap:10px}
     .badge{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--border)}
     .badge.active{background:#ede9fe;color:#6d28d9;border-color:#c4b5fd}
-    .confirm-text{font-size:13px;color:var(--text-secondary);margin-top:8px}
+    .confirm-text{font-size:12px;color:var(--text-secondary);margin-top:-2px}
+
+    .overlay{position:fixed;inset:0;background:rgba(2,6,23,.52);display:none;align-items:center;justify-content:center;padding:16px;z-index:2200}
+    .overlay.open{display:flex}
+    .confirm-modal{width:min(440px,100%);background:var(--bg-sidebar);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lg);padding:18px}
+    .confirm-modal h3{font-size:18px;margin-bottom:6px}
+    .confirm-modal p{color:var(--text-secondary);font-size:14px;margin-bottom:16px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:8px}
+    .modal-btn{border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:600}
+    .modal-btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+
+    .toast-wrap{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;z-index:2300;pointer-events:none}
+    .toast{background:rgba(15,23,42,.92);color:#fff;padding:11px 14px;border-radius:12px;box-shadow:var(--shadow-lg);font-size:13px;min-width:220px;text-align:center;animation:toastIn .2s ease,toastOut .2s ease 2.5s forwards}
+    .toast.success{background:rgba(5,150,105,.95)}
+    .toast.warn{background:rgba(217,119,6,.95)}
+    @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes toastOut{to{opacity:0;transform:translateY(6px)}}
+
+    @media (max-width:860px){.settings-grid{grid-template-columns:1fr}.settings-page-header{flex-direction:column;align-items:flex-start}.back-btn{width:100%;text-align:center}}
   </style>
 </head>
 <body>
   <main class="settings-page">
     <div class="settings-page-header">
-      <h1>Pengaturan</h1>
+      <div class="header-title"><h1>Pengaturan</h1><p>Kelola preferensi akun, data, dan pengalaman aplikasi Anda.</p></div>
       <a class="back-btn" href="/">← Kembali ke Chat</a>
     </div>
-
-    <section class="section-card">
-      <h2>🌐 General</h2>
-      <p class="section-desc">Pengaturan umum aplikasi</p>
-      <div class="sub-group">
-        <h3>Theme</h3>
-        <div class="theme-options">
-          <button class="theme-btn" id="themeLight" type="button">Light (Terang)</button>
-          <button class="theme-btn" id="themeDark" type="button">Dark (Gelap)</button>
-          <button class="theme-btn" id="themeSystem" type="button">System (Mengikuti sistem perangkat)</button>
-        </div>
-      </div>
-      <div class="sub-group">
-        <h3>Language</h3>
-        <select id="languageSelect" class="inline-input">
-          <option value="id">Bahasa Indonesia</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2>👤 Account / Profile</h2>
-      <p class="section-desc">Informasi akun pengguna</p>
-      <div class="sub-group stack">
-        <input class="inline-input" id="nameInput" type="text" placeholder="Nama" />
-        <input class="inline-input" id="emailInput" type="email" placeholder="Email" />
-      </div>
-      <div class="sub-group">
-        <h3>Metode login</h3>
+    <div class="settings-grid">
+      <section class="section-card">
+        <div class="section-head"><h2>🌐 General</h2><p class="section-desc">Preferensi aplikasi</p></div>
+        <div class="sub-group"><h3>Theme</h3><div class="theme-options"><button class="theme-btn" id="themeLight" type="button">Light</button><button class="theme-btn" id="themeDark" type="button">Dark</button><button class="theme-btn" id="themeSystem" type="button">System</button></div></div>
+        <div class="sub-group"><h3>Language</h3><select id="languageSelect" class="inline-input"><option value="id">Bahasa Indonesia</option><option value="en">English</option></select></div>
+      </section>
+      <section class="section-card">
+        <div class="section-head"><h2>💎 Plan / Billing</h2><p class="section-desc">Status langganan</p></div>
+        <div class="sub-group"><h3>Plan aktif</h3><div class="plan-badges"><span class="badge">FREE</span><span class="badge active">PREMIUM</span></div></div>
         <div class="stack">
-          <div class="login-method"><span class="method-icon">🟢</span> Google Login</div>
-          <div class="login-method"><span class="method-icon">🔐</span> Register / Email Login</div>
+          <button class="action-btn" data-toast="Membuka detail fitur premium">Cek fitur premium <span>→</span></button>
+          <button class="action-btn" data-toast="Mengarahkan ke halaman upgrade">Upgrade plan <span>→</span></button>
+          <button class="action-btn" data-toast="Menampilkan riwayat pembayaran">Riwayat pembayaran <span>→</span></button>
+          <button class="action-btn" data-toast="Mengecek masa aktif premium">Masa aktif premium <span>→</span></button>
         </div>
-      </div>
-      <div class="stack">
-        <button class="action-btn" type="button">Ubah Password</button>
-        <button class="action-btn danger" id="deleteAccountBtn" type="button">Hapus Akun</button>
-        <p class="confirm-text">Konfirmasi keamanan: “Apakah Anda yakin ingin menghapus akun?”</p>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2>💎 Plan / Billing</h2>
-      <p class="section-desc">Informasi paket dan langganan</p>
-      <div class="sub-group">
-        <h3>Status plan saat ini</h3>
-        <div class="plan-badges">
-          <span class="badge">FREE</span>
-          <span class="badge active">PREMIUM</span>
-        </div>
-      </div>
-      <div class="stack">
-        <button class="action-btn" type="button">Cek fitur premium</button>
-        <button class="action-btn" type="button">Upgrade plan</button>
-        <button class="action-btn" type="button">Riwayat pembayaran</button>
-        <button class="action-btn" type="button">Informasi masa aktif premium</button>
-      </div>
-    </section>
-
-    <section class="section-card">
-      <h2>🗂️ Data</h2>
-      <p class="section-desc">Manajemen data pengguna</p>
-      <div class="stack">
-        <button class="action-btn danger" id="deleteChatsBtn" type="button">Hapus Semua Percakapan</button>
-        <p class="confirm-text">Konfirmasi sebelum menghapus</p>
-        <button class="action-btn" id="exportBtn" type="button">Ekspor Data</button>
-        <p class="confirm-text">Download data/chat pengguna</p>
-      </div>
-    </section>
+      </section>
+      <section class="section-card full">
+        <div class="section-head"><h2>👤 Account / Profile</h2><p class="section-desc">Data identitas pengguna</p></div>
+        <div class="sub-group stack"><input class="inline-input" id="nameInput" type="text" placeholder="Nama" /><input class="inline-input" id="emailInput" type="email" placeholder="Email" /></div>
+        <div class="sub-group"><h3>Metode login</h3><div class="stack"><div class="login-method">🟢 Google Login</div><div class="login-method">🔐 Register / Email Login</div></div></div>
+        <div class="stack"><button class="action-btn" data-toast="Fitur ubah password akan segera hadir">Ubah Password</button><button class="action-btn danger" id="deleteAccountBtn" type="button">Hapus Akun</button><p class="confirm-text">Aksi permanen dan tidak dapat dibatalkan.</p></div>
+      </section>
+      <section class="section-card full">
+        <div class="section-head"><h2>🗂️ Data</h2><p class="section-desc">Ekspor dan pembersihan data</p></div>
+        <div class="stack"><button class="action-btn danger" id="deleteChatsBtn" type="button">Hapus Semua Percakapan</button><p class="confirm-text">Seluruh riwayat chat akan dihapus permanen.</p><button class="action-btn" id="exportBtn" type="button">Ekspor Data</button><p class="confirm-text">Unduh data percakapan dalam format JSON.</p></div>
+      </section>
+    </div>
   </main>
+
+  <div class="overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="confirm-modal">
+      <h3 id="confirmTitle">Konfirmasi</h3>
+      <p id="confirmMessage"></p>
+      <div class="modal-actions"><button class="modal-btn" id="confirmCancelBtn" type="button">Batal</button><button class="modal-btn danger" id="confirmOkBtn" type="button">Lanjutkan</button></div>
+    </div>
+  </div>
+  <div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
 
   <script>
     const themeButtons={light:document.getElementById('themeLight'),dark:document.getElementById('themeDark'),system:document.getElementById('themeSystem')};
     const languageSelect=document.getElementById('languageSelect');
+    const confirmOverlay=document.getElementById('confirmOverlay');
+    const confirmMessage=document.getElementById('confirmMessage');
+    const confirmCancelBtn=document.getElementById('confirmCancelBtn');
+    const confirmOkBtn=document.getElementById('confirmOkBtn');
+    const toastWrap=document.getElementById('toastWrap');
+    let pendingConfirmAction=null;
+
+    function showToast(message,type='success'){
+      const toast=document.createElement('div');
+      toast.className=`toast ${type}`;
+      toast.textContent=message;
+      toastWrap.appendChild(toast);
+      setTimeout(()=>toast.remove(),2800);
+    }
+
+    function openConfirm(message,onConfirm){
+      pendingConfirmAction=onConfirm;
+      confirmMessage.textContent=message;
+      confirmOverlay.classList.add('open');
+    }
+
+    function closeConfirm(){
+      confirmOverlay.classList.remove('open');
+      pendingConfirmAction=null;
+    }
+
+    confirmCancelBtn.addEventListener('click',closeConfirm);
+    confirmOverlay.addEventListener('click',e=>{if(e.target===confirmOverlay)closeConfirm();});
+    confirmOkBtn.addEventListener('click',()=>{
+      if(typeof pendingConfirmAction==='function') pendingConfirmAction();
+      closeConfirm();
+    });
+
     function applyTheme(theme){
       document.documentElement.setAttribute('data-theme',theme==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):theme);
       Object.entries(themeButtons).forEach(([k,b])=>b.classList.toggle('active',k===theme));
       localStorage.setItem('youz_theme',theme);
+      showToast(`Tema diubah ke ${theme}.`);
     }
+
     const savedTheme=localStorage.getItem('youz_theme')||'system';
     const savedLang=localStorage.getItem('youz_language')||'id';
     applyTheme(savedTheme); languageSelect.value=savedLang;
     Object.entries(themeButtons).forEach(([k,b])=>b.addEventListener('click',()=>applyTheme(k)));
-    languageSelect.addEventListener('change',e=>localStorage.setItem('youz_language',e.target.value));
+    languageSelect.addEventListener('change',e=>{localStorage.setItem('youz_language',e.target.value);showToast('Bahasa berhasil diperbarui.');});
+
+    document.querySelectorAll('[data-toast]').forEach((btn)=>btn.addEventListener('click',()=>showToast(btn.dataset.toast,'warn')));
 
     document.getElementById('deleteAccountBtn')?.addEventListener('click',()=>{
-      if(confirm('Apakah Anda yakin ingin menghapus akun?')) alert('Permintaan hapus akun diterima.');
+      openConfirm('Apakah Anda yakin ingin menghapus akun? Aksi ini permanen.',()=>showToast('Permintaan hapus akun diterima.'));
     });
     document.getElementById('deleteChatsBtn')?.addEventListener('click',()=>{
-      if(confirm('Hapus semua percakapan?')) alert('Semua percakapan terhapus.');
+      openConfirm('Hapus semua percakapan sekarang? Riwayat tidak bisa dipulihkan.',()=>showToast('Semua percakapan telah dihapus.'));
     });
     document.getElementById('exportBtn')?.addEventListener('click',()=>{
       const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString()},null,2)], { type: 'application/json' });
@@ -136,6 +163,7 @@
       a.download = `youz-data-export-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      showToast('Ekspor data berhasil dimulai.');
     });
   </script>
 </body>

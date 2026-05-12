@@ -487,6 +487,22 @@
   let proofBase64 = null;
   let currentMethod = 'qris';
 
+  function showToast(message, type = 'warn') {
+    let wrap = document.getElementById('premiumToastWrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'premiumToastWrap';
+      wrap.style.cssText = 'position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+      document.body.appendChild(wrap);
+    }
+    const toast = document.createElement('div');
+    const bg = type === 'error' ? 'rgba(220,38,38,.95)' : 'rgba(217,119,6,.95)';
+    toast.style.cssText = `background:${bg};color:#fff;padding:10px 12px;border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.2);font-size:13px;min-width:240px;text-align:center;`;
+    toast.textContent = message;
+    wrap.appendChild(toast);
+    setTimeout(() => toast.remove(), 2500);
+  }
+
   function selectMethod(value, el) {
     document.querySelectorAll('.method-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
@@ -499,7 +515,7 @@
   function handleFileSelect(input) {
     const file = input.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('Ukuran file terlalu besar. Maksimal 5 MB.'); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast('Ukuran file terlalu besar. Maksimal 5 MB.', 'error'); return; }
     const reader = new FileReader();
     reader.onload = e => {
       proofBase64 = e.target.result;
