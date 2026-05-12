@@ -104,6 +104,13 @@ const removeDraftBtn = document.getElementById('removeDraftBtn');
 const sourcesSheet = document.getElementById('sourcesSheet');
 const sourcesBackdrop = document.getElementById('sourcesBackdrop');
 const sourcesList = document.getElementById('sourcesList');
+const nativeModal = document.getElementById('nativeModal');
+const nativeModalBackdrop = document.getElementById('nativeModalBackdrop');
+const nativeModalTitle = document.getElementById('nativeModalTitle');
+const nativeModalMessage = document.getElementById('nativeModalMessage');
+const nativeModalCancel = document.getElementById('nativeModalCancel');
+const nativeModalOk = document.getElementById('nativeModalOk');
+const toastContainer = document.getElementById('toastContainer');
 // ========== TAMBAHAN: HEADER NEW CHAT BUTTON ==========
 const headerNewChatBtn = document.getElementById('headerNewChatBtn');
 
@@ -383,9 +390,12 @@ function openSourcesSheet(sources = [], focusIndex = 0) {
     activeSources = sources;
     sourcesList.innerHTML = !sources.length
         ? '<p>Tidak ada sumber.</p>'
-        : sources.map((source, index) => `
+        : sources.map((source) => `
             <div class="source-item">
-                <a href="${source.url}" target="_blank" rel="noopener noreferrer">[${index + 1}] ${escapeHtml(source.title || source.url)} - ${escapeHtml(source.domain || new URL(source.url).hostname.replace(/^www\./, ''))}</a>
+                <a href="${source.url}" target="_blank" rel="noopener noreferrer">
+                    <img src="${getSourceFaviconUrl(source.url)}" alt="">
+                    <span>${escapeHtml(source.title || source.url)}</span>
+                </a>
             </div>
         `).join('');
     sourcesSheet.classList.remove('hidden');
@@ -398,6 +408,41 @@ function openSourcesSheet(sources = [], focusIndex = 0) {
 function closeSourcesSheet() {
     sourcesSheet?.classList.add('hidden');
 }
+
+function showToast(message = '') {
+    if (!toastContainer || !message) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    toastContainer.appendChild(toast);
+    setTimeout(() => toast.remove(), 2200);
+}
+
+function showModal({ title = 'Notifikasi', message = '', confirm = false } = {}) {
+    return new Promise((resolve) => {
+        if (!nativeModal) return resolve(confirm ? false : true);
+        nativeModalTitle.textContent = title;
+        nativeModalMessage.textContent = message;
+        nativeModalCancel.classList.toggle('hidden', !confirm);
+        nativeModal.classList.remove('hidden');
+        const done = (result) => {
+            nativeModal.classList.add('hidden');
+            nativeModalOk.onclick = null;
+            nativeModalCancel.onclick = null;
+            nativeModalBackdrop.onclick = null;
+            resolve(result);
+        };
+        nativeModalOk.onclick = () => done(true);
+        nativeModalCancel.onclick = () => done(false);
+        nativeModalBackdrop.onclick = () => done(false);
+    });
+}
+
+window.alert = (message) => {
+    showToast(String(message || ''));
+    return showModal({ title: 'Notifikasi', message: String(message || '') });
+};
+window.confirm = (message) => showModal({ title: 'Konfirmasi', message: String(message || ''), confirm: true });
 
 function openSettings(defaultTab = 'general') {
     settingsModal.classList.remove('hidden');
@@ -605,18 +650,20 @@ function createMessageElement(msg, index) {
                             <i class="far fa-thumbs-down"></i>
                             <span>Tidak Suka</span>
                         </button>
-                        <button class="action-btn regenerate-btn" data-index="${index}" title="Respon Ulang" ${msg.isComplete === false ? 'disabled' : ''}>
-                            <i class="fas fa-redo-alt"></i>
-                            <span>Ulang</span>
-                        </button>
+                        <div class="action-stack">
+                            <button class="action-btn regenerate-btn" data-index="${index}" title="Respon Ulang" ${msg.isComplete === false ? 'disabled' : ''}>
+                                <i class="fas fa-redo-alt"></i>
+                                <span>Ulang</span>
+                            </button>
+                            ${shouldShowSourcesButton(msg) ? `
+                            <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
+                                <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
+                                <span>Sumber</span>
+                            </button>
+                            ` : ''}
+                        </div>
                     </div>
                     <div class="message-actions-right">
-                        ${shouldShowSourcesButton(msg) ? `
-                        <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
-                            <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
-                            <span>Sumber</span>
-                        </button>
-                        ` : ''}
                         ${feedbackIndicator}
                     </div>
                 </div>
@@ -838,6 +885,7 @@ async function copyMessage(content, btn) {
             btn.classList.remove('copied');
             btn.innerHTML = '<i class="far fa-copy"></i><span>Salin</span>';
         }, 2000);
+        showToast('Pesan disalin');
         console.log('✅ Pesan disalin');
     } catch (err) {
         console.error('Gagal menyalin:', err);
@@ -860,6 +908,7 @@ function handleFeedback(messageIndex, type) {
     
     saveToStorage();
     renderMessages(conv.messages);
+    showToast(message.feedback ? (type === 'like' ? 'Pesan disukai' : 'Pesan tidak disukai') : 'Feedback dihapus');
     console.log(`📝 Feedback: ${type} untuk pesan #${messageIndex}`);
 }
 
@@ -893,8 +942,8 @@ async function regenerateResponse(messageIndex) {
 }
 
 // ========== ACTIONS ==========
-function deleteConversation(id) {
-    if (!confirm('Hapus percakapan ini?')) return;
+async function deleteConversation(id) {
+    if (!await confirm('Hapus percakapan ini?')) return;
     
     conversations = conversations.filter(c => c.id !== id);
     saveToStorage();
@@ -1703,8 +1752,8 @@ imageInput?.addEventListener('change', (e) => {
 
 removeDraftBtn?.addEventListener('click', clearImageDraft);
 
-clearAllBtn?.addEventListener('click', () => {
-    if (confirm('Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.')) {
+clearAllBtn?.addEventListener('click', async () => {
+    if (await confirm('Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.')) {
         conversations = [];
         saveToStorage();
         createNewConversation();
@@ -1790,12 +1839,12 @@ saveProfileBtn?.addEventListener('click', async () => {
     }
 });
 
-clearAllDataBtn?.addEventListener('click', () => {
+clearAllDataBtn?.addEventListener('click', async () => {
     const confirmMsg = currentLanguage === 'id' ? 
         'Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.' : 
         'Delete ALL conversations? This action cannot be undone.';
     
-    if (confirm(confirmMsg)) {
+    if (await confirm(confirmMsg)) {
         conversations = [];
         saveToStorage();
         createNewConversation();
