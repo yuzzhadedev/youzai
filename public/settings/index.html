@@ -1,829 +1,353 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Settings • Youz AI</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet"/>
-<style>
-:root{
-  --bg:#0f0f10;
-  --bg-elevated:#161618;
-  --bg-hover:#1c1c1f;
-  --bg-active:#212124;
-  --border:#2a2a2e;
-  --border-focus:#4a4a6a;
-  --text:#e8e8ea;
-  --text-muted:#7a7a8a;
-  --text-dim:#4a4a5a;
-  --accent:#6c63ff;
-  --accent-soft:rgba(108,99,255,.12);
-  --accent-border:rgba(108,99,255,.3);
-  --green:#22c55e;
-  --green-soft:rgba(34,197,94,.1);
-  --red:#ef4444;
-  --red-soft:rgba(239,68,68,.08);
-  --red-border:rgba(239,68,68,.25);
-  --amber:#f59e0b;
-  --sidebar-w:220px;
-  --radius:10px;
-  --radius-sm:7px;
-  --font:'Geist',system-ui,sans-serif;
-  --mono:'Geist Mono',monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
-::selection{background:var(--accent-soft);color:var(--text)}
-
-/* ── LAYOUT ─────────────────────────────── */
-.layout{display:flex;height:100vh;overflow:hidden}
-
-/* ── SIDEBAR ─────────────────────────────── */
-.sidebar{
-  width:var(--sidebar-w);flex-shrink:0;
-  background:var(--bg-elevated);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  overflow:hidden;
-}
-.sidebar-head{
-  padding:18px 14px 14px;
-  border-bottom:1px solid var(--border);
-}
-.brand{display:flex;align-items:center;gap:9px;margin-bottom:14px}
-.brand-mark{
-  width:30px;height:30px;border-radius:9px;
-  background:linear-gradient(135deg,#6c63ff,#a78bfa);
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:600;color:#fff;flex-shrink:0;
-  box-shadow:0 0 0 1px rgba(108,99,255,.3);
-}
-.brand-text{font-size:14px;font-weight:500;letter-spacing:-.01em}
-.back-link{
-  display:flex;align-items:center;gap:7px;
-  font-size:12px;color:var(--text-muted);
-  padding:6px 9px;border-radius:var(--radius-sm);
-  border:1px solid var(--border);background:transparent;
-  cursor:pointer;width:100%;transition:all .14s;
-  font-family:var(--font);
-}
-.back-link:hover{background:var(--bg-hover);color:var(--text);border-color:var(--border-focus)}
-.back-link svg{width:13px;height:13px;flex-shrink:0}
-
-/* Nav */
-.nav{flex:1;overflow-y:auto;padding:8px 8px;scrollbar-width:none}
-.nav::-webkit-scrollbar{display:none}
-.nav-group{margin-bottom:2px}
-.nav-group-label{
-  font-size:10px;font-weight:500;
-  color:var(--text-dim);text-transform:uppercase;
-  letter-spacing:.08em;padding:8px 8px 4px;
-}
-.nav-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:7px 9px;border-radius:var(--radius-sm);
-  cursor:pointer;transition:background .12s;gap:6px;
-  user-select:none;
-}
-.nav-row:hover{background:var(--bg-hover)}
-.nav-row.active{background:var(--bg-active)}
-.nav-row-left{display:flex;align-items:center;gap:8px}
-.nav-icon{
-  width:18px;height:18px;display:flex;align-items:center;justify-content:center;
-  color:var(--text-muted);flex-shrink:0;
-}
-.nav-row.active .nav-icon{color:var(--text)}
-.nav-label{font-size:13px;color:var(--text-muted);font-weight:400}
-.nav-row.active .nav-label{color:var(--text);font-weight:500}
-.nav-arrow{
-  color:var(--text-dim);transition:transform .18s;flex-shrink:0;
-}
-.nav-arrow svg{width:12px;height:12px}
-.nav-arrow.open{transform:rotate(90deg)}
-
-/* Sub-nav dropdown */
-.subnav{overflow:hidden;max-height:0;transition:max-height .22s cubic-bezier(.4,0,.2,1)}
-.subnav.open{max-height:300px}
-.sub-item{
-  display:flex;align-items:center;gap:7px;
-  padding:5px 9px 5px 33px;border-radius:var(--radius-sm);
-  cursor:pointer;font-size:12px;color:var(--text-muted);
-  transition:all .12s;
-}
-.sub-item:hover{background:var(--bg-hover);color:var(--text)}
-.sub-item.active{color:var(--accent)}
-.sub-pip{
-  width:4px;height:4px;border-radius:50%;
-  background:var(--border-focus);flex-shrink:0;
-}
-.sub-item.active .sub-pip{background:var(--accent)}
-
-/* Sidebar footer */
-.sidebar-foot{
-  padding:10px 10px;border-top:1px solid var(--border);
-}
-.user-card{
-  display:flex;align-items:center;gap:9px;
-  padding:8px 10px;border-radius:var(--radius);
-  border:1px solid var(--border);background:var(--bg-hover);
-}
-.avatar{
-  width:28px;height:28px;border-radius:50%;
-  background:linear-gradient(135deg,#4a3f8f,#7c6fcf);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:600;color:#d4cfff;flex-shrink:0;
-}
-.user-name{font-size:12px;font-weight:500}
-.user-sub{font-size:10px;color:var(--text-muted)}
-.plan-pill{
-  display:inline-flex;align-items:center;gap:3px;
-  padding:1px 6px;border-radius:999px;font-size:9px;font-weight:600;
-  background:var(--accent-soft);color:var(--accent);
-  border:1px solid var(--accent-border);
-}
-
-/* ── CONTENT ─────────────────────────────── */
-.content{flex:1;overflow-y:auto;background:var(--bg);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.page{display:none;padding:32px 40px;max-width:640px}
-.page.active{display:block}
-.page-head{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
-.page-title{font-size:20px;font-weight:500;letter-spacing:-.02em;margin-bottom:4px}
-.page-desc{font-size:13px;color:var(--text-muted)}
-
-/* Setting rows */
-.section-label{
-  font-size:10px;font-weight:600;text-transform:uppercase;
-  letter-spacing:.08em;color:var(--text-dim);margin-bottom:1px;
-}
-.settings-block{margin-bottom:28px}
-.row{
-  display:flex;align-items:center;justify-content:space-between;gap:20px;
-  padding:12px 0;border-bottom:1px solid var(--border);
-}
-.row:last-child{border-bottom:none}
-.row-left .row-name{font-size:13px;font-weight:400;color:var(--text)}
-.row-left .row-hint{font-size:12px;color:var(--text-muted);margin-top:2px}
-.row-ctrl{}
-
-/* Controls */
-.seg{
-  display:flex;background:var(--bg-elevated);
-  border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:3px;gap:2px;
-}
-.seg-btn{
-  padding:5px 12px;border-radius:5px;border:none;
-  background:transparent;color:var(--text-muted);
-  font-size:12px;cursor:pointer;font-family:var(--font);
-  transition:all .14s;display:flex;align-items:center;gap:5px;
-}
-.seg-btn:hover{color:var(--text)}
-.seg-btn.on{background:var(--bg-active);color:var(--text);border:1px solid var(--border)}
-
-select.sel{
-  border:1px solid var(--border);background:var(--bg-elevated);
-  color:var(--text);padding:6px 28px 6px 10px;
-  border-radius:var(--radius-sm);font-size:12px;
-  font-family:var(--font);cursor:pointer;
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 8px center;
-  transition:border-color .14s;
-}
-select.sel:focus{outline:none;border-color:var(--accent)}
-
-input.inp{
-  border:1px solid var(--border);background:var(--bg-elevated);
-  color:var(--text);padding:7px 11px;
-  border-radius:var(--radius-sm);font-size:13px;
-  font-family:var(--font);width:200px;transition:border-color .14s;
-}
-input.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
-input.inp[type=password]{letter-spacing:.1em}
-
-/* Toggle */
-.tog{position:relative;width:36px;height:20px;flex-shrink:0}
-.tog input{opacity:0;width:0;height:0;position:absolute}
-.tog-track{
-  position:absolute;inset:0;border-radius:999px;
-  background:var(--bg-active);border:1px solid var(--border);
-  cursor:pointer;transition:all .18s;
-}
-.tog input:checked+.tog-track{background:var(--accent);border-color:var(--accent)}
-.tog-thumb{
-  position:absolute;top:3px;left:3px;
-  width:12px;height:12px;border-radius:50%;
-  background:var(--text-muted);transition:transform .18s,background .18s;
-  pointer-events:none;
-}
-.tog input:checked~.tog-thumb{transform:translateX(16px);background:#fff}
-
-/* Buttons */
-.btn{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:7px 14px;border-radius:var(--radius-sm);
-  border:1px solid var(--border);background:var(--bg-elevated);
-  color:var(--text);font-size:12px;font-weight:500;
-  font-family:var(--font);cursor:pointer;transition:all .14s;
-}
-.btn:hover{background:var(--bg-hover);border-color:var(--border-focus)}
-.btn svg{width:14px;height:14px}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:hover{opacity:.9}
-.btn.danger{border-color:var(--red-border);background:var(--red-soft);color:var(--red)}
-.btn.danger:hover{background:rgba(239,68,68,.15)}
-.btn-row{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
-
-/* Status chips */
-.chip{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:4px 10px;border-radius:999px;font-size:11px;font-weight:500;
-  border:1px solid;
-}
-.chip-green{background:var(--green-soft);color:var(--green);border-color:rgba(34,197,94,.2)}
-.chip-accent{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-border)}
-.chip-muted{background:var(--bg-hover);color:var(--text-muted);border-color:var(--border)}
-
-/* Plan block */
-.plan-box{
-  border:1px solid var(--border);border-radius:var(--radius);
-  padding:16px 18px;margin-bottom:12px;
-  background:var(--bg-elevated);
-}
-.plan-box.premium{border-color:var(--accent-border);background:var(--accent-soft)}
-.plan-name{font-size:13px;font-weight:500;margin-bottom:2px}
-.plan-meta{font-size:11px;color:var(--text-muted);margin-bottom:10px}
-.plan-bar-bg{background:var(--bg-active);border-radius:999px;height:3px}
-.plan-bar-fill{background:var(--accent);border-radius:999px;height:3px;width:65%}
-.plan-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-
-/* Feature list */
-.feat-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 0;border-bottom:1px solid var(--border);
-}
-.feat-row:last-child{border-bottom:none}
-.feat-name{font-size:13px;color:var(--text)}
-.feat-check{color:var(--green)}
-.feat-check svg{width:15px;height:15px}
-
-/* Login chips */
-.lchip{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:6px 12px;border-radius:var(--radius-sm);
-  border:1px solid var(--border);background:var(--bg-elevated);
-  font-size:12px;color:var(--text-muted);margin-bottom:6px;
-}
-.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
-
-/* Billing list */
-.bill-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 0;border-bottom:1px solid var(--border);
-}
-.bill-row:last-child{border-bottom:none}
-.bill-name{font-size:13px;color:var(--text)}
-.bill-date{font-size:11px;color:var(--text-muted);margin-top:1px}
-.bill-amount{font-size:12px;font-weight:600;color:var(--green);font-family:var(--mono)}
-
-/* Toast */
-.toast{
-  position:fixed;bottom:20px;right:20px;
-  background:var(--bg-elevated);border:1px solid var(--border);
-  border-radius:var(--radius);padding:10px 16px;font-size:13px;
-  display:flex;align-items:center;gap:9px;z-index:200;
-  opacity:0;transform:translateY(8px);transition:all .22s;
-  pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4);
-}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast-icon{color:var(--green)}
-.toast-icon svg{width:15px;height:15px}
-
-/* Modal */
-.modal-wrap{
-  position:fixed;inset:0;background:rgba(0,0,0,.6);
-  display:flex;align-items:center;justify-content:center;
-  z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;
-  backdrop-filter:blur(4px);
-}
-.modal-wrap.show{opacity:1;pointer-events:all}
-.modal{
-  background:var(--bg-elevated);border:1px solid var(--border);
-  border-radius:var(--radius);padding:24px;width:320px;
-  box-shadow:0 24px 64px rgba(0,0,0,.6);
-}
-.modal-title{font-size:15px;font-weight:500;margin-bottom:6px;letter-spacing:-.01em}
-.modal-desc{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6}
-.modal-foot{display:flex;gap:8px;justify-content:flex-end}
-.modal-cancel{padding:7px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font);transition:all .14s}
-.modal-cancel:hover{background:var(--bg-hover)}
-.modal-ok{padding:7px 16px;border-radius:var(--radius-sm);border:none;background:var(--red);color:#fff;font-size:13px;cursor:pointer;font-family:var(--font);transition:opacity .14s}
-.modal-ok:hover{opacity:.85}
-
-/* Scrollbar content */
-.content::-webkit-scrollbar{width:6px}
-.content::-webkit-scrollbar-track{background:transparent}
-.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pengaturan • Youz AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    body{background:var(--bg-main);color:var(--text-primary);font-family:'Geist',system-ui,sans-serif;}
+    .settings-page{max-width:760px;margin:0 auto;padding:26px 16px 80px;}
+    .settings-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;}
+    .settings-title{font-size:18px;font-weight:700;letter-spacing:-.01em;}
+    .settings-sub{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+    .settings-back{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:var(--bg-sidebar);color:var(--text-primary);text-decoration:none;font-size:12px;font-weight:600;}
+    .settings-back:hover{background:var(--bg-input);}
+    .settings-card{background:var(--bg-sidebar);border:1px solid var(--border);border-radius:16px;padding:14px 14px 10px;box-shadow:var(--shadow-sm);margin-bottom:12px;}
+    .settings-card h2{font-size:13px;font-weight:700;margin-bottom:10px;}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--border-light);}
+    .row:first-of-type{border-top:none;}
+    .row-title{font-size:12px;font-weight:700;}
+    .row-desc{font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:1.35;}
+    .seg{display:inline-flex;gap:6px;background:var(--bg-input);border:1px solid var(--border);padding:4px;border-radius:999px;}
+    .seg button{height:28px;padding:0 10px;border-radius:999px;border:none;background:transparent;color:var(--text-secondary);font-size:11px;font-weight:700;cursor:pointer;}
+    .seg button.active{background:var(--bg-sidebar);border:1px solid var(--border);color:var(--text-primary);}
+    select.sel{height:32px;border-radius:12px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);padding:0 10px;font-size:12px;font-weight:600;}
+    .tog{position:relative;width:40px;height:22px;flex-shrink:0;}
+    .tog input{opacity:0;width:0;height:0;position:absolute;}
+    .tog-track{position:absolute;inset:0;border-radius:999px;background:var(--bg-input);border:1px solid var(--border);cursor:pointer;transition:all .18s;}
+    .tog-thumb{position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:var(--text-muted);transition:transform .18s,background .18s;pointer-events:none;}
+    .tog input:checked+.tog-track{background:var(--primary);border-color:rgba(96,165,250,.5);}
+    .tog input:checked~.tog-thumb{transform:translateX(18px);background:#fff;}
+    .danger{color:var(--danger);font-weight:700;}
+    .btn-danger{height:34px;padding:0 12px;border-radius:12px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:var(--danger);font-size:12px;font-weight:800;cursor:pointer;}
+    .btn-danger:hover{background:rgba(239,68,68,.12);}
+    .login-note{padding:10px 12px;border-radius:14px;background:var(--bg-input);border:1px solid var(--border);font-size:12px;color:var(--text-secondary);margin-bottom:12px;}
+  </style>
 </head>
 <body>
-<div class="layout">
-
-<!-- ━━━ SIDEBAR ━━━ -->
-<nav class="sidebar">
-  <div class="sidebar-head">
-    <div class="brand">
-      <div class="brand-mark">Y</div>
-      <span class="brand-text">Youz AI</span>
-    </div>
-    <button class="back-link" onclick="window.history.back()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-      Kembali ke chat
-    </button>
-  </div>
-
-  <div class="nav">
-    <!-- Preferensi -->
-    <div class="nav-group">
-      <div class="nav-group-label">Preferensi</div>
-
-      <div class="nav-row active" id="nav-general" onclick="go('general')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></span>
-          <span class="nav-label">General</span>
-        </div>
-      </div>
-
-      <div class="nav-row" id="nav-appearance" onclick="go('appearance')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z"/></svg></span>
-          <span class="nav-label">Tampilan</span>
-        </div>
-      </div>
-
-      <div class="nav-row" id="nav-notif" onclick="go('notif')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-          <span class="nav-label">Notifikasi</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Akun -->
-    <div class="nav-group">
-      <div class="nav-group-label">Akun</div>
-
-      <div class="nav-row" id="nav-account-parent" onclick="toggleSub('account')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-          <span class="nav-label">Profil & Akun</span>
-        </div>
-        <span class="nav-arrow" id="arrow-account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
-      </div>
-      <div class="subnav" id="sub-account">
-        <div class="sub-item" id="sub-profile" onclick="go('profile')"><span class="sub-pip"></span> Informasi profil</div>
-        <div class="sub-item" id="sub-security" onclick="go('security')"><span class="sub-pip"></span> Keamanan</div>
-        <div class="sub-item" id="sub-login" onclick="go('login')"><span class="sub-pip"></span> Metode login</div>
-      </div>
-
-      <div class="nav-row" id="nav-plan-parent" onclick="toggleSub('plan')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-          <span class="nav-label">Plan & Billing</span>
-        </div>
-        <span class="nav-arrow" id="arrow-plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
-      </div>
-      <div class="subnav" id="sub-plan">
-        <div class="sub-item" id="sub-plan-status" onclick="go('plan-status')"><span class="sub-pip"></span> Status langganan</div>
-        <div class="sub-item" id="sub-billing" onclick="go('billing')"><span class="sub-pip"></span> Riwayat pembayaran</div>
-        <div class="sub-item" id="sub-upgrade" onclick="go('upgrade')"><span class="sub-pip"></span> Upgrade plan</div>
-      </div>
-    </div>
-
-    <!-- Data -->
-    <div class="nav-group">
-      <div class="nav-group-label">Data</div>
-
-      <div class="nav-row" id="nav-data-parent" onclick="toggleSub('data')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
-          <span class="nav-label">Data & Privasi</span>
-        </div>
-        <span class="nav-arrow" id="arrow-data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
-      </div>
-      <div class="subnav" id="sub-data">
-        <div class="sub-item" id="sub-export" onclick="go('export')"><span class="sub-pip"></span> Ekspor data</div>
-        <div class="sub-item" id="sub-delete" onclick="go('delete')"><span class="sub-pip"></span> Hapus percakapan</div>
-      </div>
-
-      <div class="nav-row" id="nav-about" onclick="go('about')">
-        <div class="nav-row-left">
-          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
-          <span class="nav-label">Tentang</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="sidebar-foot">
-    <div class="user-card">
-      <div class="avatar">AF</div>
+  <div class="settings-page">
+    <div class="settings-top">
       <div>
-        <div class="user-name">Ahmad Fauzi</div>
-        <div class="user-sub"><span class="plan-pill">★ PREMIUM</span></div>
+        <div class="settings-title">Pengaturan</div>
+        <div class="settings-sub" id="userLine"></div>
       </div>
+      <a class="settings-back" href="/">Kembali</a>
     </div>
-  </div>
-</nav>
-
-<!-- ━━━ CONTENT ━━━ -->
-<main class="content">
-
-  <!-- General -->
-  <div class="page active" id="page-general">
-    <div class="page-head">
-      <div class="page-title">General</div>
-      <div class="page-desc">Pengaturan umum aplikasi Youz AI</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Bahasa & Region</div>
+    <div class="login-note hidden" id="loginNote">Login untuk sinkronisasi pengaturan ke server.</div>
+    <div class="settings-card">
+      <h2>Preferensi</h2>
       <div class="row">
-        <div class="row-left"><div class="row-name">Bahasa antarmuka</div><div class="row-hint">Bahasa yang digunakan di seluruh aplikasi</div></div>
-        <select class="sel" onchange="toast('Bahasa diperbarui')">
-          <option>🇮🇩 Bahasa Indonesia</option><option>🇺🇸 English</option><option>🇨🇳 中文</option><option>🇸🇦 العربية</option>
+        <div>
+          <div class="row-title">Tema</div>
+          <div class="row-desc">Terang, gelap, atau ikuti sistem</div>
+        </div>
+        <div class="seg" id="themeSeg">
+          <button type="button" data-theme="light">Terang</button>
+          <button type="button" data-theme="dark">Gelap</button>
+          <button type="button" data-theme="system">Sistem</button>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <div class="row-title">Bahasa</div>
+          <div class="row-desc">Bahasa antarmuka aplikasi</div>
+        </div>
+        <select class="sel" id="langSelect">
+          <option value="id">Indonesia</option>
+          <option value="en">English</option>
         </select>
       </div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Format tanggal</div></div>
-        <select class="sel"><option>DD/MM/YYYY</option><option>MM/DD/YYYY</option><option>YYYY-MM-DD</option></select>
-      </div>
     </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Perilaku Chat</div>
+    <div class="settings-card">
+      <h2>Model</h2>
       <div class="row">
-        <div class="row-left"><div class="row-name">Kirim dengan Enter</div><div class="row-hint">Tekan Enter untuk mengirim, Shift+Enter untuk baris baru</div></div>
-        <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Render markdown</div><div class="row-hint">Tampilkan format teks, kode, dan tabel di respons AI</div></div>
-        <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Simpan riwayat otomatis</div><div class="row-hint">Percakapan disimpan secara otomatis</div></div>
-        <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Saran pesan</div><div class="row-hint">Tampilkan saran saat memulai percakapan baru</div></div>
-        <label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tampilan -->
-  <div class="page" id="page-appearance">
-    <div class="page-head">
-      <div class="page-title">Tampilan</div>
-      <div class="page-desc">Sesuaikan tampilan visual aplikasi</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Tema</div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Mode warna</div><div class="row-hint">Pilih tampilan terang, gelap, atau ikuti sistem</div></div>
-        <div class="seg">
-          <button class="seg-btn" onclick="seg(this);toast('Tema diubah')">☀ Terang</button>
-          <button class="seg-btn on" onclick="seg(this);toast('Tema diubah')">☾ Gelap</button>
-          <button class="seg-btn" onclick="seg(this);toast('Tema diubah')">⊞ Auto</button>
+        <div>
+          <div class="row-title">Model AI</div>
+          <div class="row-desc">Gemini, Claude (maintenance), atau ChatGPT 4o (Premium)</div>
         </div>
+        <select class="sel" id="modelSelect">
+          <option value="gemini">Gemini</option>
+          <option value="claude">Claude</option>
+          <option value="gpt4o">ChatGPT 4o</option>
+        </select>
       </div>
     </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Tipografi</div>
+    <div class="settings-card">
+      <h2>Fitur</h2>
       <div class="row">
-        <div class="row-left"><div class="row-name">Ukuran teks</div><div class="row-hint">Ukuran teks pada antarmuka dan chat</div></div>
-        <div class="seg">
-          <button class="seg-btn" onclick="seg(this);toast('Ukuran teks diubah')">S</button>
-          <button class="seg-btn on" onclick="seg(this);toast('Ukuran teks diubah')">M</button>
-          <button class="seg-btn" onclick="seg(this);toast('Ukuran teks diubah')">L</button>
+        <div>
+          <div class="row-title">Web Search</div>
+          <div class="row-desc">Aktifkan browsing web untuk pertanyaan</div>
         </div>
+        <label class="tog">
+          <input id="webSearchToggle" type="checkbox" />
+          <div class="tog-track"></div>
+          <div class="tog-thumb"></div>
+        </label>
       </div>
       <div class="row">
-        <div class="row-left"><div class="row-name">Kepadatan tampilan</div><div class="row-hint">Jarak antar elemen antarmuka</div></div>
-        <div class="seg">
-          <button class="seg-btn" onclick="seg(this);toast('Tampilan diubah')">Kompak</button>
-          <button class="seg-btn on" onclick="seg(this);toast('Tampilan diubah')">Normal</button>
-          <button class="seg-btn" onclick="seg(this);toast('Tampilan diubah')">Lega</button>
+        <div>
+          <div class="row-title">Thinking Mode</div>
+          <div class="row-desc">Jawaban lebih mendalam (lebih lambat)</div>
         </div>
+        <label class="tog">
+          <input id="thinkingToggle" type="checkbox" />
+          <div class="tog-track"></div>
+          <div class="tog-thumb"></div>
+        </label>
       </div>
     </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Efek</div>
+    <div class="settings-card">
+      <h2 class="danger">Data</h2>
       <div class="row">
-        <div class="row-left"><div class="row-name">Animasi antarmuka</div><div class="row-hint">Efek transisi dan animasi halaman</div></div>
-        <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Efek blur sidebar</div><div class="row-hint">Efek kaca pada sidebar</div></div>
-        <label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-    </div>
-  </div>
-
-  <!-- Notifikasi -->
-  <div class="page" id="page-notif">
-    <div class="page-head">
-      <div class="page-title">Notifikasi</div>
-      <div class="page-desc">Kelola pemberitahuan dari aplikasi</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Push Notifikasi</div>
-      <div class="row"><div class="row-left"><div class="row-name">Notifikasi desktop</div><div class="row-hint">Tampilkan notifikasi browser saat ada pesan</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-      <div class="row"><div class="row-left"><div class="row-name">Suara notifikasi</div><div class="row-hint">Putar suara saat respons selesai</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Email</div>
-      <div class="row"><div class="row-left"><div class="row-name">Update & fitur baru</div><div class="row-hint">Info fitur terbaru Youz AI via email</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-      <div class="row"><div class="row-left"><div class="row-name">Ringkasan mingguan</div><div class="row-hint">Laporan penggunaan tiap minggu</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-    </div>
-  </div>
-
-  <!-- Profil -->
-  <div class="page" id="page-profile">
-    <div class="page-head">
-      <div class="page-title">Informasi Profil</div>
-      <div class="page-desc">Perbarui nama dan email akun Anda</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Identitas</div>
-      <div class="row"><div class="row-left"><div class="row-name">Nama lengkap</div></div><input class="inp" type="text" value="Ahmad Fauzi"/></div>
-      <div class="row"><div class="row-left"><div class="row-name">Username</div></div><input class="inp" type="text" value="@ahmadfauzi"/></div>
-      <div class="row"><div class="row-left"><div class="row-name">Email</div></div><input class="inp" type="email" value="ahmad@email.com"/></div>
-      <div class="row"><div class="row-left"><div class="row-name">Bio singkat</div></div><input class="inp" type="text" placeholder="Ceritakan sedikit tentang Anda…"/></div>
-    </div>
-    <div class="btn-row"><button class="btn primary" onclick="toast('Profil berhasil disimpan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Simpan perubahan</button></div>
-  </div>
-
-  <!-- Keamanan -->
-  <div class="page" id="page-security">
-    <div class="page-head">
-      <div class="page-title">Keamanan</div>
-      <div class="page-desc">Kelola kata sandi dan keamanan akun</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Ubah Password</div>
-      <div class="row"><div class="row-left"><div class="row-name">Password saat ini</div></div><input class="inp" type="password" placeholder="••••••••"/></div>
-      <div class="row"><div class="row-left"><div class="row-name">Password baru</div></div><input class="inp" type="password" placeholder="••••••••"/></div>
-      <div class="row"><div class="row-left"><div class="row-name">Konfirmasi password</div></div><input class="inp" type="password" placeholder="••••••••"/></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn primary" onclick="toast('Password berhasil diperbarui')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Simpan password</button>
-      <button class="btn danger" onclick="openModal('account')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Hapus akun</button>
-    </div>
-  </div>
-
-  <!-- Login method -->
-  <div class="page" id="page-login">
-    <div class="page-head">
-      <div class="page-title">Metode Login</div>
-      <div class="page-desc">Akun terhubung dan metode autentikasi</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Akun terhubung</div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Google</div><div class="row-hint">ahmad@gmail.com</div></div>
-        <span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Terhubung</span>
-      </div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Email & Password</div><div class="row-hint">ahmad@email.com</div></div>
-        <span class="chip chip-accent"><span class="dot" style="background:var(--accent)"></span> Aktif</span>
+        <div>
+          <div class="row-title danger">Hapus semua percakapan</div>
+          <div class="row-desc">Menghapus riwayat chat lokal pada perangkat ini</div>
+        </div>
+        <button class="btn-danger" id="clearChatsBtn" type="button">Hapus</button>
       </div>
     </div>
   </div>
 
-  <!-- Plan Status -->
-  <div class="page" id="page-plan-status">
-    <div class="page-head">
-      <div class="page-title">Status Langganan</div>
-      <div class="page-desc">Informasi paket yang sedang aktif</div>
-    </div>
-    <div class="plan-box premium">
-      <div class="plan-top">
-        <span style="font-size:13px;font-weight:500;color:#a78bfa">★ Premium</span>
-        <span class="chip chip-accent">Aktif</span>
+  <div class="confirm-modal hidden" id="confirmModal">
+    <div class="confirm-backdrop" id="confirmBackdrop"></div>
+    <div class="confirm-panel" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
+      <div class="confirm-title" id="confirmTitle"></div>
+      <div class="confirm-message" id="confirmMessage"></div>
+      <div class="confirm-actions">
+        <button class="confirm-btn cancel" id="confirmCancelBtn" type="button">Batal</button>
+        <button class="confirm-btn ok" id="confirmOkBtn" type="button">OK</button>
       </div>
-      <div style="font-size:12px;color:#8b83cc;margin-bottom:10px">Berakhir 9 Juni 2026 · 28 hari tersisa</div>
-      <div class="plan-bar-bg"><div class="plan-bar-fill"></div></div>
-      <div style="font-size:11px;color:#7a73b8;margin-top:6px">Diperpanjang otomatis</div>
-    </div>
-    <div class="settings-block" style="margin-top:20px">
-      <div class="section-label" style="margin-bottom:8px">Fitur aktif</div>
-      <div class="feat-row"><span class="feat-name">Pesan unlimited</span><span class="feat-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></div>
-      <div class="feat-row"><span class="feat-name">Model AI terbaru</span><span class="feat-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></div>
-      <div class="feat-row"><span class="feat-name">Prioritas respons</span><span class="feat-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></div>
-      <div class="feat-row"><span class="feat-name">Ekspor data lanjutan</span><span class="feat-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></div>
-      <div class="feat-row"><span class="feat-name">Dukungan prioritas</span><span class="feat-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span></div>
     </div>
   </div>
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- Billing -->
-  <div class="page" id="page-billing">
-    <div class="page-head">
-      <div class="page-title">Riwayat Pembayaran</div>
-      <div class="page-desc">Invoice dan transaksi langganan Anda</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Transaksi</div>
-      <div class="bill-row"><div><div class="bill-name">Premium — Mei 2026</div><div class="bill-date">9 Mei 2026 · Transfer Bank</div></div><span class="bill-amount">Rp 49.000</span></div>
-      <div class="bill-row"><div><div class="bill-name">Premium — Apr 2026</div><div class="bill-date">9 Apr 2026 · Transfer Bank</div></div><span class="bill-amount">Rp 49.000</span></div>
-      <div class="bill-row"><div><div class="bill-name">Premium — Mar 2026</div><div class="bill-date">9 Mar 2026 · OVO</div></div><span class="bill-amount">Rp 49.000</span></div>
-      <div class="bill-row"><div><div class="bill-name">Premium — Feb 2026</div><div class="bill-date">9 Feb 2026 · GoPay</div></div><span class="bill-amount">Rp 49.000</span></div>
-    </div>
-    <button class="btn" onclick="toast('Mengunduh laporan...')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Unduh semua invoice</button>
-  </div>
+  <script>
+    const toastContainer = document.getElementById('toastContainer');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmBackdrop = document.getElementById('confirmBackdrop');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const userLine = document.getElementById('userLine');
+    const loginNote = document.getElementById('loginNote');
 
-  <!-- Upgrade -->
-  <div class="page" id="page-upgrade">
-    <div class="page-head">
-      <div class="page-title">Upgrade Plan</div>
-      <div class="page-desc">Pilih paket yang sesuai kebutuhan Anda</div>
-    </div>
-    <div class="plan-box" style="margin-bottom:10px">
-      <div class="plan-top"><span class="plan-name">Free</span><span style="font-size:13px;font-weight:600;color:var(--text-muted)">Gratis</span></div>
-      <div class="plan-meta">20 pesan/hari · model dasar · tanpa prioritas</div>
-    </div>
-    <div class="plan-box premium" style="margin-bottom:20px">
-      <div class="plan-top"><span class="plan-name" style="color:#a78bfa">★ Premium</span><span style="font-size:15px;font-weight:600;color:#a78bfa">Rp 49.000<span style="font-size:11px;font-weight:400">/bln</span></span></div>
-      <div class="plan-meta" style="color:#8b83cc">Pesan unlimited · model terbaru · prioritas respons · ekspor lanjutan</div>
-    </div>
-    <button class="btn primary" onclick="toast('Membuka halaman pembayaran...')">Lanjutkan ke pembayaran →</button>
-  </div>
-
-  <!-- Ekspor -->
-  <div class="page" id="page-export">
-    <div class="page-head">
-      <div class="page-title">Ekspor Data</div>
-      <div class="page-desc">Unduh salinan semua data dan riwayat chat Anda</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Opsi ekspor</div>
-      <div class="row"><div class="row-left"><div class="row-name">Format file</div></div><select class="sel"><option>JSON</option><option>CSV</option><option>TXT</option><option>Markdown</option></select></div>
-      <div class="row"><div class="row-left"><div class="row-name">Sertakan metadata</div><div class="row-hint">Waktu, model, dan info sesi chat</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-      <div class="row"><div class="row-left"><div class="row-name">Sertakan file lampiran</div><div class="row-hint">Gambar dan dokumen yang diunggah</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-    </div>
-    <button class="btn" onclick="toast('Mengunduh data...')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Unduh data saya</button>
-  </div>
-
-  <!-- Hapus -->
-  <div class="page" id="page-delete">
-    <div class="page-head">
-      <div class="page-title">Hapus Percakapan</div>
-      <div class="page-desc">Kelola dan hapus riwayat chat secara permanen</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Pilihan hapus</div>
-      <div class="row"><div class="row-left"><div class="row-name">Hapus percakapan lama</div><div class="row-hint">Chat lebih dari 30 hari yang lalu</div></div><button class="btn" onclick="toast('Percakapan lama dihapus')">Hapus</button></div>
-      <div class="row"><div class="row-left"><div class="row-name">Hapus semua percakapan</div><div class="row-hint">Seluruh riwayat chat dihapus permanen</div></div><button class="btn danger" onclick="openModal('chats')">Hapus semua</button></div>
-    </div>
-  </div>
-
-  <!-- Tentang -->
-  <div class="page" id="page-about">
-    <div class="page-head">
-      <div class="page-title">Tentang Youz AI</div>
-      <div class="page-desc">Informasi versi dan aplikasi</div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Versi</div>
-      <div class="row"><div class="row-left"><div class="row-name">Versi aplikasi</div></div><span style="font-size:12px;color:var(--text-muted);font-family:var(--mono)">v2.1.0</span></div>
-      <div class="row"><div class="row-left"><div class="row-name">Build</div></div><span style="font-size:12px;color:var(--text-muted);font-family:var(--mono)">20260512</span></div>
-      <div class="row"><div class="row-left"><div class="row-name">Model AI</div></div><span style="font-size:12px;color:var(--text-muted);font-family:var(--mono)">Youz-3.5-turbo</span></div>
-    </div>
-    <div class="settings-block">
-      <div class="section-label" style="margin-bottom:8px">Legal</div>
-      <div class="row"><div class="row-left"><div class="row-name">Kebijakan privasi</div></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
-      <div class="row"><div class="row-left"><div class="row-name">Syarat layanan</div></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
-      <div class="row"><div class="row-left"><div class="row-name">Pusat bantuan</div></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted)"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
-    </div>
-  </div>
-
-</main>
-</div>
-
-<!-- Modal -->
-<div class="modal-wrap" id="modalWrap">
-  <div class="modal">
-    <div class="modal-title" id="modalTitle"></div>
-    <div class="modal-desc" id="modalDesc"></div>
-    <div class="modal-foot">
-      <button class="modal-cancel" onclick="closeModal()">Batal</button>
-      <button class="modal-ok" id="modalOk"></button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast" id="toastEl">
-  <span class="toast-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
-  <span id="toastMsg"></span>
-</div>
-
-<script>
-const pageMap={
-  'general':null,'appearance':null,'notif':null,
-  'profile':'account','security':'account','login':'account',
-  'plan-status':'plan','billing':'plan','upgrade':'plan',
-  'export':'data','delete':'data',
-  'about':null
-};
-const subParent={'account':['profile','security','login'],'plan':['plan-status','billing','upgrade'],'data':['export','delete']};
-const openSubs=new Set();
-let current='general';
-
-function go(page){
-  document.getElementById('page-'+current).classList.remove('active');
-  document.getElementById('page-'+page).classList.add('active');
-  document.querySelectorAll('.nav-row').forEach(r=>r.classList.remove('active'));
-  document.querySelectorAll('.sub-item').forEach(s=>s.classList.remove('active'));
-  const parent=pageMap[page];
-  if(parent){
-    document.getElementById('nav-'+parent+'-parent')?.classList.add('active');
-    document.getElementById('sub-'+page)?.classList.add('active');
-  } else {
-    document.getElementById('nav-'+page)?.classList.add('active');
-  }
-  current=page;
-}
-
-function openSub(id){
-  document.getElementById('sub-'+id).classList.add('open');
-  document.getElementById('arrow-'+id)?.classList.add('open');
-  openSubs.add(id);
-}
-function closeSub(id){
-  document.getElementById('sub-'+id).classList.remove('open');
-  document.getElementById('arrow-'+id)?.classList.remove('open');
-  openSubs.delete(id);
-}
-function toggleSub(id){
-  if(openSubs.has(id)){
-    closeSub(id);
-    document.getElementById('nav-'+id+'-parent')?.classList.remove('active');
-  } else {
-    openSub(id);
-    document.getElementById('nav-'+id+'-parent')?.classList.add('active');
-    if(!subParent[id].includes(current)){
-      go(subParent[id][0]);
+    function showToast(message, type = 'info', duration = 2200) {
+      const text = String(message || '').trim();
+      if (!toastContainer || !text) return;
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      const icon = document.createElement('span');
+      icon.className = 'toast-icon';
+      icon.textContent = type === 'success' ? '✓' : (type === 'error' ? '!' : 'i');
+      const label = document.createElement('div');
+      label.className = 'toast-text';
+      label.textContent = text;
+      toast.appendChild(icon);
+      toast.appendChild(label);
+      toastContainer.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 220);
+      }, Math.max(800, Number(duration) || 2200));
     }
-  }
-}
 
-function seg(btn){
-  btn.closest('.seg').querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-}
+    let confirmResolve = null;
+    function openConfirmDialog({ title = 'Konfirmasi', message = '', okText = 'OK', cancelText = 'Batal', showCancel = true } = {}) {
+      return new Promise((resolve) => {
+        if (!confirmModal || !confirmOkBtn || !confirmCancelBtn || !confirmTitle || !confirmMessage) return resolve(false);
+        confirmResolve = resolve;
+        confirmTitle.textContent = String(title || 'Konfirmasi');
+        confirmMessage.textContent = String(message || '');
+        confirmOkBtn.textContent = String(okText || 'OK');
+        confirmCancelBtn.textContent = String(cancelText || 'Batal');
+        confirmCancelBtn.classList.toggle('hidden', !showCancel);
+        confirmModal.classList.remove('hidden');
+        confirmOkBtn.focus();
+      });
+    }
 
-let tt;
-function toast(msg){
-  const el=document.getElementById('toastEl');
-  document.getElementById('toastMsg').textContent=msg;
-  el.classList.add('show');
-  clearTimeout(tt);
-  tt=setTimeout(()=>el.classList.remove('show'),2200);
-}
+    function closeConfirmDialog(result = false) {
+      if (!confirmModal) return;
+      confirmModal.classList.add('hidden');
+      const resolve = confirmResolve;
+      confirmResolve = null;
+      if (typeof resolve === 'function') resolve(Boolean(result));
+    }
 
-const modals={
-  account:{title:'Hapus akun?',desc:'Semua data Anda akan dihapus permanen dan tidak dapat dipulihkan. Tindakan ini tidak dapat dibatalkan.',ok:'Hapus akun'},
-  chats:{title:'Hapus semua percakapan?',desc:'Seluruh riwayat chat akan dihapus secara permanen dan tidak bisa dikembalikan.',ok:'Hapus semua'}
-};
-let activeModal='';
-function openModal(type){
-  activeModal=type;
-  const m=modals[type];
-  document.getElementById('modalTitle').textContent=m.title;
-  document.getElementById('modalDesc').textContent=m.desc;
-  document.getElementById('modalOk').textContent=m.ok;
-  document.getElementById('modalWrap').classList.add('show');
-}
-function closeModal(){document.getElementById('modalWrap').classList.remove('show')}
-document.getElementById('modalOk').addEventListener('click',()=>{
-  closeModal();
-  toast(activeModal==='account'?'Permintaan hapus akun dikirim':'Semua percakapan dihapus');
-});
-document.getElementById('modalWrap').addEventListener('click',function(e){if(e.target===this)closeModal()});
+    confirmBackdrop?.addEventListener('click', () => closeConfirmDialog(false));
+    confirmCancelBtn?.addEventListener('click', () => closeConfirmDialog(false));
+    confirmOkBtn?.addEventListener('click', () => closeConfirmDialog(true));
 
-// Klik di luar sidebar menutup semua dropdown
-document.querySelector('.content').addEventListener('click',()=>{
-  ['account','plan','data'].forEach(id=>{
-    if(openSubs.has(id)){
-      closeSub(id);
-      document.getElementById('nav-'+id+'-parent')?.classList.remove('active');
-      // kembalikan active state jika halaman saat ini bagian dari grup ini
-      if(subParent[id].includes(current)){
-        document.getElementById('nav-'+id+'-parent')?.classList.add('active');
+    function getUser() {
+      try { return JSON.parse(localStorage.getItem('youz_user') || 'null'); } catch { return null; }
+    }
+
+    function getUserContext(user) {
+      return { id: user?.id || user?.sub || user?.user_id || user?._id || '', email: user?.email || '' };
+    }
+
+    function getConversationStorageKey(user) {
+      const userKey = user?.email || user?.id || 'guest';
+      return `youz_ai_conversations_${String(userKey).toLowerCase()}`;
+    }
+
+    function setTheme(theme, persist = true) {
+      const selected = ['light', 'dark', 'system'].includes(theme) ? theme : 'system';
+      if (selected === 'system') document.documentElement.removeAttribute('data-theme');
+      else document.documentElement.setAttribute('data-theme', selected);
+      document.querySelectorAll('#themeSeg button').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === selected));
+      if (persist) localStorage.setItem('youz_theme', selected);
+      return selected;
+    }
+
+    function setLanguage(lang, persist = true) {
+      const selected = ['id', 'en'].includes(lang) ? lang : 'id';
+      if (persist) localStorage.setItem('youz_language', selected);
+      return selected;
+    }
+
+    function setModel(model, persist = true) {
+      const selected = ['gemini', 'claude', 'gpt4o'].includes(model) ? model : 'gemini';
+      if (persist) localStorage.setItem('youz_model', selected);
+      return selected;
+    }
+
+    function setWebSearchEnabled(enabled, persist = true) {
+      const value = Boolean(enabled);
+      if (persist) localStorage.setItem('youz_web_search_enabled', value ? '1' : '0');
+      return value;
+    }
+
+    function setThinkingEnabled(enabled, persist = true) {
+      const value = Boolean(enabled);
+      if (persist) localStorage.setItem('youz_thinking_enabled', value ? '1' : '0');
+      return value;
+    }
+
+    async function fetchSettings(user) {
+      if (!user) return null;
+      try {
+        const qs = new URLSearchParams(getUserContext(user));
+        const res = await fetch(`/api/settings?${qs.toString()}`);
+        const data = await res.json();
+        if (data?.success) return data.settings || null;
+      } catch {}
+      return null;
+    }
+
+    let pendingPatch = {};
+    let saveTimer = null;
+    function queueSaveSettings(user, patch) {
+      if (!user) return;
+      pendingPatch = { ...pendingPatch, ...patch };
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        const payload = pendingPatch;
+        pendingPatch = {};
+        saveTimer = null;
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...payload, userContext: getUserContext(user) })
+          });
+        } catch {}
+      }, 400);
+    }
+
+    async function init() {
+      const user = getUser();
+      if (userLine) {
+        const label = user?.email ? user.email : (user ? (user.name || user.username || 'Akun') : 'Guest');
+        userLine.textContent = label ? `Akun: ${label}` : '';
       }
+      if (loginNote) loginNote.classList.toggle('hidden', Boolean(user));
+
+      const theme = localStorage.getItem('youz_theme') || 'system';
+      const lang = localStorage.getItem('youz_language') || 'id';
+      const model = localStorage.getItem('youz_model') || 'gemini';
+      const webSearch = localStorage.getItem('youz_web_search_enabled') !== '0';
+      const thinking = localStorage.getItem('youz_thinking_enabled') === '1';
+
+      setTheme(theme, false);
+      setLanguage(lang, false);
+      setModel(model, false);
+      document.getElementById('langSelect').value = lang;
+      document.getElementById('modelSelect').value = model;
+      document.getElementById('webSearchToggle').checked = webSearch;
+      document.getElementById('thinkingToggle').checked = thinking;
+
+      const serverSettings = await fetchSettings(user);
+      if (serverSettings) {
+        if (serverSettings.theme) setTheme(serverSettings.theme);
+        if (serverSettings.language) { setLanguage(serverSettings.language); document.getElementById('langSelect').value = serverSettings.language; }
+        if (serverSettings.model) { setModel(serverSettings.model); document.getElementById('modelSelect').value = serverSettings.model; }
+        if (typeof serverSettings.web_search_enabled === 'boolean') { setWebSearchEnabled(serverSettings.web_search_enabled); document.getElementById('webSearchToggle').checked = serverSettings.web_search_enabled; }
+        if (typeof serverSettings.thinking_enabled === 'boolean') { setThinkingEnabled(serverSettings.thinking_enabled); document.getElementById('thinkingToggle').checked = serverSettings.thinking_enabled; }
+      }
+
+      document.querySelectorAll('#themeSeg button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const selected = setTheme(btn.dataset.theme);
+          queueSaveSettings(user, { theme: selected });
+          showToast('Tema diperbarui', 'success');
+        });
+      });
+
+      document.getElementById('langSelect').addEventListener('change', (e) => {
+        const selected = setLanguage(e.target.value);
+        queueSaveSettings(user, { language: selected });
+        showToast('Bahasa diperbarui', 'success');
+      });
+
+      document.getElementById('modelSelect').addEventListener('change', (e) => {
+        const selected = setModel(e.target.value);
+        queueSaveSettings(user, { model: selected });
+        showToast('Model diperbarui', 'success');
+      });
+
+      document.getElementById('webSearchToggle').addEventListener('change', (e) => {
+        const value = setWebSearchEnabled(e.target.checked);
+        queueSaveSettings(user, { web_search_enabled: value });
+        showToast(value ? 'Web Search aktif' : 'Web Search mati', 'info', 1400);
+      });
+
+      document.getElementById('thinkingToggle').addEventListener('change', (e) => {
+        const value = setThinkingEnabled(e.target.checked);
+        queueSaveSettings(user, { thinking_enabled: value });
+        showToast(value ? 'Thinking mode aktif' : 'Thinking mode mati', 'info', 1400);
+      });
+
+      document.getElementById('clearChatsBtn').addEventListener('click', async () => {
+        const ok = await openConfirmDialog({
+          title: 'Hapus semua percakapan?',
+          message: 'Riwayat chat lokal pada perangkat ini akan dihapus.',
+          okText: 'Hapus',
+          cancelText: 'Batal'
+        });
+        if (!ok) return;
+        localStorage.removeItem(getConversationStorageKey(user));
+        showToast('Percakapan dihapus', 'success');
+      });
     }
-  });
-});
-</script>
+
+    init();
+  </script>
 </body>
 </html>

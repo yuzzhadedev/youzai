@@ -104,6 +104,16 @@ const removeDraftBtn = document.getElementById('removeDraftBtn');
 const sourcesSheet = document.getElementById('sourcesSheet');
 const sourcesBackdrop = document.getElementById('sourcesBackdrop');
 const sourcesList = document.getElementById('sourcesList');
+const sourcesCloseBtn = document.getElementById('sourcesCloseBtn');
+const sourcesHeaderLogos = document.getElementById('sourcesHeaderLogos');
+const sourcesHeaderQuery = document.getElementById('sourcesHeaderQuery');
+const confirmModal = document.getElementById('confirmModal');
+const confirmBackdrop = document.getElementById('confirmBackdrop');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+const confirmOkBtn = document.getElementById('confirmOkBtn');
+const toastContainer = document.getElementById('toastContainer');
 // ========== TAMBAHAN: HEADER NEW CHAT BUTTON ==========
 const headerNewChatBtn = document.getElementById('headerNewChatBtn');
 
@@ -147,6 +157,51 @@ function createNanoId(size = 12) {
     }
     for (let i = 0; i < size; i++) id += alphabet[Math.floor(Math.random() * alphabet.length)];
     return id;
+}
+
+function showToast(message, type = 'info', duration = 2200) {
+    if (!toastContainer) return;
+    const text = String(message || '').trim();
+    if (!text) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.textContent = type === 'success' ? '✓' : (type === 'error' ? '!' : 'i');
+    const label = document.createElement('div');
+    label.className = 'toast-text';
+    label.textContent = text;
+    toast.appendChild(icon);
+    toast.appendChild(label);
+    toastContainer.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    window.setTimeout(() => {
+        toast.classList.remove('show');
+        window.setTimeout(() => toast.remove(), 220);
+    }, Math.max(800, Number(duration) || 2200));
+}
+
+let confirmResolve = null;
+function openConfirmDialog({ title = 'Konfirmasi', message = '', okText = 'OK', cancelText = 'Batal', showCancel = true } = {}) {
+    return new Promise((resolve) => {
+        if (!confirmModal || !confirmOkBtn || !confirmCancelBtn || !confirmTitle || !confirmMessage) return resolve(false);
+        confirmResolve = resolve;
+        confirmTitle.textContent = String(title || 'Konfirmasi');
+        confirmMessage.textContent = String(message || '');
+        confirmOkBtn.textContent = String(okText || 'OK');
+        confirmCancelBtn.textContent = String(cancelText || 'Batal');
+        confirmCancelBtn.classList.toggle('hidden', !showCancel);
+        confirmModal.classList.remove('hidden');
+        confirmOkBtn.focus();
+    });
+}
+
+function closeConfirmDialog(result = false) {
+    if (!confirmModal) return;
+    confirmModal.classList.add('hidden');
+    const resolve = confirmResolve;
+    confirmResolve = null;
+    if (typeof resolve === 'function') resolve(Boolean(result));
 }
 
 function updateChatRoute(id = null, replace = false) {
@@ -378,16 +433,30 @@ function toggleComposerMenu(forceShow = null) {
     attachBtn.classList.toggle('is-open', nextShow);
 }
 
-function openSourcesSheet(sources = [], focusIndex = 0) {
+function openSourcesSheet(sources = [], focusIndex = 0, queryTitle = '') {
     if (!sourcesList || !sourcesSheet) return;
-    activeSources = sources;
-    sourcesList.innerHTML = !sources.length
+    const normalized = normalizeSources(sources);
+    activeSources = normalized;
+    if (sourcesHeaderQuery) sourcesHeaderQuery.textContent = String(queryTitle || '').trim();
+    if (sourcesHeaderLogos) {
+        sourcesHeaderLogos.innerHTML = normalized.slice(0, 3).map((source) => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('');
+    }
+    sourcesList.innerHTML = !normalized.length
         ? '<p>Tidak ada sumber.</p>'
-        : sources.map((source, index) => `
-            <div class="source-item">
-                <a href="${source.url}" target="_blank" rel="noopener noreferrer">[${index + 1}] ${escapeHtml(source.title || source.url)} - ${escapeHtml(source.domain || new URL(source.url).hostname.replace(/^www\./, ''))}</a>
-            </div>
-        `).join('');
+        : normalized.map((source, index) => {
+            const favicon = getSourceFaviconUrl(source.url);
+            const domain = source.domain || (() => { try { return new URL(source.url).hostname.replace(/^www\./, ''); } catch { return ''; } })();
+            const subtitle = String(source.snippet || domain || '').trim();
+            return `
+                <div class="source-item">
+                    <a href="${source.url}" target="_blank" rel="noopener noreferrer">
+                        <img src="${favicon}" alt="" loading="lazy">
+                        <span>[${index + 1}] ${escapeHtml(source.title || domain || source.url)}</span>
+                    </a>
+                    ${subtitle ? `<p>${escapeHtml(subtitle)}</p>` : ''}
+                </div>
+            `;
+        }).join('');
     sourcesSheet.classList.remove('hidden');
     const sourceItems = sourcesList.querySelectorAll('.source-item');
     if (sourceItems[focusIndex]) {
@@ -579,9 +648,8 @@ function createMessageElement(msg, index) {
     const metaHtml = showMeta && metaText
         ? `<div class="message-meta"><span>${escapeHtml(metaText)}</span><span class="message-meta-chevron">›</span></div>`
         : '';
-    const sideSourceText = !isUser && !msg.isError && shouldShowSourcesButton(msg) ? getSourcesSummaryText(msg.sources || []) : '';
-    const sideSourceHtml = sideSourceText
-        ? `<button class="message-side-source" type="button" title="Kutipan" data-index="${index}">${escapeHtml(sideSourceText)}</button>`
+    const sourcesButtonLabel = !isUser && !msg.isError && shouldShowSourcesButton(msg)
+        ? String(msg.searchTitle || msg.searchQuery || msg.queryTitle || '').trim() || 'Sumber'
         : '';
 
     messageDiv.innerHTML = `
@@ -609,19 +677,18 @@ function createMessageElement(msg, index) {
                             <i class="fas fa-redo-alt"></i>
                             <span>Ulang</span>
                         </button>
-                    </div>
-                    <div class="message-actions-right">
-                        ${shouldShowSourcesButton(msg) ? `
+                        ${sourcesButtonLabel ? `
                         <button class="action-btn sources-btn has-sources" type="button" title="Sumber" data-index="${index}">
                             <span class="source-logo-stack">${(msg.sources || []).slice(0,3).map(source => `<img src="${getSourceFaviconUrl(source.url)}" alt="" loading="lazy">`).join('')}</span>
-                            <span>Sumber</span>
+                            <span>${escapeHtml(sourcesButtonLabel)}</span>
                         </button>
                         ` : ''}
+                    </div>
+                    <div class="message-actions-right">
                         ${feedbackIndicator}
                     </div>
                 </div>
             ` : ''}
-            ${sideSourceHtml}
         </div>
     `;
     
@@ -638,20 +705,18 @@ function createMessageElement(msg, index) {
         const regenerateBtn = messageDiv.querySelector('.regenerate-btn');
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
         const sourcesBtn = messageDiv.querySelector('.sources-btn');
-        if (sourcesBtn) sourcesBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0));
-        const sideSourceBtn = messageDiv.querySelector('.message-side-source');
-        if (sideSourceBtn) sideSourceBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0));
+        if (sourcesBtn) sourcesBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0, msg.searchTitle || ''));
         
         messageDiv.querySelectorAll('.source-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const sourceIndex = Number(chip.dataset.sourceIndex || 0);
-                openSourcesSheet(msg.sources || [], sourceIndex);
+                openSourcesSheet(msg.sources || [], sourceIndex, msg.searchTitle || '');
             });
         });
         messageDiv.querySelectorAll('.inline-source-ref').forEach(ref => {
             ref.addEventListener('click', () => {
                 const sourceIndex = Math.max(0, Number(ref.dataset.sourceIndex || 1) - 1);
-                openSourcesSheet(msg.sources || [], sourceIndex);
+                openSourcesSheet(msg.sources || [], sourceIndex, msg.searchTitle || '');
             });
         });
     }
@@ -834,6 +899,7 @@ async function copyMessage(content, btn) {
         await navigator.clipboard.writeText(content);
         btn.classList.add('copied');
         btn.innerHTML = '<i class="fas fa-check"></i><span>Tersalin!</span>';
+        showToast('Tersalin', 'success');
         setTimeout(() => {
             btn.classList.remove('copied');
             btn.innerHTML = '<i class="far fa-copy"></i><span>Salin</span>';
@@ -841,7 +907,7 @@ async function copyMessage(content, btn) {
         console.log('✅ Pesan disalin');
     } catch (err) {
         console.error('Gagal menyalin:', err);
-        alert('Gagal menyalin pesan');
+        showToast('Gagal menyalin pesan', 'error');
     }
 }
 
@@ -860,6 +926,7 @@ function handleFeedback(messageIndex, type) {
     
     saveToStorage();
     renderMessages(conv.messages);
+    showToast(type === 'like' ? 'Disukai' : 'Tidak disukai', 'success');
     console.log(`📝 Feedback: ${type} untuk pesan #${messageIndex}`);
 }
 
@@ -879,13 +946,14 @@ async function regenerateResponse(messageIndex) {
     }
     
     if (!userMessage) {
-        alert('Tidak dapat menemukan pertanyaan untuk direspon ulang.');
+        showToast('Tidak dapat menemukan pertanyaan untuk direspon ulang.', 'error');
         return;
     }
     
     conv.messages.splice(messageIndex, 1);
     saveToStorage();
     renderMessages(conv.messages);
+    showToast('Regenerate...', 'info', 1200);
     await sendMessage({
         forcedText: userMessage.content || '',
         forcedImageData: userMessage.image || null
@@ -894,21 +962,26 @@ async function regenerateResponse(messageIndex) {
 
 // ========== ACTIONS ==========
 function deleteConversation(id) {
-    if (!confirm('Hapus percakapan ini?')) return;
-    
-    conversations = conversations.filter(c => c.id !== id);
-    saveToStorage();
-    
-    if (activeConversationId === id) {
-        if (conversations.length > 0) {
-            switchConversation(conversations[0].id);
-        } else {
-            createNewConversation();
-            switchConversation(activeConversationId);
+    openConfirmDialog({
+        title: 'Hapus percakapan?',
+        message: 'Percakapan ini akan dihapus permanen.',
+        okText: 'Hapus',
+        cancelText: 'Batal'
+    }).then((ok) => {
+        if (!ok) return;
+        conversations = conversations.filter(c => c.id !== id);
+        saveToStorage();
+        if (activeConversationId === id) {
+            if (conversations.length > 0) {
+                switchConversation(conversations[0].id);
+            } else {
+                createNewConversation();
+                switchConversation(activeConversationId);
+            }
         }
-    }
-    
-    renderSidebar();
+        renderSidebar();
+        showToast('Percakapan dihapus', 'success');
+    });
 }
 
 // ========== TIME UPDATE ==========
@@ -974,7 +1047,7 @@ function renderModelMenu() {
         btn.innerHTML = `<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span>${badge}`;
         btn.addEventListener('click', () => {
             if (disabled) {
-                if (!spec.available) alert('Claude Sonnet sedang maintenance.');
+                        if (!spec.available) showToast('Claude Sonnet sedang maintenance.', 'info');
                 return;
             }
             setActiveModel(key);
@@ -995,7 +1068,7 @@ function setActiveModel(model, persist = true) {
     const normalizedModel = MODEL_CATALOG[model] ? model : 'gemini';
     const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
     if (!MODEL_CATALOG[normalizedModel]?.available) {
-        alert('Claude Sonnet sedang maintenance.');
+        showToast('Claude Sonnet sedang maintenance.', 'info');
         return;
     }
     if (normalizedModel === 'gpt4o' && !isPremium) {
@@ -1010,6 +1083,8 @@ function setActiveModel(model, persist = true) {
     renderModelMenu();
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
+        queueUserSettingsSave({ model: activeModel });
+        showToast(`Model: ${MODEL_CATALOG[activeModel]?.label || activeModel}`, 'success');
     }
 }
 
@@ -1096,6 +1171,65 @@ async function readApiResponse(res) {
         }
         return { success: false, content: fallbackMessage, status: res.status };
     }
+}
+
+let pendingSettingsPatch = {};
+let settingsSaveTimer = null;
+
+async function fetchUserSettings() {
+    if (!currentUser) return null;
+    try {
+        const params = new URLSearchParams(getUserContext());
+        const res = await fetch(`/api/settings?${params.toString()}`);
+        const data = await readApiResponse(res);
+        if (data?.success) return data.settings || null;
+    } catch {}
+    return null;
+}
+
+function applyUserSettingsSnapshot(settings) {
+    const snapshot = settings || {};
+    if (snapshot.theme) {
+        setThemePreference(snapshot.theme, false);
+        localStorage.setItem('youz_theme', snapshot.theme);
+    }
+    if (snapshot.language) {
+        applyLanguage(snapshot.language, false);
+        localStorage.setItem('youz_language', snapshot.language);
+        if (languageSelect) languageSelect.value = snapshot.language;
+    }
+    if (snapshot.model) {
+        setActiveModel(snapshot.model, false);
+        localStorage.setItem('youz_model', snapshot.model);
+    }
+    if (typeof snapshot.web_search_enabled === 'boolean') {
+        webSearchEnabled = snapshot.web_search_enabled;
+        if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
+        localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
+    }
+    if (typeof snapshot.thinking_enabled === 'boolean') {
+        thinkingModeEnabled = snapshot.thinking_enabled;
+        if (toolThinking) toolThinking.checked = thinkingModeEnabled;
+        localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
+    }
+}
+
+function queueUserSettingsSave(patch = {}) {
+    if (!currentUser) return;
+    pendingSettingsPatch = { ...pendingSettingsPatch, ...patch };
+    if (settingsSaveTimer) window.clearTimeout(settingsSaveTimer);
+    settingsSaveTimer = window.setTimeout(async () => {
+        const payload = pendingSettingsPatch;
+        pendingSettingsPatch = {};
+        settingsSaveTimer = null;
+        try {
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...payload, userContext: getUserContext() })
+            });
+        } catch {}
+    }, 400);
 }
 
 async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, conversationId, signal) {
@@ -1378,6 +1512,7 @@ async function sendMessage(options = {}) {
             content: '',
             model: response.model || (enableSearch ? 'web-search' : activeModel),
             hasSearch: Boolean(response.hasSearch) || enableSearch,
+            searchTitle: enableSearch ? String(text || '').trim() : '',
             isError: !response.success,
             feedback: null,
             sources: mergeSources(response.sources || [], extractSourcesFromText(response.content || '')),
@@ -1502,7 +1637,7 @@ const translations = {
     }
 };
 
-function applyLanguage(lang) {
+function applyLanguage(lang, persist = true) {
     const t = translations[lang];
     if (!t) return;
     
@@ -1581,7 +1716,10 @@ function applyLanguage(lang) {
     const loginNote = document.querySelector('.sidebar-auth-note');
     if (loginNote) loginNote.textContent = t.loginNote;
     
-    localStorage.setItem('youz_language', lang);
+    if (persist) {
+        localStorage.setItem('youz_language', lang);
+        queueUserSettingsSave({ language: lang });
+    }
     currentLanguage = lang;
     renderSidebar();
 }
@@ -1656,6 +1794,10 @@ headerNewChatBtn?.addEventListener('click', () => {
 
 sendBtn?.addEventListener('click', sendMessage);
 sourcesBackdrop?.addEventListener('click', closeSourcesSheet);
+sourcesCloseBtn?.addEventListener('click', closeSourcesSheet);
+confirmBackdrop?.addEventListener('click', () => closeConfirmDialog(false));
+confirmCancelBtn?.addEventListener('click', () => closeConfirmDialog(false));
+confirmOkBtn?.addEventListener('click', () => closeConfirmDialog(true));
 
 messageInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1685,11 +1827,15 @@ composerMenuPhoto?.addEventListener('click', () => {
 toolWebSearch?.addEventListener('change', (e) => {
     webSearchEnabled = e.target.checked;
     localStorage.setItem('youz_web_search_enabled', webSearchEnabled ? '1' : '0');
+    queueUserSettingsSave({ web_search_enabled: webSearchEnabled });
+    showToast(webSearchEnabled ? 'Web Search aktif' : 'Web Search mati', 'info', 1400);
 });
 
 toolThinking?.addEventListener('change', (e) => {
     thinkingModeEnabled = e.target.checked;
     localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
+    queueUserSettingsSave({ thinking_enabled: thinkingModeEnabled });
+    showToast(thinkingModeEnabled ? 'Thinking mode aktif' : 'Thinking mode mati', 'info', 1400);
 });
 
 
@@ -1704,17 +1850,29 @@ imageInput?.addEventListener('change', (e) => {
 removeDraftBtn?.addEventListener('click', clearImageDraft);
 
 clearAllBtn?.addEventListener('click', () => {
-    if (confirm('Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.')) {
+    openConfirmDialog({
+        title: 'Hapus semua percakapan?',
+        message: 'Tindakan ini tidak dapat dibatalkan.',
+        okText: 'Hapus semua',
+        cancelText: 'Batal'
+    }).then((ok) => {
+        if (!ok) return;
         conversations = [];
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
         menuDropdown.classList.remove('show');
-    }
+        showToast('Semua percakapan dihapus', 'success');
+    });
 });
 
 aboutBtn?.addEventListener('click', () => {
-    alert('Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc');
+    openConfirmDialog({
+        title: 'Tentang Youz AI',
+        message: 'Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc',
+        okText: 'Tutup',
+        showCancel: false
+    });
     menuDropdown.classList.remove('show');
 });
 
@@ -1765,15 +1923,26 @@ if (selected === 'system') {
 
 if (persist) {
         localStorage.setItem('youz_theme', selected);
+        queueUserSettingsSave({ theme: selected });
     }
 }
 
-themeLight?.addEventListener('click', () => setThemePreference('light'));
-themeDark?.addEventListener('click', () => setThemePreference('dark'));
-themeSystem?.addEventListener('click', () => setThemePreference('system'));
+themeLight?.addEventListener('click', () => {
+    setThemePreference('light');
+    showToast('Tema diperbarui', 'success');
+});
+themeDark?.addEventListener('click', () => {
+    setThemePreference('dark');
+    showToast('Tema diperbarui', 'success');
+});
+themeSystem?.addEventListener('click', () => {
+    setThemePreference('system');
+    showToast('Tema diperbarui', 'success');
+});
 
 languageSelect?.addEventListener('change', (e) => {
     applyLanguage(e.target.value);
+    showToast('Bahasa diperbarui', 'success');
 });
 
 
@@ -1786,7 +1955,7 @@ saveProfileBtn?.addEventListener('click', async () => {
         else currentUser.name = profileName.value;
         localStorage.setItem('youz_user', JSON.stringify(currentUser));
         updateUserUI();
-        alert(currentLanguage === 'id' ? 'Profil berhasil disimpan!' : 'Profile saved successfully!');
+        showToast(currentLanguage === 'id' ? 'Profil berhasil disimpan!' : 'Profile saved successfully!', 'success');
     }
 });
 
@@ -1794,14 +1963,20 @@ clearAllDataBtn?.addEventListener('click', () => {
     const confirmMsg = currentLanguage === 'id' ? 
         'Hapus SEMUA percakapan? Tindakan ini tidak dapat dibatalkan.' : 
         'Delete ALL conversations? This action cannot be undone.';
-    
-    if (confirm(confirmMsg)) {
+    openConfirmDialog({
+        title: currentLanguage === 'id' ? 'Hapus semua percakapan?' : 'Delete all conversations?',
+        message: confirmMsg,
+        okText: currentLanguage === 'id' ? 'Hapus semua' : 'Delete all',
+        cancelText: currentLanguage === 'id' ? 'Batal' : 'Cancel'
+    }).then((ok) => {
+        if (!ok) return;
         conversations = [];
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
         closeSettings();
-    }
+        showToast(currentLanguage === 'id' ? 'Semua percakapan dihapus' : 'All conversations deleted', 'success');
+    });
 });
 
 exportDataBtn?.addEventListener('click', () => {
@@ -1817,6 +1992,7 @@ exportDataBtn?.addEventListener('click', () => {
     a.download = `youz-ai-export-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    showToast(currentLanguage === 'id' ? 'Data diekspor' : 'Data exported', 'success');
 });
 
 userProfileBtn?.addEventListener('click', (e) => {
@@ -1825,7 +2001,7 @@ userProfileBtn?.addEventListener('click', (e) => {
         openSettings('profile');
         toggleUserMenu(false);
     } else {
-        alert(currentLanguage === 'id' ? 'Silakan login terlebih dahulu.' : 'Please login first.');
+        showToast(currentLanguage === 'id' ? 'Silakan login terlebih dahulu.' : 'Please login first.', 'info');
     }
 });
 
@@ -1902,6 +2078,10 @@ window.addEventListener('resize', () => {
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+        if (confirmModal && !confirmModal.classList.contains('hidden')) {
+            closeConfirmDialog(false);
+            return;
+        }
         closeSourcesSheet();
     }
 });
@@ -1947,8 +2127,13 @@ async function init() {
     setThemePreference(savedTheme, false);
     
     const savedLang = localStorage.getItem('youz_language') || 'id';
-    applyLanguage(savedLang);
+    applyLanguage(savedLang, false);
     if (languageSelect) languageSelect.value = savedLang;
+
+    const serverSettings = await fetchUserSettings();
+    if (serverSettings) {
+        applyUserSettingsSnapshot(serverSettings);
+    }
     
     if (window.location.pathname === '/' || window.location.pathname.startsWith('/c/')) {
         const activeConv = conversations.find((c) => c.id === activeConversationId);
