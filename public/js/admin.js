@@ -100,4 +100,39 @@ async function approvePremium(targetUserKey) {
 }
 
 refreshAdminBtn?.addEventListener('click', loadAdminData);
+
+const sendNotifBtn = document.createElement('button');
+sendNotifBtn.className = 'admin-btn';
+sendNotifBtn.textContent = 'Kirim Notifikasi';
+sendNotifBtn.addEventListener('click', sendAdminNotification);
+refreshAdminBtn?.parentElement?.appendChild(sendNotifBtn);
+
 loadAdminData();
+
+async function sendAdminNotification() {
+  const targetMode = window.prompt('Kirim notifikasi ke: "all" atau "user"?', 'all');
+  if (!targetMode) return;
+  const target = String(targetMode).toLowerCase() === 'user' ? 'user' : 'all';
+  let targetUserKey = '';
+  if (target === 'user') {
+    targetUserKey = window.prompt('Masukkan user_key target (contoh: email:user@contoh.com)');
+    if (!targetUserKey) return setStatus('target user wajib diisi', 'error');
+  }
+  const title = window.prompt('Judul notifikasi', 'Notifikasi Admin') || 'Notifikasi Admin';
+  const message = window.prompt('Isi pesan notifikasi');
+  if (!message) return setStatus('Pesan notifikasi wajib diisi.', 'error');
+
+  setStatus('Mengirim notifikasi admin...');
+  try {
+    const res = await fetch('/api/settings?scope=admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'send_notification', target, targetUserKey, title, message })
+    });
+    const data = await res.json();
+    if (!res.ok || !data?.success) throw new Error(data?.message || 'Gagal kirim notifikasi');
+    setStatus('Notifikasi berhasil dikirim.', 'success');
+  } catch (error) {
+    setStatus(error.message || 'Gagal kirim notifikasi.', 'error');
+  }
+}

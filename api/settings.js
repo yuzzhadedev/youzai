@@ -1,4 +1,4 @@
-import { resolveUserKey, getUserSettings, upsertUserSettings, readTable, confirmPremium, getQuotaSnapshot } from '../lib/db.js';
+import { resolveUserKey, getUserSettings, upsertUserSettings, readTable, confirmPremium, getQuotaSnapshot, pushNotification, listNotifications, markNotificationsRead } from '../lib/db.js';
 
 const ADMIN_EMAIL = 'mutustorereal@gmail.com';
 
@@ -62,6 +62,16 @@ export default async function handler(req, res) {
           const quota = await getQuotaSnapshot(targetUserKey);
           return res.status(200).json({ success: true, message: 'Premium berhasil diaktifkan.', quota });
         }
+
+        if (action === 'send_notification') {
+          const target = String(req.body?.target || 'all').toLowerCase() === 'user' ? 'user' : 'all';
+          const targetUserKey = String(req.body?.targetUserKey || '').trim();
+          const title = String(req.body?.title || 'Notifikasi Admin').trim();
+          const message = String(req.body?.message || '').trim();
+          if (!message) return res.status(400).json({ success: false, message: 'Pesan notifikasi wajib diisi.' });
+          const notif = await pushNotification({ admin: extractEmailFromUserKey(userKey) || 'admin', target, targetUserKey, title, message });
+          return res.status(200).json({ success: true, message: 'Notifikasi terkirim.', notification: notif });
+        }
         return res.status(400).json({ success: false, message: 'Action tidak dikenali.' });
       }
 
@@ -72,13 +82,22 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
+    if (String(req.query?.scope || '') === 'notifications') {
+      const notifications = await listNotifications(userKey, { onlyUnread: false });
+      const unread_count = notifications.filter((row) => !(row?.read_by || []).includes(userKey)).length;
+      return res.status(200).json({ success: true, notifications, unread_count });
+    }
     const settings = await getUserSettings(userKey);
     return res.status(200).json({ success: true, settings: settings || null });
   }
 
   if (req.method === 'POST') {
     try {
-      const { userContext: _ignored, ...payload } = req.body || {};
+      const { userContext: _ignored, action, ...payload } = req.body || {};
+      if (String(action || '') === 'mark_notifications_read') {
+        const marked = await markNotificationsRead(userKey, Array.isArray(req.body?.ids) ? req.body.ids : []);
+        return res.status(200).json({ success: true, marked });
+      }
       const settings = await upsertUserSettings(userKey, payload);
       return res.status(200).json({ success: true, settings });
     } catch (error) {
