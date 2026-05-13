@@ -450,8 +450,8 @@ input.inp[type=password]{letter-spacing:.1em}
       <div class="section-label" style="margin-bottom:8px">Bahasa & Region</div>
       <div class="row">
         <div class="row-left"><div class="row-name">Bahasa antarmuka</div><div class="row-hint">Bahasa yang digunakan di seluruh aplikasi</div></div>
-        <select class="sel" onchange="toast('Bahasa diperbarui')">
-          <option>🇮🇩 Bahasa Indonesia</option><option>🇺🇸 English</option><option>🇨🇳 中文</option><option>🇸🇦 العربية</option>
+        <select class="sel" id="languageSelect">
+          <option value="id">🇮🇩 Bahasa Indonesia</option><option value="en">🇺🇸 English</option>
         </select>
       </div>
       <div class="row">
@@ -490,11 +490,30 @@ input.inp[type=password]{letter-spacing:.1em}
       <div class="section-label" style="margin-bottom:8px">Tema</div>
       <div class="row">
         <div class="row-left"><div class="row-name">Mode warna</div><div class="row-hint">Pilih tampilan terang, gelap, atau ikuti sistem</div></div>
-        <div class="seg">
-          <button class="seg-btn" onclick="seg(this);toast('Tema diubah')">☀ Terang</button>
-          <button class="seg-btn on" onclick="seg(this);toast('Tema diubah')">☾ Gelap</button>
-          <button class="seg-btn" onclick="seg(this);toast('Tema diubah')">⊞ Auto</button>
+        <div class="seg" id="themeSeg">
+          <button class="seg-btn" data-theme="light" onclick="seg(this)">☀ Terang</button>
+          <button class="seg-btn on" data-theme="dark" onclick="seg(this)">☾ Gelap</button>
+          <button class="seg-btn" data-theme="system" onclick="seg(this)">⊞ Auto</button>
         </div>
+      </div>
+    </div>
+    <div class="settings-block">
+      <div class="section-label" style="margin-bottom:8px">AI</div>
+      <div class="row">
+        <div class="row-left"><div class="row-name">Model default</div><div class="row-hint">Model utama saat membuka chat baru</div></div>
+        <select class="sel" id="modelSelect">
+          <option value="gemini">Gemini 2.0 Flash</option>
+          <option value="claude">Claude Sonnet 4.5</option>
+          <option value="gpt4o">ChatGPT 4o</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-name">Web Search</div><div class="row-hint">Aktifkan pencarian web saat chat</div></div>
+        <label class="tog"><input id="webSearchToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label>
+      </div>
+      <div class="row">
+        <div class="row-left"><div class="row-name">Thinking mode</div><div class="row-hint">Mode analisis lebih mendalam untuk jawaban kompleks</div></div>
+        <label class="tog"><input id="thinkingToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
     </div>
     <div class="settings-block">
@@ -824,6 +843,91 @@ document.querySelector('.content').addEventListener('click',()=>{
     }
   });
 });
+
+const settingsState = { theme:'dark', language:'id', model:'gemini', web_search_enabled:true, thinking_enabled:false };
+let saveTimer = null;
+
+function getUserContext() {
+  try {
+    const raw = localStorage.getItem('youz_ai_user');
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function applySettingsToUI(settings = {}) {
+  const merged = { ...settingsState, ...(settings || {}) };
+  Object.assign(settingsState, merged);
+
+  document.querySelectorAll('#themeSeg .seg-btn').forEach((btn) => {
+    btn.classList.toggle('on', btn.dataset.theme === merged.theme);
+  });
+  const languageSelect = document.getElementById('languageSelect');
+  const modelSelect = document.getElementById('modelSelect');
+  const webSearchToggle = document.getElementById('webSearchToggle');
+  const thinkingToggle = document.getElementById('thinkingToggle');
+  if (languageSelect) languageSelect.value = merged.language;
+  if (modelSelect) modelSelect.value = merged.model;
+  if (webSearchToggle) webSearchToggle.checked = !!merged.web_search_enabled;
+  if (thinkingToggle) thinkingToggle.checked = !!merged.thinking_enabled;
+}
+
+async function saveSettings() {
+  const payload = { ...settingsState, userContext: getUserContext() };
+  const res = await fetch('/api/settings', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) });
+  const json = await res.json();
+  if (!res.ok || !json?.success) throw new Error(json?.message || 'Gagal menyimpan settings');
+  applySettingsToUI(json.settings);
+}
+
+function queueSave(successMsg = 'Pengaturan disimpan') {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await saveSettings();
+      toast(successMsg);
+    } catch (err) {
+      toast(err?.message || 'Gagal sync settings');
+    }
+  }, 250);
+}
+
+async function loadSettings() {
+  try {
+    const user = getUserContext();
+    const query = user?.email ? `?email=${encodeURIComponent(user.email)}` : '';
+    const res = await fetch(`/api/settings${query}`);
+    const json = await res.json();
+    if (json?.success && json?.settings) applySettingsToUI(json.settings);
+    else applySettingsToUI();
+  } catch {
+    applySettingsToUI();
+  }
+}
+
+document.querySelectorAll('#themeSeg .seg-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    settingsState.theme = btn.dataset.theme;
+    queueSave('Tema diperbarui');
+  });
+});
+document.getElementById('languageSelect')?.addEventListener('change', (e) => {
+  settingsState.language = e.target.value;
+  queueSave('Bahasa diperbarui');
+});
+document.getElementById('modelSelect')?.addEventListener('change', (e) => {
+  settingsState.model = e.target.value;
+  queueSave('Model default diperbarui');
+});
+document.getElementById('webSearchToggle')?.addEventListener('change', (e) => {
+  settingsState.web_search_enabled = e.target.checked;
+  queueSave('Web Search diperbarui');
+});
+document.getElementById('thinkingToggle')?.addEventListener('change', (e) => {
+  settingsState.thinking_enabled = e.target.checked;
+  queueSave('Thinking mode diperbarui');
+});
+
+loadSettings();
 </script>
 </body>
 </html>
