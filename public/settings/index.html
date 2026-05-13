@@ -118,6 +118,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   background:var(--border-focus);flex-shrink:0;
 }
 .sub-item.active .sub-pip{background:var(--accent)}
+.hidden{display:none !important}
 
 /* Sidebar footer */
 .sidebar-foot{
@@ -431,6 +432,13 @@ input.inp[type=password]{letter-spacing:.1em}
           <span class="nav-label">Tentang</span>
         </div>
       </div>
+
+      <div class="nav-row hidden" id="nav-admin" onclick="go('admin')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.2 9.7-8 10-4.8-.3-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <span class="nav-label">Admin Panel</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -733,6 +741,20 @@ input.inp[type=password]{letter-spacing:.1em}
     </div>
   </div>
 
+  <div class="page" id="page-admin">
+    <div class="page-head">
+      <div class="page-title">Admin Panel</div>
+      <div class="page-desc">Akses khusus untuk mutustorereal@gmail.com</div>
+    </div>
+    <div class="settings-block">
+      <div class="section-label" style="margin-bottom:8px">Ringkasan Sistem</div>
+      <div class="row"><div class="row-left"><div class="row-name">Pending Premium Request</div></div><div class="row-ctrl" id="adminPendingRequests">-</div></div>
+      <div class="row"><div class="row-left"><div class="row-name">Premium Users Aktif</div></div><div class="row-ctrl" id="adminActivePremium">-</div></div>
+      <div class="row"><div class="row-left"><div class="row-name">Total Chat Log</div></div><div class="row-ctrl" id="adminTotalChat">-</div></div>
+      <div class="btn-row"><button class="btn" id="adminRefreshBtn">Refresh Data</button></div>
+    </div>
+  </div>
+
 </main>
 </div>
 
@@ -760,7 +782,7 @@ const pageMap={
   'profile':'account','security':'account','login':'account',
   'plan-status':'plan','billing':'plan','upgrade':'plan',
   'export':'data','delete':'data',
-  'about':null
+  'about':null,'admin':null
 };
 const subParent={'account':['profile','security','login'],'plan':['plan-status','billing','upgrade'],'data':['export','delete']};
 const openSubs=new Set();
@@ -852,6 +874,7 @@ document.querySelector('.content').addEventListener('click',()=>{
 const settingsState = { theme:'dark', language:'id', model:'gemini', web_search_enabled:true, thinking_enabled:false };
 let saveTimer = null;
 const runtimeState = { me:null, quota:null, premium:null };
+const ADMIN_EMAIL = 'mutustorereal@gmail.com';
 
 function getUserContext() {
   try {
@@ -928,6 +951,11 @@ async function loadAllData() {
   document.getElementById('profileEmailInput').value = userObj?.email || '';
 
   const planText = String((premiumRes?.plan || meRes?.user?.plan || 'free')).toUpperCase();
+  const email = (userObj?.email || user?.email || '').toLowerCase();
+  const navAdmin = document.getElementById('nav-admin');
+  if (isAdminEmail(email) && navAdmin) {
+    navAdmin.classList.remove('hidden');
+  }
   const planBadge = document.querySelector('.plan-pill');
   if (planBadge) planBadge.textContent = `★ ${planText}`;
 }
@@ -971,8 +999,32 @@ document.getElementById('thinkingToggle')?.addEventListener('change', (e) => {
   queueSave('Thinking mode diperbarui');
 });
 
+
+function isAdminEmail(email = '') {
+  return String(email || '').trim().toLowerCase() === ADMIN_EMAIL;
+}
+
+async function loadAdminData() {
+  const user = getUserContext();
+  const query = user?.email ? `?email=${encodeURIComponent(user.email)}` : '';
+  const res = await fetch(`/api/admin${query}`);
+  const json = await res.json();
+  if (!res.ok || !json?.success) throw new Error(json?.message || 'Gagal load data admin');
+  const data = json.data || {};
+  document.getElementById('adminPendingRequests').textContent = data.pending_requests ?? '-';
+  document.getElementById('adminActivePremium').textContent = data.active_premium_users ?? '-';
+  document.getElementById('adminTotalChat').textContent = data.chat_messages_logged ?? '-';
+}
+
 loadSettings();
-loadAllData();
+loadAllData().then(() => {
+  const user = getUserContext();
+  if (isAdminEmail(user?.email)) loadAdminData().catch((err) => toast(err?.message || 'Gagal memuat data admin'));
+});
+document.getElementById('adminRefreshBtn')?.addEventListener('click', () => {
+  loadAdminData().then(() => toast('Data admin diperbarui')).catch((err) => toast(err?.message || 'Gagal memuat data admin'));
+});
+
 document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
   saveProfile().catch((err) => toast(err?.message || 'Gagal menyimpan profil'));
 });
