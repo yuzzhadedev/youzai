@@ -1,0 +1,18 @@
+{
+  "usage_daily": {},
+  "premium_users": {},
+  "premium_requests": [],
+  "chat_history": [],
+  "user_profiles": {},
+  "user_settings": {
+    "guest:test": {
+      "user_key": "guest:test",
+      "theme": "dark",
+      "language": "en",
+      "model": "gemini",
+      "web_search_enabled": false,
+      "thinking_enabled": true,
+      "updated_at": "2026-05-12T13:28:27.517Z"
+    }
+  }
+}
