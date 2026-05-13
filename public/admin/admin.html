@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin Panel • Youz AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0f0f10;
+  --bg-elevated:#161618;
+  --bg-hover:#1c1c1f;
+  --bg-active:#212124;
+  --border:#2a2a2e;
+  --border-focus:#4a4a6a;
+  --text:#e8e8ea;
+  --text-muted:#7a7a8a;
+  --text-dim:#4a4a5a;
+  --accent:#6c63ff;
+  --accent-soft:rgba(108,99,255,.12);
+  --accent-border:rgba(108,99,255,.3);
+  --green:#22c55e;
+  --green-soft:rgba(34,197,94,.1);
+  --red:#ef4444;
+  --red-soft:rgba(239,68,68,.08);
+  --red-border:rgba(239,68,68,.25);
+  --amber:#f59e0b;
+  --amber-soft:rgba(245,158,11,.1);
+  --amber-border:rgba(245,158,11,.25);
+  --blue:#3b82f6;
+  --blue-soft:rgba(59,130,246,.1);
+  --sidebar-w:230px;
+  --radius:10px;
+  --radius-sm:7px;
+  --font:'Geist',system-ui,sans-serif;
+  --mono:'Geist Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5}
+::selection{background:var(--accent-soft);color:var(--text)}
+
+.layout{display:flex;height:100vh;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--bg-elevated);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sidebar-head{padding:18px 14px 14px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+.brand-mark{
+  width:30px;height:30px;border-radius:9px;
+  background:linear-gradient(135deg,#6c63ff,#a78bfa);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;color:#fff;flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(108,99,255,.3);
+}
+.brand-name{font-size:14px;font-weight:500;letter-spacing:-.01em}
+.brand-badge{
+  font-size:9px;font-weight:600;padding:2px 6px;border-radius:4px;
+  background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.2);
+  letter-spacing:.04em;
+}
+.nav{flex:1;overflow-y:auto;padding:8px;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-group{margin-bottom:4px}
+.nav-group-label{
+  font-size:10px;font-weight:500;color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:.08em;padding:8px 8px 4px;
+}
+.nav-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 9px;border-radius:var(--radius-sm);
+  cursor:pointer;transition:background .12s;gap:6px;user-select:none;
+}
+.nav-row:hover{background:var(--bg-hover)}
+.nav-row.active{background:var(--bg-active)}
+.nav-row-left{display:flex;align-items:center;gap:8px}
+.nav-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);flex-shrink:0}
+.nav-row.active .nav-icon{color:var(--text)}
+.nav-label{font-size:13px;color:var(--text-muted)}
+.nav-row.active .nav-label{color:var(--text);font-weight:500}
+.nav-badge{
+  font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;
+  background:var(--red-soft);color:var(--red);border:1px solid var(--red-border);
+  margin-left:auto;
+}
+.nav-arrow{color:var(--text-dim);transition:transform .18s;flex-shrink:0}
+.nav-arrow svg{width:12px;height:12px}
+.nav-arrow.open{transform:rotate(90deg)}
+.subnav{overflow:hidden;max-height:0;transition:max-height .22s cubic-bezier(.4,0,.2,1)}
+.subnav.open{max-height:300px}
+.sub-item{
+  display:flex;align-items:center;gap:7px;
+  padding:5px 9px 5px 33px;border-radius:var(--radius-sm);
+  cursor:pointer;font-size:12px;color:var(--text-muted);transition:all .12s;
+}
+.sub-item:hover{background:var(--bg-hover);color:var(--text)}
+.sub-item.active{color:var(--accent)}
+.sub-pip{width:4px;height:4px;border-radius:50%;background:var(--border-focus);flex-shrink:0}
+.sub-item.active .sub-pip{background:var(--accent)}
+
+.sidebar-foot{padding:10px;border-top:1px solid var(--border)}
+.admin-card{
+  display:flex;align-items:center;gap:9px;padding:8px 10px;
+  border-radius:var(--radius);border:1px solid var(--border);background:var(--bg-hover);
+}
+.avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#7f1d1d,#dc2626);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:#fca5a5;flex-shrink:0;
+}
+.admin-name{font-size:12px;font-weight:500}
+.admin-role{font-size:10px;color:var(--text-muted)}
+.role-pill{
+  display:inline-flex;align-items:center;padding:1px 6px;border-radius:999px;
+  font-size:9px;font-weight:600;background:var(--red-soft);color:var(--red);
+  border:1px solid var(--red-border);
+}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;background:var(--bg);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.page{display:none;padding:28px 32px;max-width:900px}
+.page.active{display:block}
+.page-head{margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.page-head-left{}
+.page-title{font-size:20px;font-weight:500;letter-spacing:-.02em;margin-bottom:3px}
+.page-desc{font-size:13px;color:var(--text-muted)}
+
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.stat-card{
+  background:var(--bg-elevated);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;
+}
+.stat-label{font-size:11px;color:var(--text-muted);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px;font-family:var(--mono)}
+.stat-delta{font-size:11px;display:flex;align-items:center;gap:3px}
+.delta-up{color:var(--green)}
+.delta-down{color:var(--red)}
+.stat-icon{
+  width:14px;height:14px;
+}
+
+/* Chart placeholder */
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:24px}
+.chart-box{
+  background:var(--bg-elevated);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;
+}
+.chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.chart-title{font-size:13px;font-weight:500}
+.chart-area{height:140px;display:flex;align-items:flex-end;gap:4px;padding-top:8px}
+.bar{flex:1;border-radius:4px 4px 0 0;background:var(--accent-soft);border:1px solid var(--accent-border);transition:background .14s;cursor:pointer;min-height:4px}
+.bar:hover{background:var(--accent-soft);opacity:.8}
+.bar.hi{background:var(--accent);border-color:var(--accent)}
+.donut-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:140px;gap:12px}
+.donut{position:relative;width:90px;height:90px}
+.donut svg{transform:rotate(-90deg)}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-pct{font-size:16px;font-weight:600;font-family:var(--mono)}
+.donut-sub{font-size:9px;color:var(--text-muted)}
+.legend{display:flex;flex-direction:column;gap:5px;width:100%}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Table */
+.table-box{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px}
+.table-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.table-title{font-size:13px;font-weight:500}
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-size:11px;font-weight:500;color:var(--text-muted);
+  text-align:left;padding:10px 18px;border-bottom:1px solid var(--border);
+  text-transform:uppercase;letter-spacing:.05em;
+}
+tbody tr{transition:background .1s;cursor:pointer}
+tbody tr:hover{background:var(--bg-hover)}
+tbody td{padding:11px 18px;font-size:13px;border-bottom:1px solid var(--border)}
+tbody tr:last-child td{border-bottom:none}
+.td-mono{font-family:var(--mono);font-size:12px;color:var(--text-muted)}
+.td-name{display:flex;align-items:center;gap:8px}
+.td-avatar{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--bg-active);display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;color:var(--text-muted);flex-shrink:0;
+}
+
+/* Chips/badges */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:500;border:1px solid}
+.chip-green{background:var(--green-soft);color:var(--green);border-color:rgba(34,197,94,.2)}
+.chip-red{background:var(--red-soft);color:var(--red);border-color:var(--red-border)}
+.chip-amber{background:var(--amber-soft);color:var(--amber);border-color:var(--amber-border)}
+.chip-accent{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-border)}
+.chip-muted{background:var(--bg-active);color:var(--text-muted);border-color:var(--border)}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--bg-elevated);
+  color:var(--text);font-size:12px;font-weight:500;
+  font-family:var(--font);cursor:pointer;transition:all .14s;
+}
+.btn:hover{background:var(--bg-hover);border-color:var(--border-focus)}
+.btn svg{width:13px;height:13px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{opacity:.88}
+.btn.danger{border-color:var(--red-border);background:var(--red-soft);color:var(--red)}
+.btn.danger:hover{background:rgba(239,68,68,.15)}
+.btn.sm{padding:5px 10px;font-size:11px}
+
+/* Search/filter bar */
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-muted);pointer-events:none}
+input.search{
+  width:100%;padding:7px 10px 7px 32px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--bg-elevated);
+  color:var(--text);font-size:13px;font-family:var(--font);transition:border-color .14s;
+}
+input.search:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
+select.filter-sel{
+  border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+  padding:6px 26px 6px 10px;border-radius:var(--radius-sm);font-size:12px;
+  font-family:var(--font);cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+
+/* Settings rows (reused from settings page) */
+.section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:8px}
+.settings-block{margin-bottom:24px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid var(--border)}
+.row:first-of-type{border-top:1px solid var(--border)}
+.row:last-child{border-bottom:none}
+.row-name{font-size:13px;color:var(--text)}
+.row-hint{font-size:12px;color:var(--text-muted);margin-top:2px}
+input.inp{
+  border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+  padding:7px 11px;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);
+  width:200px;transition:border-color .14s;
+}
+input.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
+select.sel{
+  border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+  padding:6px 28px 6px 10px;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);
+  cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+.tog{position:relative;width:36px;height:20px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;border-radius:999px;background:var(--bg-active);border:1px solid var(--border);cursor:pointer;transition:all .18s}
+.tog input:checked+.tog-track{background:var(--accent);border-color:var(--accent)}
+.tog-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:var(--text-muted);transition:transform .18s,background .18s;pointer-events:none}
+.tog input:checked~.tog-thumb{transform:translateX(16px);background:#fff}
+
+/* Log entries */
+.log-entry{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.log-entry:last-child{border-bottom:none}
+.log-icon-wrap{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.log-icon-wrap svg{width:13px;height:13px}
+.log-text{font-size:13px;color:var(--text);margin-bottom:2px}
+.log-meta{font-size:11px;color:var(--text-muted)}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:20px;right:20px;
+  background:var(--bg-elevated);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px 16px;font-size:13px;
+  display:flex;align-items:center;gap:9px;z-index:200;
+  opacity:0;transform:translateY(8px);transition:all .22s;
+  pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-icon{color:var(--green)}
+.toast-icon svg{width:15px;height:15px}
+
+/* Modal */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px)}
+.modal-wrap.show{opacity:1;pointer-events:all}
+.modal{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:340px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:6px;letter-spacing:-.01em}
+.modal-desc{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.6}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end}
+.modal-cancel{padding:7px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font);transition:all .14s}
+.modal-cancel:hover{background:var(--bg-hover)}
+.modal-ok{padding:7px 16px;border-radius:var(--radius-sm);border:none;background:var(--red);color:#fff;font-size:13px;cursor:pointer;font-family:var(--font);transition:opacity .14s}
+.modal-ok:hover{opacity:.85}
+.modal-input{width:100%;padding:8px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;font-family:var(--font);margin-bottom:12px;transition:border-color .14s}
+.modal-input:focus{outline:none;border-color:var(--accent)}
+.modal-label{font-size:11px;color:var(--text-muted);margin-bottom:5px;display:block}
+
+/* inline textarea */
+textarea.inp{
+  border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+  padding:8px 11px;border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);
+  width:100%;resize:vertical;transition:border-color .14s;min-height:80px;
+}
+textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
+.btn-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ━━━ SIDEBAR ━━━ -->
+<nav class="sidebar">
+  <div class="sidebar-head">
+    <div class="brand">
+      <div class="brand-mark">Y</div>
+      <span class="brand-name">Youz AI</span>
+      <span class="brand-badge">ADMIN</span>
+    </div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-group">
+      <div class="nav-group-label">Overview</div>
+      <div class="nav-row active" id="nav-dashboard" onclick="go('dashboard')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+          <span class="nav-label">Dashboard</span>
+        </div>
+      </div>
+      <div class="nav-row" id="nav-analytics" onclick="go('analytics')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          <span class="nav-label">Analitik</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Manajemen</div>
+      <div class="nav-row" id="nav-users-parent" onclick="toggleSub('users')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <span class="nav-label">Pengguna</span>
+        </div>
+        <span class="nav-arrow" id="arrow-users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+      </div>
+      <div class="subnav" id="sub-users">
+        <div class="sub-item" id="sub-all-users" onclick="go('all-users')"><span class="sub-pip"></span> Semua pengguna</div>
+        <div class="sub-item" id="sub-premium-users" onclick="go('premium-users')"><span class="sub-pip"></span> Pengguna premium</div>
+        <div class="sub-item" id="sub-banned" onclick="go('banned')"><span class="sub-pip"></span> Diblokir</div>
+      </div>
+
+      <div class="nav-row" id="nav-reports-parent" onclick="toggleSub('reports')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+          <span class="nav-label">Laporan</span>
+        </div>
+        <span class="nav-badge">3</span>
+        <span class="nav-arrow" id="arrow-reports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+      </div>
+      <div class="subnav" id="sub-reports">
+        <div class="sub-item" id="sub-report-chat" onclick="go('report-chat')"><span class="sub-pip"></span> Laporan chat</div>
+        <div class="sub-item" id="sub-report-abuse" onclick="go('report-abuse')"><span class="sub-pip"></span> Penyalahgunaan</div>
+      </div>
+
+      <div class="nav-row" id="nav-content" onclick="go('content')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+          <span class="nav-label">Konten</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Sistem</div>
+      <div class="nav-row" id="nav-billing-parent" onclick="toggleSub('billing')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+          <span class="nav-label">Billing & Plan</span>
+        </div>
+        <span class="nav-arrow" id="arrow-billing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></span>
+      </div>
+      <div class="subnav" id="sub-billing">
+        <div class="sub-item" id="sub-transactions" onclick="go('transactions')"><span class="sub-pip"></span> Transaksi</div>
+        <div class="sub-item" id="sub-plans" onclick="go('plans')"><span class="sub-pip"></span> Kelola plan</div>
+      </div>
+
+      <div class="nav-row" id="nav-config" onclick="go('config')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></span>
+          <span class="nav-label">Konfigurasi</span>
+        </div>
+      </div>
+
+      <div class="nav-row" id="nav-logs" onclick="go('logs')">
+        <div class="nav-row-left">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="16" height="16"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          <span class="nav-label">Logs & Audit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-foot">
+    <div class="admin-card">
+      <div class="avatar">SA</div>
+      <div style="flex:1;min-width:0">
+        <div class="admin-name">Super Admin</div>
+        <div class="admin-role"><span class="role-pill">root</span></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ━━━ CONTENT ━━━ -->
+<main class="content">
+
+<!-- ── DASHBOARD ── -->
+<div class="page active" id="page-dashboard">
+  <div class="page-head">
+    <div class="page-head-left">
+      <div class="page-title">Dashboard</div>
+      <div class="page-desc">Ringkasan statistik youzai.my.id — hari ini</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <select class="filter-sel"><option>7 hari terakhir</option><option>30 hari</option><option>Bulan ini</option><option>Semua</option></select>
+      <button class="btn primary" onclick="toast('Data diperbarui')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Refresh</button>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Total Pengguna</div>
+      <div class="stat-value">12,847</div>
+      <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +284 minggu ini</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Premium Aktif</div>
+      <div class="stat-value">1,392</div>
+      <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +47 minggu ini</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Pesan Hari Ini</div>
+      <div class="stat-value">48,291</div>
+      <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +12% vs kemarin</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pendapatan Bulan Ini</div>
+      <div class="stat-value" style="font-size:18px">Rp 68,2jt</div>
+      <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +9% vs bulan lalu</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-box">
+      <div class="chart-head">
+        <span class="chart-title">Pesan per Hari</span>
+        <span style="font-size:11px;color:var(--text-muted)">7 hari terakhir</span>
+      </div>
+      <div class="chart-area" id="barChart"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-head"><span class="chart-title">Distribusi Plan</span></div>
+      <div class="donut-wrap">
+        <div class="donut">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="36" fill="none" stroke="#2a2a2e" stroke-width="10"/>
+            <circle cx="45" cy="45" r="36" fill="none" stroke="#6c63ff" stroke-width="10" stroke-dasharray="226.2" stroke-dashoffset="56.5" stroke-linecap="round"/>
+            <circle cx="45" cy="45" r="36" fill="none" stroke="#22c55e" stroke-width="10" stroke-dasharray="226.2" stroke-dashoffset="169.65" stroke-linecap="round" style="transform:rotate(189.3deg);transform-origin:45px 45px"/>
+          </svg>
+          <div class="donut-center"><div class="donut-pct">75%</div><div class="donut-sub">FREE</div></div>
+        </div>
+        <div class="legend" style="padding:0 8px">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> Premium — 1,392 (10.8%)</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span> Trial — 1,841 (14.3%)</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#2a2a2e"></span> Free — 9,614 (74.9%)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-box">
+    <div class="table-head">
+      <span class="table-title">Pengguna Terbaru</span>
+      <button class="btn sm" onclick="go('all-users')">Lihat semua →</button>
+    </div>
+    <table>
+      <thead><tr><th>Pengguna</th><th>Email</th><th>Plan</th><th>Bergabung</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1b4b;color:#a5b4fc">RF</div> Rizky Fajar</div></td><td class="td-mono">rizky@gmail.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a2e1a;color:#86efac">DN</div> Dewi Nuraini</div></td><td class="td-mono">dewi@yahoo.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">11 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#2d1b00;color:#fcd34d">BS</div> Budi Santoso</div></td><td class="td-mono">budi.s@outlook.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">10 Mei 2026</td><td><span class="chip chip-amber"><span class="dot" style="background:var(--amber)"></span> Trial</span></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1e2e;color:#c4b5fd">SR</div> Siti Rahayu</div></td><td class="td-mono">siti.r@email.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">9 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a0a0a;color:#fca5a5">AP</div> Andi Pratama</div></td><td class="td-mono">andi.p@gmail.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">8 Mei 2026</td><td><span class="chip chip-red"><span class="dot" style="background:var(--red)"></span> Blokir</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── ANALITIK ── -->
+<div class="page" id="page-analytics">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Analitik</div><div class="page-desc">Tren penggunaan dan pertumbuhan platform</div></div>
+    <select class="filter-sel"><option>30 hari terakhir</option><option>7 hari</option><option>3 bulan</option><option>1 tahun</option></select>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Pengguna Aktif Harian</div><div class="stat-value">3,241</div><div class="stat-delta delta-up">+5.2% vs kemarin</div></div>
+    <div class="stat-card"><div class="stat-label">Rata-rata Sesi</div><div class="stat-value">8.4m</div><div class="stat-delta delta-up">+1.1m vs minggu lalu</div></div>
+    <div class="stat-card"><div class="stat-label">Konversi Free→Premium</div><div class="stat-value">4.8%</div><div class="stat-delta delta-up">+0.3% vs bulan lalu</div></div>
+    <div class="stat-card"><div class="stat-label">Churn Rate</div><div class="stat-value">2.1%</div><div class="stat-delta delta-down">-0.4% vs bulan lalu</div></div>
+  </div>
+  <div class="chart-box" style="margin-bottom:24px">
+    <div class="chart-head"><span class="chart-title">Pertumbuhan Pengguna — 30 Hari</span><span style="font-size:11px;color:var(--text-muted)">Total registrasi baru</span></div>
+    <div class="chart-area" id="barChart2"></div>
+  </div>
+  <div class="table-box">
+    <div class="table-head"><span class="table-title">Top Referral Source</span></div>
+    <table>
+      <thead><tr><th>Sumber</th><th>Kunjungan</th><th>Konversi</th><th>%</th></tr></thead>
+      <tbody>
+        <tr><td>Google Search</td><td class="td-mono">4,821</td><td class="td-mono">312</td><td><span class="chip chip-green">6.5%</span></td></tr>
+        <tr><td>Instagram</td><td class="td-mono">2,193</td><td class="td-mono">97</td><td><span class="chip chip-accent">4.4%</span></td></tr>
+        <tr><td>TikTok</td><td class="td-mono">1,847</td><td class="td-mono">64</td><td><span class="chip chip-amber">3.5%</span></td></tr>
+        <tr><td>Direct</td><td class="td-mono">984</td><td class="td-mono">58</td><td><span class="chip chip-accent">5.9%</span></td></tr>
+        <tr><td>Twitter / X</td><td class="td-mono">621</td><td class="td-mono">18</td><td><span class="chip chip-muted">2.9%</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── SEMUA PENGGUNA ── -->
+<div class="page" id="page-all-users">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Semua Pengguna</div><div class="page-desc">12,847 pengguna terdaftar</div></div>
+    <button class="btn primary" onclick="openModal('addUser')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Tambah pengguna</button>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" placeholder="Cari nama, email, ID…"/></div>
+    <select class="filter-sel"><option>Semua plan</option><option>Free</option><option>Premium</option><option>Trial</option></select>
+    <select class="filter-sel"><option>Semua status</option><option>Aktif</option><option>Diblokir</option></select>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>Pengguna</th><th>Email</th><th>Plan</th><th>Bergabung</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1b4b;color:#a5b4fc">RF</div> Rizky Fajar</div></td><td class="td-mono">rizky@gmail.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a2e1a;color:#86efac">DN</div> Dewi Nuraini</div></td><td class="td-mono">dewi@yahoo.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">11 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#2d1b00;color:#fcd34d">BS</div> Budi Santoso</div></td><td class="td-mono">budi.s@outlook.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">10 Mei 2026</td><td><span class="chip chip-amber"><span class="dot" style="background:var(--amber)"></span> Trial</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a0a0a;color:#fca5a5">AP</div> Andi Pratama</div></td><td class="td-mono">andi.p@gmail.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">8 Mei 2026</td><td><span class="chip chip-red"><span class="dot" style="background:var(--red)"></span> Blokir</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm" onclick="toast('Pengguna diaktifkan kembali')">Aktifkan</button></div></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1e2e;color:#c4b5fd">SR</div> Siti Rahayu</div></td><td class="td-mono">siti.r@email.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">9 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── PREMIUM USERS ── -->
+<div class="page" id="page-premium-users">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Pengguna Premium</div><div class="page-desc">1,392 pelanggan aktif</div></div>
+  </div>
+  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat-card"><div class="stat-label">Total Premium</div><div class="stat-value">1,392</div><div class="stat-delta delta-up">+47 minggu ini</div></div>
+    <div class="stat-card"><div class="stat-label">Berakhir Bulan Ini</div><div class="stat-value">83</div><div class="stat-delta delta-down">Perlu perpanjangan</div></div>
+    <div class="stat-card"><div class="stat-label">MRR</div><div class="stat-value" style="font-size:18px">Rp 68,2jt</div><div class="stat-delta delta-up">+9% vs bulan lalu</div></div>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>Pengguna</th><th>Email</th><th>Mulai</th><th>Berakhir</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1b4b;color:#a5b4fc">RF</div> Rizky Fajar</div></td><td class="td-mono">rizky@gmail.com</td><td class="td-mono">9 Jan 2026</td><td class="td-mono">9 Jun 2026</td><td><span class="chip chip-green">Aktif</span></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#2d1b00;color:#fcd34d">BS</div> Budi Santoso</div></td><td class="td-mono">budi.s@outlook.com</td><td class="td-mono">12 Apr 2026</td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-amber">Berakhir</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── DIBLOKIR ── -->
+<div class="page" id="page-banned">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Pengguna Diblokir</div><div class="page-desc">4 akun saat ini diblokir</div></div>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>Pengguna</th><th>Alasan</th><th>Diblokir Pada</th><th>Oleh</th><th>Aksi</th></tr></thead>
+      <tbody>
+        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a0a0a;color:#fca5a5">AP</div> Andi Pratama</div></td><td style="font-size:12px;color:var(--text-muted)">Spam konten</td><td class="td-mono">8 Mei 2026</td><td class="td-mono">admin</td><td><button class="btn sm" onclick="toast('Pengguna diaktifkan kembali')">Aktifkan</button></td></tr>
+        <tr><td><div class="td-name"><div class="td-avatar">MH</div> Muhammad H.</div></td><td style="font-size:12px;color:var(--text-muted)">Pelanggaran ToS</td><td class="td-mono">2 Mei 2026</td><td class="td-mono">admin</td><td><button class="btn sm" onclick="toast('Pengguna diaktifkan kembali')">Aktifkan</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── LAPORAN CHAT ── -->
+<div class="page" id="page-report-chat">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Laporan Chat</div><div class="page-desc">3 laporan menunggu tinjauan</div></div>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>Pelapor</th><th>Kategori</th><th>Deskripsi</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+      <tbody>
+        <tr><td class="td-mono">user_4821</td><td><span class="chip chip-red">Konten berbahaya</span></td><td style="font-size:12px;color:var(--text-muted);max-width:160px">AI memberikan info berbahaya</td><td class="td-mono">12 Mei</td><td><span class="chip chip-amber">Pending</span></td><td><button class="btn sm" onclick="toast('Laporan ditinjau')">Tinjau</button></td></tr>
+        <tr><td class="td-mono">user_2194</td><td><span class="chip chip-amber">Spam</span></td><td style="font-size:12px;color:var(--text-muted);max-width:160px">Pengulangan pesan berlebihan</td><td class="td-mono">11 Mei</td><td><span class="chip chip-amber">Pending</span></td><td><button class="btn sm" onclick="toast('Laporan ditinjau')">Tinjau</button></td></tr>
+        <tr><td class="td-mono">user_9031</td><td><span class="chip chip-muted">Lainnya</span></td><td style="font-size:12px;color:var(--text-muted);max-width:160px">Respons tidak relevan</td><td class="td-mono">9 Mei</td><td><span class="chip chip-green">Selesai</span></td><td><button class="btn sm" onclick="toast('Detail dibuka')">Detail</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── LAPORAN PENYALAHGUNAAN ── -->
+<div class="page" id="page-report-abuse">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Penyalahgunaan</div><div class="page-desc">Deteksi otomatis dan laporan manual</div></div>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>User ID</th><th>Tipe</th><th>Terdeteksi</th><th>Tingkat</th><th>Aksi</th></tr></thead>
+      <tbody>
+        <tr><td class="td-mono">user_7723</td><td>Prompt injection</td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-red">Tinggi</span></td><td><div style="display:flex;gap:4px"><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button><button class="btn sm" onclick="toast('Detail dibuka')">Detail</button></div></td></tr>
+        <tr><td class="td-mono">user_3341</td><td>Rate limit abuse</td><td class="td-mono">11 Mei 2026</td><td><span class="chip chip-amber">Sedang</span></td><td><div style="display:flex;gap:4px"><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button><button class="btn sm" onclick="toast('Detail dibuka')">Detail</button></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── KONTEN ── -->
+<div class="page" id="page-content">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Manajemen Konten</div><div class="page-desc">Kelola prompt sistem, pengumuman, dan template</div></div>
+    <button class="btn primary" onclick="toast('Editor dibuka')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Buat konten</button>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">System Prompt Global</div>
+    <div class="row"><div><div class="row-name">Prompt aktif saat ini</div><div class="row-hint">Versi: v3.2 · Diperbarui 10 Mei 2026</div></div><div style="display:flex;gap:6px"><button class="btn sm" onclick="toast('Editor prompt dibuka')">Edit</button><button class="btn sm" onclick="toast('Riwayat versi dibuka')">Riwayat</button></div></div>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">Pengumuman</div>
+    <div class="row"><div><div class="row-name">Banner pengumuman</div><div class="row-hint">Ditampilkan di halaman utama pengguna</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    <div style="padding:12px 0">
+      <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:6px">Teks pengumuman</label>
+      <textarea class="inp" placeholder="Tulis pengumuman untuk pengguna…">Selamat datang di Youz AI! Fitur baru telah hadir — coba sekarang.</textarea>
+      <div class="btn-row"><button class="btn primary sm" onclick="toast('Pengumuman disimpan')">Simpan</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TRANSAKSI ── -->
+<div class="page" id="page-transactions">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Transaksi</div><div class="page-desc">Riwayat seluruh pembayaran platform</div></div>
+    <button class="btn" onclick="toast('Mengunduh laporan...')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export CSV</button>
+  </div>
+  <div class="filter-bar">
+    <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input class="search" placeholder="Cari ID transaksi, email…"/></div>
+    <select class="filter-sel"><option>Semua metode</option><option>Transfer Bank</option><option>OVO</option><option>GoPay</option><option>QRIS</option></select>
+    <select class="filter-sel"><option>Bulan ini</option><option>7 hari</option><option>30 hari</option></select>
+  </div>
+  <div class="table-box">
+    <table>
+      <thead><tr><th>ID Transaksi</th><th>Pengguna</th><th>Metode</th><th>Jumlah</th><th>Tanggal</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="td-mono">#TXN-2847</td><td class="td-mono">rizky@gmail.com</td><td>Transfer Bank</td><td class="td-mono" style="color:var(--green)">Rp 49.000</td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-green">Sukses</span></td></tr>
+        <tr><td class="td-mono">#TXN-2846</td><td class="td-mono">siti.r@email.com</td><td>GoPay</td><td class="td-mono" style="color:var(--green)">Rp 49.000</td><td class="td-mono">11 Mei 2026</td><td><span class="chip chip-green">Sukses</span></td></tr>
+        <tr><td class="td-mono">#TXN-2845</td><td class="td-mono">budi.s@outlook.com</td><td>OVO</td><td class="td-mono" style="color:var(--green)">Rp 49.000</td><td class="td-mono">10 Mei 2026</td><td><span class="chip chip-amber">Pending</span></td></tr>
+        <tr><td class="td-mono">#TXN-2844</td><td class="td-mono">andi.p@gmail.com</td><td>QRIS</td><td class="td-mono" style="color:var(--red)">Rp 49.000</td><td class="td-mono">9 Mei 2026</td><td><span class="chip chip-red">Gagal</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── KELOLA PLAN ── -->
+<div class="page" id="page-plans">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Kelola Plan</div><div class="page-desc">Atur harga dan fitur tiap paket</div></div>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">Paket Free</div>
+    <div class="row"><div class="row-left"><div class="row-name">Batas pesan per hari</div></div><input class="inp" type="number" value="20" style="width:100px"/></div>
+    <div class="row"><div class="row-left"><div class="row-name">Akses model</div></div><select class="sel"><option>Model dasar</option><option>Model standar</option><option>Semua model</option></select></div>
+    <div class="row"><div class="row-left"><div class="row-name">Riwayat chat</div></div><select class="sel"><option>7 hari</option><option>30 hari</option><option>Unlimited</option></select></div>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">Paket Premium</div>
+    <div class="row"><div class="row-left"><div class="row-name">Harga per bulan</div></div><input class="inp" type="number" value="49000" style="width:120px"/></div>
+    <div class="row"><div class="row-left"><div class="row-name">Batas pesan per hari</div></div><select class="sel"><option>Unlimited</option><option>1000</option><option>500</option></select></div>
+    <div class="row"><div class="row-left"><div class="row-name">Prioritas respons</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+  </div>
+  <div class="btn-row"><button class="btn primary" onclick="toast('Konfigurasi plan disimpan')">Simpan perubahan</button></div>
+</div>
+
+<!-- ── KONFIGURASI ── -->
+<div class="page" id="page-config">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Konfigurasi Sistem</div><div class="page-desc">Pengaturan global platform youzai.my.id</div></div>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">Platform</div>
+    <div class="row"><div class="row-left"><div class="row-name">Mode maintenance</div><div class="row-hint">Matikan akses pengguna sementara</div></div><label class="tog"><input type="checkbox" onchange="toast('Mode maintenance diubah')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    <div class="row"><div class="row-left"><div class="row-name">Registrasi pengguna baru</div><div class="row-hint">Izinkan pengguna baru mendaftar</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    <div class="row"><div class="row-left"><div class="row-name">Google OAuth</div><div class="row-hint">Login via akun Google</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">AI & Model</div>
+    <div class="row"><div class="row-left"><div class="row-name">Model default</div></div><select class="sel"><option>Youz-3.5-turbo</option><option>Youz-3.5</option><option>Youz-3</option></select></div>
+    <div class="row"><div class="row-left"><div class="row-name">Maks token per request</div></div><input class="inp" type="number" value="4096" style="width:100px"/></div>
+    <div class="row"><div class="row-left"><div class="row-name">Filter konten</div><div class="row-hint">Blokir output berbahaya otomatis</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    <div class="row"><div class="row-left"><div class="row-name">Rate limiting</div><div class="row-hint">Batasi request per IP per menit</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+  </div>
+  <div class="settings-block">
+    <div class="section-label" style="margin-bottom:8px">Notifikasi Admin</div>
+    <div class="row"><div class="row-left"><div class="row-name">Email alert</div></div><input class="inp" type="email" value="admin@youzai.my.id"/></div>
+    <div class="row"><div class="row-left"><div class="row-name">Alert laporan baru</div></div><label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+  </div>
+  <div class="btn-row"><button class="btn primary" onclick="toast('Konfigurasi disimpan')">Simpan semua perubahan</button></div>
+</div>
+
+<!-- ── LOGS ── -->
+<div class="page" id="page-logs">
+  <div class="page-head">
+    <div class="page-head-left"><div class="page-title">Logs & Audit</div><div class="page-desc">Aktivitas sistem dan tindakan admin</div></div>
+    <select class="filter-sel"><option>Semua tipe</option><option>Auth</option><option>User</option><option>System</option><option>Billing</option></select>
+  </div>
+  <div class="table-box">
+    <div class="table-head"><span class="table-title">Aktivitas terbaru</span><span style="font-size:11px;color:var(--text-muted);font-family:var(--mono)">Auto-refresh 30s</span></div>
+    <div style="padding:4px 0">
+      <div class="log-entry" style="padding:12px 18px">
+        <div class="log-icon-wrap" style="background:var(--red-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+        <div><div class="log-text">Pengguna <strong>user_7723</strong> diblokir karena prompt injection</div><div class="log-meta">System · 12 Mei 2026, 14:23 · IP: 114.122.x.x</div></div>
+      </div>
+      <div class="log-entry" style="padding:12px 18px">
+        <div class="log-icon-wrap" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><div class="log-text">Transaksi <strong>#TXN-2847</strong> berhasil — Rp 49.000</div><div class="log-meta">Billing · 12 Mei 2026, 11:05 · user: rizky@gmail.com</div></div>
+      </div>
+      <div class="log-entry" style="padding:12px 18px">
+        <div class="log-icon-wrap" style="background:var(--accent-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#6c63ff" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2"/></svg></div>
+        <div><div class="log-text">Konfigurasi sistem diperbarui oleh <strong>admin</strong></div><div class="log-meta">System · 11 Mei 2026, 09:48 · admin@youzai.my.id</div></div>
+      </div>
+      <div class="log-entry" style="padding:12px 18px">
+        <div class="log-icon-wrap" style="background:var(--amber-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+        <div><div class="log-text">Login admin dari IP baru: <strong>202.67.x.x</strong></div><div class="log-meta">Auth · 10 Mei 2026, 22:01 · admin@youzai.my.id</div></div>
+      </div>
+      <div class="log-entry" style="padding:12px 18px">
+        <div class="log-icon-wrap" style="background:var(--green-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        <div><div class="log-text">Pengguna baru terdaftar: <strong>dewi@yahoo.com</strong></div><div class="log-meta">User · 10 Mei 2026, 18:33 · via Google OAuth</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- Modal -->
+<div class="modal-wrap" id="modalWrap">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div id="modalExtra"></div>
+    <div class="modal-foot">
+      <button class="modal-cancel" onclick="closeModal()">Batal</button>
+      <button class="modal-ok" id="modalOk"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toastEl">
+  <span class="toast-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+/* ── NAV ── */
+const pageMap={
+  'dashboard':null,'analytics':null,'content':null,'config':null,'logs':null,
+  'all-users':'users','premium-users':'users','banned':'users',
+  'report-chat':'reports','report-abuse':'reports',
+  'transactions':'billing','plans':'billing'
+};
+const subParent={
+  'users':['all-users','premium-users','banned'],
+  'reports':['report-chat','report-abuse'],
+  'billing':['transactions','plans']
+};
+const openSubs=new Set();
+let current='dashboard';
+
+function go(page){
+  document.getElementById('page-'+current).classList.remove('active');
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-row').forEach(r=>r.classList.remove('active'));
+  document.querySelectorAll('.sub-item').forEach(s=>s.classList.remove('active'));
+  const parent=pageMap[page];
+  if(parent){
+    document.getElementById('nav-'+parent+'-parent')?.classList.add('active');
+    document.getElementById('sub-'+page)?.classList.add('active');
+  } else {
+    document.getElementById('nav-'+page)?.classList.add('active');
+  }
+  current=page;
+}
+
+function openSub(id){
+  document.getElementById('sub-'+id)?.classList.add('open');
+  document.getElementById('arrow-'+id)?.classList.add('open');
+  openSubs.add(id);
+}
+function closeSub(id){
+  document.getElementById('sub-'+id)?.classList.remove('open');
+  document.getElementById('arrow-'+id)?.classList.remove('open');
+  openSubs.delete(id);
+}
+function toggleSub(id){
+  if(openSubs.has(id)){
+    closeSub(id);
+    document.getElementById('nav-'+id+'-parent')?.classList.remove('active');
+    if(subParent[id].includes(current)){
+      document.getElementById('nav-'+id+'-parent')?.classList.add('active');
+    }
+  } else {
+    openSub(id);
+    document.getElementById('nav-'+id+'-parent')?.classList.add('active');
+    if(!subParent[id].includes(current)) go(subParent[id][0]);
+  }
+}
+
+// Klik area konten menutup semua dropdown
+document.querySelector('.content').addEventListener('click',()=>{
+  ['users','reports','billing'].forEach(id=>{
+    if(openSubs.has(id)){
+      closeSub(id);
+      document.getElementById('nav-'+id+'-parent')?.classList.remove('active');
+      if(subParent[id].includes(current)){
+        document.getElementById('nav-'+id+'-parent')?.classList.add('active');
+      }
+    }
+  });
+});
+
+/* ── MODAL ── */
+const modals={
+  banUser:{title:'Blokir pengguna?',desc:'Pengguna tidak akan bisa mengakses platform. Anda bisa mengaktifkan kembali kapan saja.',ok:'Blokir',extra:'<label class="modal-label">Alasan pemblokiran</label><input class="modal-input" placeholder="Contoh: Spam, pelanggaran ToS…"/>'},
+  addUser:{title:'Tambah pengguna',desc:'Buat akun pengguna baru secara manual.',ok:'Buat akun',extra:'<label class="modal-label">Nama lengkap</label><input class="modal-input" placeholder="Nama pengguna"/><label class="modal-label">Email</label><input class="modal-input" type="email" placeholder="email@example.com"/>'},
+};
+let activeModal='';
+function openModal(type){
+  activeModal=type;
+  const m=modals[type];
+  document.getElementById('modalTitle').textContent=m.title;
+  document.getElementById('modalDesc').textContent=m.desc;
+  document.getElementById('modalExtra').innerHTML=m.extra||'';
+  document.getElementById('modalOk').textContent=m.ok;
+  document.getElementById('modalOk').style.background=type==='banUser'?'var(--red)':'var(--accent)';
+  document.getElementById('modalWrap').classList.add('show');
+}
+function closeModal(){document.getElementById('modalWrap').classList.remove('show')}
+document.getElementById('modalOk').addEventListener('click',()=>{
+  closeModal();
+  const msg={banUser:'Pengguna berhasil diblokir',addUser:'Pengguna baru berhasil ditambahkan'};
+  toast(msg[activeModal]||'Berhasil');
+});
+document.getElementById('modalWrap').addEventListener('click',function(e){if(e.target===this)closeModal()});
+
+/* ── TOAST ── */
+let tt;
+function toast(msg){
+  const el=document.getElementById('toastEl');
+  document.getElementById('toastMsg').textContent=msg;
+  el.classList.add('show');
+  clearTimeout(tt);
+  tt=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* ── BAR CHART ── */
+function makeChart(id,data){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const max=Math.max(...data);
+  data.forEach((v,i)=>{
+    const b=document.createElement('div');
+    b.className='bar'+(i===data.length-1?' hi':'');
+    b.style.height=Math.max(4,(v/max*100))+'%';
+    b.title=v.toLocaleString()+' pesan';
+    el.appendChild(b);
+  });
+}
+makeChart('barChart',[31200,28400,42100,38700,44300,40100,48291]);
+makeChart('barChart2',[180,210,195,240,228,260,275,290,310,285,320,338,350,365,342,380,395,410,388,420,445,430,460,478,495,480,510,525,542,560]);
+</script>
+</body>
+</html>
