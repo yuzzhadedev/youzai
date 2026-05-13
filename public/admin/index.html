@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel · Youz AI</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <main class="admin-page">
+    <header class="admin-header">
+      <div>
+        <h1>Admin Panel Youz AI</h1>
+        <p>Monitoring realtime, manajemen request premium, dan data ringkasan aplikasi.</p>
+      </div>
+      <div class="admin-actions">
+        <button id="refreshAdminBtn" class="admin-btn"><i class="fas fa-rotate"></i> Refresh</button>
+        <a href="/" class="admin-btn secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
+      </div>
+    </header>
+
+    <section class="admin-kpis" id="adminKpis"></section>
+
+    <section class="admin-grid">
+      <article class="admin-card">
+        <h2>Premium Requests (Latest)</h2>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="requestTable">
+            <thead><tr><th>User</th><th>Method</th><th>Status</th><th>Notes</th><th>Aksi</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="admin-card">
+        <h2>Premium Users</h2>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="premiumUserTable">
+            <thead><tr><th>User Key</th><th>Status</th><th>Plan</th><th>Expired</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="admin-card full">
+        <h2>Recent Chat History</h2>
+        <div id="chatHistoryList" class="admin-list"></div>
+      </article>
+    </section>
+
+    <p id="adminStatus" class="admin-status"></p>
+  </main>
+
+  <script src="/js/admin.js" defer></script>
+</body>
+</html>
