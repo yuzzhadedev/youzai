@@ -822,13 +822,9 @@ function toggleSub(id){
   if(openSubs.has(id)){
     closeSub(id);
     document.getElementById('nav-'+id+'-parent')?.classList.remove('active');
-    if(subParent[id].includes(current)){
-      document.getElementById('nav-'+id+'-parent')?.classList.add('active');
-    }
   } else {
     openSub(id);
     document.getElementById('nav-'+id+'-parent')?.classList.add('active');
-    if(!subParent[id].includes(current)) go(subParent[id][0]);
   }
 }
 

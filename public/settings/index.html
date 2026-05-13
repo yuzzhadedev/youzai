@@ -491,7 +491,7 @@ input.inp[type=password]{letter-spacing:.1em}
       </div>
       <div class="row">
         <div class="row-left"><div class="row-name">Saran pesan</div><div class="row-hint">Tampilkan saran saat memulai percakapan baru</div></div>
-        <label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        <label class="tog"><input id="browserNotifToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
     </div>
   </div>
@@ -559,7 +559,7 @@ input.inp[type=password]{letter-spacing:.1em}
       </div>
       <div class="row">
         <div class="row-left"><div class="row-name">Efek blur sidebar</div><div class="row-hint">Efek kaca pada sidebar</div></div>
-        <label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
+        <label class="tog"><input type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
     </div>
   </div>
@@ -572,8 +572,8 @@ input.inp[type=password]{letter-spacing:.1em}
     </div>
     <div class="settings-block">
       <div class="section-label" style="margin-bottom:8px">Push Notifikasi</div>
-      <div class="row"><div class="row-left"><div class="row-name">Notifikasi desktop</div><div class="row-hint">Tampilkan notifikasi browser saat ada pesan</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-      <div class="row"><div class="row-left"><div class="row-name">Suara notifikasi</div><div class="row-hint">Putar suara saat respons selesai</div></div><label class="tog"><input type="checkbox" onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row"><div class="row-left"><div class="row-name">Notifikasi desktop</div><div class="row-hint">Tampilkan notifikasi browser saat ada pesan</div></div><label class="tog"><input id="browserNotifToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row"><div class="row-left"><div class="row-name">Suara notifikasi</div><div class="row-hint">Putar suara saat respons selesai</div></div><label class="tog"><input id="soundNotifToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
     <div class="settings-block">
       <div class="section-label" style="margin-bottom:8px">Email</div>
@@ -871,7 +871,7 @@ document.querySelector('.content').addEventListener('click',()=>{
   });
 });
 
-const settingsState = { theme:'dark', language:'id', model:'gemini', web_search_enabled:true, thinking_enabled:false };
+const settingsState = { theme:'dark', language:'id', model:'gemini', web_search_enabled:true, thinking_enabled:false, browser_notifications_enabled:false, sound_notifications_enabled:false };
 let saveTimer = null;
 const runtimeState = { me:null, quota:null, premium:null };
 const ADMIN_EMAIL = 'mutustorereal@gmail.com';
@@ -894,10 +894,14 @@ function applySettingsToUI(settings = {}) {
   const modelSelect = document.getElementById('modelSelect');
   const webSearchToggle = document.getElementById('webSearchToggle');
   const thinkingToggle = document.getElementById('thinkingToggle');
+  const browserNotifToggle = document.getElementById('browserNotifToggle');
+  const soundNotifToggle = document.getElementById('soundNotifToggle');
   if (languageSelect) languageSelect.value = merged.language;
   if (modelSelect) modelSelect.value = merged.model;
   if (webSearchToggle) webSearchToggle.checked = !!merged.web_search_enabled;
   if (thinkingToggle) thinkingToggle.checked = !!merged.thinking_enabled;
+  if (browserNotifToggle) browserNotifToggle.checked = !!merged.browser_notifications_enabled;
+  if (soundNotifToggle) soundNotifToggle.checked = !!merged.sound_notifications_enabled;
 }
 
 async function saveSettings() {
@@ -998,6 +1002,17 @@ document.getElementById('thinkingToggle')?.addEventListener('change', (e) => {
   settingsState.thinking_enabled = e.target.checked;
   queueSave('Thinking mode diperbarui');
 });
+document.getElementById('browserNotifToggle')?.addEventListener('change', async (e) => {
+  settingsState.browser_notifications_enabled = e.target.checked;
+  if (e.target.checked && 'Notification' in window && Notification.permission === 'default') {
+    try { await Notification.requestPermission(); } catch {}
+  }
+  queueSave('Notifikasi browser diperbarui');
+});
+document.getElementById('soundNotifToggle')?.addEventListener('change', (e) => {
+  settingsState.sound_notifications_enabled = e.target.checked;
+  queueSave('Suara notifikasi diperbarui');
+});
 
 
 function isAdminEmail(email = '') {
@@ -1020,7 +1035,7 @@ async function loadAdminData() {
 loadSettings();
 loadAllData().then(() => {
   const user = getUserContext();
-  if (isAdminEmail(user?.email)) loadAdminData().catch((err) => toast(err?.message || 'Gagal memuat data admin'));
+  if (isAdminEmail(user?.email)) { window.location.href='/admin'; return; }
 });
 document.getElementById('adminRefreshBtn')?.addEventListener('click', () => {
   loadAdminData().then(() => toast('Data admin diperbarui')).catch((err) => toast(err?.message || 'Gagal memuat data admin'));

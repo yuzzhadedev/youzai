@@ -82,6 +82,7 @@ const userMenuDropdown = document.getElementById('userMenuDropdown');
 const userSettingsBtn = document.getElementById('userSettingsBtn');
 const userProfileBtn = document.getElementById('userProfileBtn');
 const userPremiumBtn = document.getElementById('userPremiumBtn');
+const settingsNotifBadge = document.getElementById('settingsNotifBadge');
 const userLogoutBtn = document.getElementById('userLogoutBtn');
 const currentTimeSpan = document.getElementById('currentTime');
 const searchSuggestions = document.getElementById('searchSuggestions');
@@ -250,6 +251,20 @@ function createNewConversation() {
     activeConversationId = newConv.id;
     saveToStorage();
     return newConv;
+}
+
+
+async function refreshSettingsNotificationBadge() {
+    if (!settingsNotifBadge) return;
+    try {
+        const res = await fetch('/api/settings?scope=notifications');
+        const data = await readApiResponse(res);
+        const count = Number(data?.unread_count || 0);
+        settingsNotifBadge.textContent = String(count);
+        settingsNotifBadge.classList.toggle('hidden', count <= 0);
+    } catch {
+        settingsNotifBadge.classList.add('hidden');
+    }
 }
 
 // ========== USER AUTH ==========
@@ -2020,7 +2035,7 @@ userSettingsBtn?.addEventListener('click', (e) => {
 userPremiumBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     toggleUserMenu(false);
-    window.location.href = '/pricing';
+    window.location.href = '/premium';
 });
 
 userMenuBtn?.addEventListener('click', (e) => {
@@ -2139,6 +2154,7 @@ async function init() {
         const activeConv = conversations.find((c) => c.id === activeConversationId);
         updateChatRoute(activeConv && activeConv.messages?.length ? activeConv.id : null, true);
     }
+    refreshSettingsNotificationBadge();
     console.log('✅ Youz AI v2.8 initialized');
 }
 
