@@ -649,7 +649,7 @@ function createMessageElement(msg, index) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     if (msg.generatedImage) {
-        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div>`;
+        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
     }
     
     let feedbackIndicator = '';
@@ -727,6 +727,16 @@ function createMessageElement(msg, index) {
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
         const sourcesBtn = messageDiv.querySelector('.sources-btn');
         if (sourcesBtn) sourcesBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0, msg.searchTitle || ''));
+        const previewGeneratedBtn = messageDiv.querySelector('.preview-generated-btn');
+        if (previewGeneratedBtn) {
+            previewGeneratedBtn.addEventListener('click', () => {
+                const imageUrl = decodeURIComponent(previewGeneratedBtn.dataset.image || '');
+                if (!imageUrl) return;
+                imagePreviewFull.src = imageUrl;
+                if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
+                imagePreviewModal?.classList.remove('hidden');
+            });
+        }
         
         messageDiv.querySelectorAll('.source-chip').forEach(chip => {
             chip.addEventListener('click', () => {
@@ -1475,7 +1485,7 @@ async function sendMessage(options = {}) {
     const userMessage = {
         id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
         role: 'user',
-        content: text || ((currentDraftImage || forcedImageData) ? '📷 Kirim gambar' : '')
+        content: text || ''
     };
     if (forcedImageData) {
         userMessage.image = forcedImageData;
@@ -2072,7 +2082,6 @@ userMenuBtn?.addEventListener('click', (e) => {
 scrollBottomBtn?.addEventListener('click', () => {
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
 });
-draftImage?.addEventListener('click', openImagePreview);
 imagePreviewBackdrop?.addEventListener('click', closeImagePreview);
 closeImagePreviewBtn?.addEventListener('click', closeImagePreview);
 
