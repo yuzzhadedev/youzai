@@ -48,8 +48,6 @@ function protectLogos() {
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
-const menuBtn = document.getElementById('menuBtn');
-const menuDropdown = document.getElementById('menuDropdown');
 const conversationList = document.getElementById('conversationList');
 const chatMessages = document.getElementById('chatMessages');
 const chatTitle = document.getElementById('chatTitle');
@@ -71,8 +69,6 @@ const toolWebSearch = document.getElementById('toolWebSearch');
 const toolThinking = document.getElementById('toolThinking');
 const imageInput = document.getElementById('imageInput');
 const newChatBtn = document.getElementById('newChatBtn');
-const clearAllBtn = document.getElementById('clearAllBtn');
-const aboutBtn = document.getElementById('aboutBtn');
 const userProfile = document.getElementById('userProfile');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
@@ -1757,9 +1753,6 @@ function applyLanguage(lang, persist = true) {
 
     if (userPremiumBtn) userPremiumBtn.innerHTML = `<i class="fas fa-crown"></i> ${t.getPremium}`;
 
-    const aboutMenu = document.getElementById('aboutBtn');
-    if (aboutMenu) aboutMenu.innerHTML = `<i class="fas fa-info-circle"></i> ${t.about}`;
-
     const loginBtn = document.querySelector('.sidebar-auth-link.cta');
     if (loginBtn) loginBtn.innerHTML = `<i class="fas fa-right-to-bracket"></i> ${t.loginPrompt}`;
 
@@ -1806,21 +1799,7 @@ hamburgerBtn?.addEventListener('click', () => {
     sidebar.classList.toggle('closed');
 });
 
-menuBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const rect = menuBtn.getBoundingClientRect();
-    const dropdownWidth = menuDropdown.offsetWidth || 220;
-    const padding = 10;
-    const left = Math.min(window.innerWidth - dropdownWidth - padding, Math.max(padding, rect.right - dropdownWidth));
-    menuDropdown.style.top = (rect.bottom + 8) + 'px';
-    menuDropdown.style.left = left + 'px';
-    menuDropdown.classList.toggle('show');
-});
-
 document.addEventListener('click', (e) => {
-    if (menuDropdown && menuBtn && !menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-        menuDropdown.classList.remove('show');
-    }
     if (searchSuggestions && e.target !== messageInput && !searchSuggestions.contains(e.target)) {
         searchSuggestions.classList.add('hidden');
     }
@@ -1899,7 +1878,7 @@ imageInput?.addEventListener('change', (e) => {
 
 removeDraftBtn?.addEventListener('click', clearImageDraft);
 
-clearAllBtn?.addEventListener('click', () => {
+clearAllDataBtn?.addEventListener('click', () => {
     openConfirmDialog({
         title: 'Hapus semua percakapan?',
         message: 'Tindakan ini tidak dapat dibatalkan.',
@@ -1911,19 +1890,8 @@ clearAllBtn?.addEventListener('click', () => {
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
-        menuDropdown.classList.remove('show');
         showToast('Semua percakapan dihapus', 'success');
     });
-});
-
-aboutBtn?.addEventListener('click', () => {
-    openConfirmDialog({
-        title: 'Tentang Youz AI',
-        message: 'Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc',
-        okText: 'Tutup',
-        showCancel: false
-    });
-    menuDropdown.classList.remove('show');
 });
 
 // ========== SETTINGS MODAL EVENTS ==========
@@ -2123,9 +2091,7 @@ document.addEventListener('click', (e) => {
 });
 
 window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('closed');
-    }
+    sidebar.classList.add('closed');
 });
 
 document.addEventListener('keydown', (e) => {
@@ -2166,9 +2132,7 @@ async function init() {
     }
     updateScrollBottomVisibility();
     setProcessingUI(false);
-    if (window.innerWidth <= 768) {
-        sidebar.classList.add('closed');
-    }
+    sidebar.classList.add('closed');
     
     if (currentTimeSpan) {
         updateCurrentTime();
