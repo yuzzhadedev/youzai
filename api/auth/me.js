@@ -33,10 +33,14 @@ export default async function handler(req, res) {
       const profiles = await readTable('user_profiles');
       const premiumRows = await readTable('premium_users');
       const usageRows = await readTable('usage_daily');
+      const notifications = await readTable('notifications');
+      const premiumRequests = await readTable('premium_requests');
 
       const profileList = Array.isArray(profiles) ? profiles : Object.values(profiles || {});
       const premiumList = Array.isArray(premiumRows) ? premiumRows : Object.values(premiumRows || {});
       const usageList = Array.isArray(usageRows) ? usageRows : Object.values(usageRows || {});
+      const notificationList = Array.isArray(notifications) ? notifications : Object.values(notifications || {});
+      const premiumRequestList = Array.isArray(premiumRequests) ? premiumRequests : Object.values(premiumRequests || {});
 
       const premiumEmails = new Set(premiumList.map((r) => String(r?.email || '').toLowerCase()).filter(Boolean));
       const mapped = profileList.map((p, idx) => {
@@ -68,7 +72,9 @@ export default async function handler(req, res) {
           totalUsers: mapped.length,
           premiumUsers: mapped.filter((u) => u.plan === 'premium').length,
           messagesToday,
-          revenue: premiumList.length * 10000
+          revenue: premiumList.length * 10000,
+          pendingReports: notificationList.filter((n) => String(n?.status || '').toLowerCase() === 'pending').length,
+          pendingPremiumRequests: premiumRequestList.filter((r) => String(r?.status || '').toLowerCase() === 'pending').length
         },
         recentUsers: mapped.slice().reverse().slice(0, 5),
         allUsers: mapped.slice().reverse()

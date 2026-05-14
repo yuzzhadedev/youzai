@@ -138,6 +138,12 @@ const saveProfileBtn = document.getElementById('saveProfileBtn');
 const clearAllDataBtn = document.getElementById('clearAllDataBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
 const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
+const draftImageLoading = document.getElementById('draftImageLoading');
+const imagePreviewModal = document.getElementById('imagePreviewModal');
+const imagePreviewBackdrop = document.getElementById('imagePreviewBackdrop');
+const imagePreviewFull = document.getElementById('imagePreviewFull');
+const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
+const closeImagePreviewBtn = document.getElementById('closeImagePreviewBtn');
 const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
 const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
@@ -1099,7 +1105,7 @@ function setActiveModel(model, persist = true) {
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
         queueUserSettingsSave({ model: activeModel });
-        showToast(`Model: ${MODEL_CATALOG[activeModel]?.label || activeModel}`, 'success');
+        // no toast saat pengalihan model
     }
 }
 
@@ -1275,6 +1281,8 @@ function shouldUseWebSearchFromPrompt(text) {
 
 // ========== IMAGE DRAFT ==========
 function showImageDraft(file) {
+    draftImageLoading?.classList.remove('hidden');
+    draftImage?.parentElement?.classList.add('is-loading');
     const reader = new FileReader();
     reader.onload = (e) => {
         currentDraftImage = { file, dataURL: e.target.result, fileName: file.name, fileSize: formatFileSize(file.size) };
@@ -1282,7 +1290,13 @@ function showImageDraft(file) {
         draftFileName.textContent = file.name;
         draftFileSize.textContent = formatFileSize(file.size);
         imageDraftContainer.classList.remove('hidden');
+        draftImageLoading?.classList.add('hidden');
+        draftImage?.parentElement?.classList.remove('is-loading');
         updateSendButtonState();
+    };
+    reader.onerror = () => {
+        draftImageLoading?.classList.add('hidden');
+        draftImage?.parentElement?.classList.remove('is-loading');
     };
     reader.readAsDataURL(file);
 }
@@ -1293,6 +1307,17 @@ function clearImageDraft() {
     imageDraftContainer.classList.add('hidden');
     imageInput.value = '';
     updateSendButtonState();
+}
+
+function openImagePreview() {
+    if (!currentDraftImage?.dataURL || !imagePreviewModal || !imagePreviewFull) return;
+    imagePreviewFull.src = currentDraftImage.dataURL;
+    if (downloadPreviewBtn) downloadPreviewBtn.href = currentDraftImage.dataURL;
+    imagePreviewModal.classList.remove('hidden');
+}
+
+function closeImagePreview() {
+    imagePreviewModal?.classList.add('hidden');
 }
 
 function formatFileSize(bytes) {
@@ -2047,6 +2072,9 @@ userMenuBtn?.addEventListener('click', (e) => {
 scrollBottomBtn?.addEventListener('click', () => {
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
 });
+draftImage?.addEventListener('click', openImagePreview);
+imagePreviewBackdrop?.addEventListener('click', closeImagePreview);
+closeImagePreviewBtn?.addEventListener('click', closeImagePreview);
 
 chatMessages?.addEventListener('touchstart', () => {
     isTouchingChat = true;

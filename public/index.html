@@ -162,6 +162,10 @@
                 <div class="image-draft" id="imageDraft">
                     <div class="image-draft-preview">
                         <img id="draftImage" src="" alt="Draft">
+                        <div class="image-draft-loading hidden" id="draftImageLoading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Memuat gambar...</span>
+                        </div>
                     </div>
                     <div class="image-draft-info">
                         <div class="image-draft-name" id="draftFileName"></div>
@@ -340,6 +344,16 @@
     </div>
 
     <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+    <div class="image-preview-modal hidden" id="imagePreviewModal">
+        <div class="image-preview-backdrop" id="imagePreviewBackdrop"></div>
+        <div class="image-preview-panel">
+            <img id="imagePreviewFull" src="" alt="Preview gambar">
+            <div class="image-preview-actions">
+                <a id="downloadPreviewBtn" class="save-profile-btn" download="youz-image.png">Unduh</a>
+                <button id="closeImagePreviewBtn" class="danger-btn" type="button">Tutup</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" defer></script>
     <script src="/js/app.js"></script>
