@@ -241,6 +241,12 @@ function getConversationStorageKey() {
     return `youz_ai_conversations_${String(userKey).toLowerCase()}`;
 }
 
+function formatHeaderConversationTitle(rawTitle = '') {
+    const text = String(rawTitle || '').trim() || 'Percakapan Baru';
+    const maxLength = 34;
+    return text.length > maxLength ? `${text.slice(0, maxLength)}.....` : text;
+}
+
 function createNewConversation() {
     const newConv = {
         id: createNanoId(16),
@@ -574,7 +580,8 @@ function switchConversation(id) {
     activeConversationId = id;
     const conv = conversations.find(c => c.id === id);
     if (conv) {
-        chatTitle.textContent = conv.title || 'Percakapan Baru';
+        chatTitle.textContent = formatHeaderConversationTitle(conv.title || 'Percakapan Baru');
+        chatTitle.title = conv.title || 'Percakapan Baru';
         renderMessages(conv.messages);
         renderSidebar();
         saveToStorage();
