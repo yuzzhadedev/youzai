@@ -39,22 +39,40 @@ async function generateImageWithHuggingFace(prompt, userKey) {
     return { success: false, content: 'HUGGINGFACE_API_KEY belum dikonfigurasi.' };
   }
   const modelId = 'black-forest-labs/FLUX.1-schnell';
-  const response = await fetch(`https://api-inference.huggingface.co/models/${modelId}` , {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      inputs: String(prompt || 'Generate gambar artistik berkualitas tinggi.'),
-      parameters: { guidance_scale: 3.5, num_inference_steps: 4 },
-      options: { wait_for_model: true, use_cache: false }
-    })
-  });
+  const endpoints = [
+    `https://router.huggingface.co/hf-inference/models/${modelId}`,
+    `https://api-inference.huggingface.co/models/${modelId}`
+  ];
 
-  if (!response.ok) {
+  let lastError = '';
+  let imageBytes = null;
+
+  for (const endpoint of endpoints) {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        inputs: String(prompt || 'Generate gambar artistik berkualitas tinggi.'),
+        parameters: { guidance_scale: 3.5, num_inference_steps: 4 },
+        options: { wait_for_model: true, use_cache: false }
+      })
+    });
+
+    const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+    if (response.ok && contentType.startsWith('image/')) {
+      imageBytes = await response.arrayBuffer();
+      break;
+    }
+
     const errText = await response.text();
-    return { success: false, content: `Hugging Face error: ${errText || response.status}` };
+    lastError = errText || `${response.status}`;
   }
 
-  const arrayBuffer = await response.arrayBuffer();
+  if (!imageBytes) {
+    return { success: false, content: `Hugging Face error: ${lastError || 'Gagal generate gambar.'}` };
+  }
+
+  const arrayBuffer = imageBytes;
   const base64 = Buffer.from(arrayBuffer).toString('base64');
   const imageUrl = `data:image/png;base64,${base64}`;
   await consumeQuota({ userKey, type: 'image', amount: 1 });
