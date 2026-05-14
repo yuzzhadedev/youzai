@@ -48,6 +48,7 @@ function protectLogos() {
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
+const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const conversationList = document.getElementById('conversationList');
 const chatMessages = document.getElementById('chatMessages');
 const chatTitle = document.getElementById('chatTitle');
@@ -1797,6 +1798,9 @@ document.querySelectorAll('.suggestion-item').forEach(item => {
 // ========== EVENT LISTENERS ==========
 hamburgerBtn?.addEventListener('click', () => {
     sidebar.classList.toggle('closed');
+});
+closeSidebarBtn?.addEventListener('click', () => {
+    sidebar.classList.add('closed');
 });
 
 document.addEventListener('click', (e) => {
