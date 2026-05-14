@@ -34,13 +34,13 @@
 </head>
 <body>
     <div class="app">
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar closed" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <img class="logo-image secure-logo" src="/asset/logo.png" alt="Youz AI Logo" draggable="false" oncontextmenu="return false;">
                 </div>
-                <button class="menu-btn" id="menuBtn" type="button" aria-label="Buka menu">
-                    <i class="fas fa-ellipsis-v"></i>
+                <button class="sidebar-close-btn" id="closeSidebarBtn" type="button" aria-label="Tutup sidebar">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
@@ -92,16 +92,6 @@
                 </div>
             </div>
         </aside>
-
-        <div class="menu-dropdown" id="menuDropdown">
-            <button class="menu-item" id="clearAllBtn" type="button">
-                <i class="fas fa-trash-alt"></i> Hapus Semua Percakapan
-            </button>
-            <div class="menu-divider"></div>
-            <button class="menu-item" id="aboutBtn" type="button">
-                <i class="fas fa-info-circle"></i> Tentang Youz AI
-            </button>
-        </div>
 
         <main class="main">
             <header class="chat-header">
@@ -162,6 +152,9 @@
                 <div class="image-draft" id="imageDraft">
                     <div class="image-draft-preview">
                         <img id="draftImage" src="" alt="Draft">
+                        <div class="image-draft-loading hidden" id="draftImageLoading">
+                            <div class="draft-loading-spinner"></div>
+                        </div>
                     </div>
                     <div class="image-draft-info">
                         <div class="image-draft-name" id="draftFileName"></div>
@@ -340,8 +333,20 @@
     </div>
 
     <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+    <div class="image-preview-modal hidden" id="imagePreviewModal">
+        <div class="image-preview-backdrop" id="imagePreviewBackdrop"></div>
+        <div class="image-preview-panel">
+            <img id="imagePreviewFull" src="" alt="Preview gambar">
+            <div class="image-preview-actions">
+                <a id="downloadPreviewBtn" class="save-profile-btn" download="youz-image.png">Unduh</a>
+                <button id="closeImagePreviewBtn" class="danger-btn" type="button">Tutup</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" defer></script>
     <script src="/js/app.js"></script>
+
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

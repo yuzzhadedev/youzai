@@ -788,6 +788,7 @@ function go(page){
   document.querySelectorAll('.sub-item').forEach(s=>s.classList.remove('active'));
   const parent=pageMap[page];
   if(parent){
+    openSub(parent);
     document.getElementById('nav-'+parent+'-parent')?.classList.add('active');
     document.getElementById('sub-'+page)?.classList.add('active');
   } else {
@@ -816,18 +817,7 @@ function toggleSub(id){
   }
 }
 
-// Klik area konten menutup semua dropdown
-document.querySelector('.content').addEventListener('click',()=>{
-  ['users','reports','billing'].forEach(id=>{
-    if(openSubs.has(id)){
-      closeSub(id);
-      document.getElementById('nav-'+id+'-parent')?.classList.remove('active');
-      if(subParent[id].includes(current)){
-        document.getElementById('nav-'+id+'-parent')?.classList.add('active');
-      }
-    }
-  });
-});
+// Dropdown tetap bisa dibuka/ditutup manual dari tombol parent.
 
 /* ── MODAL ── */
 const modals={
@@ -921,5 +911,7 @@ setInterval(loadAdminRealtime, 30000);
 
 makeChart('barChart2',[180,210,195,240,228,260,275,290,310,285,320,338,350,365,342,380,395,410,388,420,445,430,460,478,495,480,510,525,542,560]);
 </script>
+
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

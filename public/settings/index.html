@@ -482,10 +482,6 @@ input.inp[type=password]{letter-spacing:.1em}
         <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
       <div class="row">
-        <div class="row-left"><div class="row-name">Render markdown</div><div class="row-hint">Tampilkan format teks, kode, dan tabel di respons AI</div></div>
-        <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
-      </div>
-      <div class="row">
         <div class="row-left"><div class="row-name">Simpan riwayat otomatis</div><div class="row-hint">Percakapan disimpan secara otomatis</div></div>
         <label class="tog"><input type="checkbox" checked onchange="toast('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
@@ -515,14 +511,6 @@ input.inp[type=password]{letter-spacing:.1em}
     </div>
     <div class="settings-block">
       <div class="section-label" style="margin-bottom:8px">AI</div>
-      <div class="row">
-        <div class="row-left"><div class="row-name">Model default</div><div class="row-hint">Model utama saat membuka chat baru</div></div>
-        <select class="sel" id="modelSelect">
-          <option value="gemini">Gemini 2.0 Flash</option>
-          <option value="claude">Claude Sonnet 4.5</option>
-          <option value="gpt4o">ChatGPT 4o</option>
-        </select>
-      </div>
       <div class="row">
         <div class="row-left"><div class="row-name">Web Search</div><div class="row-hint">Aktifkan pencarian web saat chat</div></div>
         <label class="tog"><input id="webSearchToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label>
@@ -871,7 +859,7 @@ document.querySelector('.content').addEventListener('click',()=>{
   });
 });
 
-const settingsState = { theme:'dark', language:'id', model:'gemini', web_search_enabled:true, thinking_enabled:false, browser_notifications_enabled:false, sound_notifications_enabled:false };
+const settingsState = { theme:'dark', language:'id', web_search_enabled:true, thinking_enabled:false, browser_notifications_enabled:false, sound_notifications_enabled:false };
 let saveTimer = null;
 const runtimeState = { me:null, quota:null, premium:null };
 const ADMIN_EMAIL = 'mutustorereal@gmail.com';
@@ -891,13 +879,11 @@ function applySettingsToUI(settings = {}) {
     btn.classList.toggle('on', btn.dataset.theme === merged.theme);
   });
   const languageSelect = document.getElementById('languageSelect');
-  const modelSelect = document.getElementById('modelSelect');
   const webSearchToggle = document.getElementById('webSearchToggle');
   const thinkingToggle = document.getElementById('thinkingToggle');
   const browserNotifToggle = document.getElementById('browserNotifToggle');
   const soundNotifToggle = document.getElementById('soundNotifToggle');
   if (languageSelect) languageSelect.value = merged.language;
-  if (modelSelect) modelSelect.value = merged.model;
   if (webSearchToggle) webSearchToggle.checked = !!merged.web_search_enabled;
   if (thinkingToggle) thinkingToggle.checked = !!merged.thinking_enabled;
   if (browserNotifToggle) browserNotifToggle.checked = !!merged.browser_notifications_enabled;
@@ -990,10 +976,6 @@ document.getElementById('languageSelect')?.addEventListener('change', (e) => {
   settingsState.language = e.target.value;
   queueSave('Bahasa diperbarui');
 });
-document.getElementById('modelSelect')?.addEventListener('change', (e) => {
-  settingsState.model = e.target.value;
-  queueSave('Model default diperbarui');
-});
 document.getElementById('webSearchToggle')?.addEventListener('change', (e) => {
   settingsState.web_search_enabled = e.target.checked;
   queueSave('Web Search diperbarui');
@@ -1045,5 +1027,7 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
   saveProfile().catch((err) => toast(err?.message || 'Gagal menyimpan profil'));
 });
 </script>
+
+    <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

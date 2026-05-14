@@ -48,8 +48,7 @@ function protectLogos() {
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
-const menuBtn = document.getElementById('menuBtn');
-const menuDropdown = document.getElementById('menuDropdown');
+const closeSidebarBtn = document.getElementById('closeSidebarBtn');
 const conversationList = document.getElementById('conversationList');
 const chatMessages = document.getElementById('chatMessages');
 const chatTitle = document.getElementById('chatTitle');
@@ -71,8 +70,6 @@ const toolWebSearch = document.getElementById('toolWebSearch');
 const toolThinking = document.getElementById('toolThinking');
 const imageInput = document.getElementById('imageInput');
 const newChatBtn = document.getElementById('newChatBtn');
-const clearAllBtn = document.getElementById('clearAllBtn');
-const aboutBtn = document.getElementById('aboutBtn');
 const userProfile = document.getElementById('userProfile');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
@@ -138,6 +135,12 @@ const saveProfileBtn = document.getElementById('saveProfileBtn');
 const clearAllDataBtn = document.getElementById('clearAllDataBtn');
 const exportDataBtn = document.getElementById('exportDataBtn');
 const settingsModelBtns = document.querySelectorAll('.settings-model-btn');
+const draftImageLoading = document.getElementById('draftImageLoading');
+const imagePreviewModal = document.getElementById('imagePreviewModal');
+const imagePreviewBackdrop = document.getElementById('imagePreviewBackdrop');
+const imagePreviewFull = document.getElementById('imagePreviewFull');
+const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
+const closeImagePreviewBtn = document.getElementById('closeImagePreviewBtn');
 const sidebarAuthLinks = document.getElementById('sidebarAuthLinks');
 const sidebarAuthRequiredLinks = document.querySelectorAll('.sidebar-link.requires-auth');
 
@@ -236,6 +239,12 @@ function saveToStorage() {
 function getConversationStorageKey() {
     const userKey = currentUser?.email || currentUser?.id || 'guest';
     return `youz_ai_conversations_${String(userKey).toLowerCase()}`;
+}
+
+function formatHeaderConversationTitle(rawTitle = '') {
+    const text = String(rawTitle || '').trim() || 'Percakapan Baru';
+    const maxLength = 34;
+    return text.length > maxLength ? `${text.slice(0, maxLength)}.....` : text;
 }
 
 function createNewConversation() {
@@ -571,7 +580,8 @@ function switchConversation(id) {
     activeConversationId = id;
     const conv = conversations.find(c => c.id === id);
     if (conv) {
-        chatTitle.textContent = conv.title || 'Percakapan Baru';
+        chatTitle.textContent = formatHeaderConversationTitle(conv.title || 'Percakapan Baru');
+        chatTitle.title = conv.title || 'Percakapan Baru';
         renderMessages(conv.messages);
         renderSidebar();
         saveToStorage();
@@ -643,7 +653,7 @@ function createMessageElement(msg, index) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     if (msg.generatedImage) {
-        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div>`;
+        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
     }
     
     let feedbackIndicator = '';
@@ -721,6 +731,16 @@ function createMessageElement(msg, index) {
         regenerateBtn.addEventListener('click', () => regenerateResponse(index));
         const sourcesBtn = messageDiv.querySelector('.sources-btn');
         if (sourcesBtn) sourcesBtn.addEventListener('click', () => openSourcesSheet(msg.sources || [], 0, msg.searchTitle || ''));
+        const previewGeneratedBtn = messageDiv.querySelector('.preview-generated-btn');
+        if (previewGeneratedBtn) {
+            previewGeneratedBtn.addEventListener('click', () => {
+                const imageUrl = decodeURIComponent(previewGeneratedBtn.dataset.image || '');
+                if (!imageUrl) return;
+                imagePreviewFull.src = imageUrl;
+                if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
+                imagePreviewModal?.classList.remove('hidden');
+            });
+        }
         
         messageDiv.querySelectorAll('.source-chip').forEach(chip => {
             chip.addEventListener('click', () => {
@@ -1099,7 +1119,7 @@ function setActiveModel(model, persist = true) {
     if (persist) {
         localStorage.setItem('youz_model', activeModel);
         queueUserSettingsSave({ model: activeModel });
-        showToast(`Model: ${MODEL_CATALOG[activeModel]?.label || activeModel}`, 'success');
+        // no toast saat pengalihan model
     }
 }
 
@@ -1275,6 +1295,8 @@ function shouldUseWebSearchFromPrompt(text) {
 
 // ========== IMAGE DRAFT ==========
 function showImageDraft(file) {
+    draftImageLoading?.classList.remove('hidden');
+    draftImage?.parentElement?.classList.add('is-loading');
     const reader = new FileReader();
     reader.onload = (e) => {
         currentDraftImage = { file, dataURL: e.target.result, fileName: file.name, fileSize: formatFileSize(file.size) };
@@ -1282,7 +1304,13 @@ function showImageDraft(file) {
         draftFileName.textContent = file.name;
         draftFileSize.textContent = formatFileSize(file.size);
         imageDraftContainer.classList.remove('hidden');
+        draftImageLoading?.classList.add('hidden');
+        draftImage?.parentElement?.classList.remove('is-loading');
         updateSendButtonState();
+    };
+    reader.onerror = () => {
+        draftImageLoading?.classList.add('hidden');
+        draftImage?.parentElement?.classList.remove('is-loading');
     };
     reader.readAsDataURL(file);
 }
@@ -1293,6 +1321,17 @@ function clearImageDraft() {
     imageDraftContainer.classList.add('hidden');
     imageInput.value = '';
     updateSendButtonState();
+}
+
+function openImagePreview() {
+    if (!currentDraftImage?.dataURL || !imagePreviewModal || !imagePreviewFull) return;
+    imagePreviewFull.src = currentDraftImage.dataURL;
+    if (downloadPreviewBtn) downloadPreviewBtn.href = currentDraftImage.dataURL;
+    imagePreviewModal.classList.remove('hidden');
+}
+
+function closeImagePreview() {
+    imagePreviewModal?.classList.add('hidden');
 }
 
 function formatFileSize(bytes) {
@@ -1450,7 +1489,7 @@ async function sendMessage(options = {}) {
     const userMessage = {
         id: 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
         role: 'user',
-        content: text || ((currentDraftImage || forcedImageData) ? '📷 Kirim gambar' : '')
+        content: text || ''
     };
     if (forcedImageData) {
         userMessage.image = forcedImageData;
@@ -1722,9 +1761,6 @@ function applyLanguage(lang, persist = true) {
 
     if (userPremiumBtn) userPremiumBtn.innerHTML = `<i class="fas fa-crown"></i> ${t.getPremium}`;
 
-    const aboutMenu = document.getElementById('aboutBtn');
-    if (aboutMenu) aboutMenu.innerHTML = `<i class="fas fa-info-circle"></i> ${t.about}`;
-
     const loginBtn = document.querySelector('.sidebar-auth-link.cta');
     if (loginBtn) loginBtn.innerHTML = `<i class="fas fa-right-to-bracket"></i> ${t.loginPrompt}`;
 
@@ -1770,22 +1806,11 @@ document.querySelectorAll('.suggestion-item').forEach(item => {
 hamburgerBtn?.addEventListener('click', () => {
     sidebar.classList.toggle('closed');
 });
-
-menuBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const rect = menuBtn.getBoundingClientRect();
-    const dropdownWidth = menuDropdown.offsetWidth || 220;
-    const padding = 10;
-    const left = Math.min(window.innerWidth - dropdownWidth - padding, Math.max(padding, rect.right - dropdownWidth));
-    menuDropdown.style.top = (rect.bottom + 8) + 'px';
-    menuDropdown.style.left = left + 'px';
-    menuDropdown.classList.toggle('show');
+closeSidebarBtn?.addEventListener('click', () => {
+    sidebar.classList.add('closed');
 });
 
 document.addEventListener('click', (e) => {
-    if (menuDropdown && menuBtn && !menuDropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-        menuDropdown.classList.remove('show');
-    }
     if (searchSuggestions && e.target !== messageInput && !searchSuggestions.contains(e.target)) {
         searchSuggestions.classList.add('hidden');
     }
@@ -1864,7 +1889,7 @@ imageInput?.addEventListener('change', (e) => {
 
 removeDraftBtn?.addEventListener('click', clearImageDraft);
 
-clearAllBtn?.addEventListener('click', () => {
+clearAllDataBtn?.addEventListener('click', () => {
     openConfirmDialog({
         title: 'Hapus semua percakapan?',
         message: 'Tindakan ini tidak dapat dibatalkan.',
@@ -1876,19 +1901,8 @@ clearAllBtn?.addEventListener('click', () => {
         saveToStorage();
         createNewConversation();
         switchConversation(activeConversationId);
-        menuDropdown.classList.remove('show');
         showToast('Semua percakapan dihapus', 'success');
     });
-});
-
-aboutBtn?.addEventListener('click', () => {
-    openConfirmDialog({
-        title: 'Tentang Youz AI',
-        message: 'Youz AI v2.8\n\nAsisten AI cerdas dengan:\n• ChatGPT (via OpenRouter)\n• Gemini 2.0 Flash\n• Fitur Web Search (sistem)\n• Fitur Generate Image (sistem)\n• Vision Support\n• Image Draft & Typewriter Effect\n• Salin, Like, Dislike, Regenerate\n• Settings & Profile\n\nDibuat oleh Yuzz Ofc.\n\n© 2026 Yuzz Ofc',
-        okText: 'Tutup',
-        showCancel: false
-    });
-    menuDropdown.classList.remove('show');
 });
 
 // ========== SETTINGS MODAL EVENTS ==========
@@ -2047,6 +2061,8 @@ userMenuBtn?.addEventListener('click', (e) => {
 scrollBottomBtn?.addEventListener('click', () => {
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
 });
+imagePreviewBackdrop?.addEventListener('click', closeImagePreview);
+closeImagePreviewBtn?.addEventListener('click', closeImagePreview);
 
 chatMessages?.addEventListener('touchstart', () => {
     isTouchingChat = true;
@@ -2086,9 +2102,7 @@ document.addEventListener('click', (e) => {
 });
 
 window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-        sidebar.classList.remove('closed');
-    }
+    sidebar.classList.add('closed');
 });
 
 document.addEventListener('keydown', (e) => {
@@ -2129,9 +2143,7 @@ async function init() {
     }
     updateScrollBottomVisibility();
     setProcessingUI(false);
-    if (window.innerWidth <= 768) {
-        sidebar.classList.add('closed');
-    }
+    sidebar.classList.add('closed');
     
     if (currentTimeSpan) {
         updateCurrentTime();
