@@ -320,7 +320,7 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
 <nav class="sidebar">
   <div class="sidebar-head">
     <div class="brand">
-      <div class="brand-mark">Y</div>
+      <img src="/asset/logo.png" alt="Youz AI" class="brand-mark" id="brandLogo"/>
       <span class="brand-name">Youz AI</span>
       <span class="brand-badge">ADMIN</span>
     </div>
@@ -411,10 +411,10 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
 
   <div class="sidebar-foot">
     <div class="admin-card">
-      <div class="avatar">SA</div>
+      <div class="avatar" id="adminAvatar">SA</div>
       <div style="flex:1;min-width:0">
-        <div class="admin-name">Super Admin</div>
-        <div class="admin-role"><span class="role-pill">root</span></div>
+        <div class="admin-name" id="adminName">Super Admin</div>
+        <div class="admin-role"><span class="role-pill" id="adminRole">root</span></div>
       </div>
     </div>
   </div>
@@ -439,22 +439,22 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
   <div class="stat-grid">
     <div class="stat-card">
       <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Total Pengguna</div>
-      <div class="stat-value">12,847</div>
+      <div class="stat-value" id="statTotalUsers">0</div>
       <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +284 minggu ini</div>
     </div>
     <div class="stat-card">
       <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Premium Aktif</div>
-      <div class="stat-value">1,392</div>
+      <div class="stat-value" id="statPremiumUsers">0</div>
       <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +47 minggu ini</div>
     </div>
     <div class="stat-card">
       <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Pesan Hari Ini</div>
-      <div class="stat-value">48,291</div>
+      <div class="stat-value" id="statMessagesToday">0</div>
       <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +12% vs kemarin</div>
     </div>
     <div class="stat-card">
       <div class="stat-label"><svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Pendapatan Bulan Ini</div>
-      <div class="stat-value" style="font-size:18px">Rp 68,2jt</div>
+      <div class="stat-value" style="font-size:18px" id="statRevenue">Rp 0</div>
       <div class="stat-delta delta-up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> +9% vs bulan lalu</div>
     </div>
   </div>
@@ -494,13 +494,7 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
     </div>
     <table>
       <thead><tr><th>Pengguna</th><th>Email</th><th>Plan</th><th>Bergabung</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1b4b;color:#a5b4fc">RF</div> Rizky Fajar</div></td><td class="td-mono">rizky@gmail.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a2e1a;color:#86efac">DN</div> Dewi Nuraini</div></td><td class="td-mono">dewi@yahoo.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">11 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#2d1b00;color:#fcd34d">BS</div> Budi Santoso</div></td><td class="td-mono">budi.s@outlook.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">10 Mei 2026</td><td><span class="chip chip-amber"><span class="dot" style="background:var(--amber)"></span> Trial</span></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1e2e;color:#c4b5fd">SR</div> Siti Rahayu</div></td><td class="td-mono">siti.r@email.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">9 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a0a0a;color:#fca5a5">AP</div> Andi Pratama</div></td><td class="td-mono">andi.p@gmail.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">8 Mei 2026</td><td><span class="chip chip-red"><span class="dot" style="background:var(--red)"></span> Blokir</span></td></tr>
-      </tbody>
+      <tbody id="recentUsersBody"></tbody>
     </table>
   </div>
 </div>
@@ -550,13 +544,7 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
   <div class="table-box">
     <table>
       <thead><tr><th>Pengguna</th><th>Email</th><th>Plan</th><th>Bergabung</th><th>Status</th><th>Aksi</th></tr></thead>
-      <tbody>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1b4b;color:#a5b4fc">RF</div> Rizky Fajar</div></td><td class="td-mono">rizky@gmail.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">12 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a2e1a;color:#86efac">DN</div> Dewi Nuraini</div></td><td class="td-mono">dewi@yahoo.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">11 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#2d1b00;color:#fcd34d">BS</div> Budi Santoso</div></td><td class="td-mono">budi.s@outlook.com</td><td><span class="chip chip-accent">Premium</span></td><td class="td-mono">10 Mei 2026</td><td><span class="chip chip-amber"><span class="dot" style="background:var(--amber)"></span> Trial</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1a0a0a;color:#fca5a5">AP</div> Andi Pratama</div></td><td class="td-mono">andi.p@gmail.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">8 Mei 2026</td><td><span class="chip chip-red"><span class="dot" style="background:var(--red)"></span> Blokir</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm" onclick="toast('Pengguna diaktifkan kembali')">Aktifkan</button></div></td></tr>
-        <tr><td><div class="td-name"><div class="td-avatar" style="background:#1e1e2e;color:#c4b5fd">SR</div> Siti Rahayu</div></td><td class="td-mono">siti.r@email.com</td><td><span class="chip chip-muted">Free</span></td><td class="td-mono">9 Mei 2026</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td><td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button><button class="btn sm danger" onclick="openModal('banUser')">Blokir</button></div></td></tr>
-      </tbody>
+      <tbody id="allUsersBody"></tbody>
     </table>
   </div>
 </div>
@@ -567,9 +555,9 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
     <div class="page-head-left"><div class="page-title">Pengguna Premium</div><div class="page-desc">1,392 pelanggan aktif</div></div>
   </div>
   <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
-    <div class="stat-card"><div class="stat-label">Total Premium</div><div class="stat-value">1,392</div><div class="stat-delta delta-up">+47 minggu ini</div></div>
+    <div class="stat-card"><div class="stat-label">Total Premium</div><div class="stat-value" id="statPremiumUsersSummary">0</div><div class="stat-delta delta-up">+47 minggu ini</div></div>
     <div class="stat-card"><div class="stat-label">Berakhir Bulan Ini</div><div class="stat-value">83</div><div class="stat-delta delta-down">Perlu perpanjangan</div></div>
-    <div class="stat-card"><div class="stat-label">MRR</div><div class="stat-value" style="font-size:18px">Rp 68,2jt</div><div class="stat-delta delta-up">+9% vs bulan lalu</div></div>
+    <div class="stat-card"><div class="stat-label">MRR</div><div class="stat-value" style="font-size:18px" id="statRevenueSummary">Rp 0</div><div class="stat-delta delta-up">+9% vs bulan lalu</div></div>
   </div>
   <div class="table-box">
     <table>
@@ -889,6 +877,48 @@ function makeChart(id,data){
   });
 }
 makeChart('barChart',[31200,28400,42100,38700,44300,40100,48291]);
+
+
+async function loadAdminRealtime(){
+  try {
+    const res = await fetch('/api/auth/me?scope=admin-overview');
+    if(!res.ok) return;
+    const data = await res.json();
+    const me = data?.admin || {};
+    const init = String(me.name||'Admin').split(/\s+/).map(v=>v[0]||'').slice(0,2).join('').toUpperCase();
+    const avatar = document.getElementById('adminAvatar');
+    const nameEl = document.getElementById('adminName');
+    const roleEl = document.getElementById('adminRole');
+    if(avatar) avatar.textContent = init || 'AD';
+    if(nameEl) nameEl.textContent = me.name || 'Admin';
+    if(roleEl) roleEl.textContent = me.role || (me.plan === 'premium' ? 'premium-admin':'admin');
+
+    const stats = data?.stats || {};
+    const setTxt = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
+    setTxt('statTotalUsers', Number(stats.totalUsers||0).toLocaleString('id-ID'));
+    setTxt('statPremiumUsers', Number(stats.premiumUsers||0).toLocaleString('id-ID'));
+    setTxt('statPremiumUsersSummary', Number(stats.premiumUsers||0).toLocaleString('id-ID'));
+    setTxt('statMessagesToday', Number(stats.messagesToday||0).toLocaleString('id-ID'));
+    setTxt('statRevenue', `Rp ${Number(stats.revenue||0).toLocaleString('id-ID')}`);
+    setTxt('statRevenueSummary', `Rp ${Number(stats.revenue||0).toLocaleString('id-ID')}`);
+
+    const renderRows = (targetId, users, withAction=false)=>{
+      const body = document.getElementById(targetId); if(!body) return;
+      body.innerHTML = (users||[]).map((u)=>{
+        const initials = String(u.name||u.email||'U').split(/\s+/).map(v=>v[0]||'').slice(0,2).join('').toUpperCase();
+        const plan = String(u.plan||'free').toLowerCase();
+        const chip = plan==='premium' ? '<span class="chip chip-accent">Premium</span>' : '<span class="chip chip-muted">Free</span>';
+        const actions = withAction ? `<td><div style="display:flex;gap:4px"><button class="btn sm" onclick="toast('Edit pengguna dibuka')">Edit</button></div></td>` : '';
+        return `<tr><td><div class="td-name"><div class="td-avatar">${initials}</div> ${u.name || 'User'}</div></td><td class="td-mono">${u.email||'-'}</td><td>${chip}</td><td class="td-mono">${u.joinedAtLabel||'-'}</td><td><span class="chip chip-green"><span class="dot" style="background:var(--green)"></span> Aktif</span></td>${actions}</tr>`;
+      }).join('') || '<tr><td colspan="6" class="td-mono">Belum ada data pengguna.</td></tr>';
+    };
+    renderRows('recentUsersBody', data?.recentUsers || [], false);
+    renderRows('allUsersBody', data?.allUsers || [], true);
+  } catch {}
+}
+loadAdminRealtime();
+setInterval(loadAdminRealtime, 30000);
+
 makeChart('barChart2',[180,210,195,240,228,260,275,290,310,285,320,338,350,365,342,380,395,410,388,420,445,430,460,478,495,480,510,525,542,560]);
 </script>
 </body>
