@@ -653,7 +653,7 @@ function createMessageElement(msg, index) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     if (msg.generatedImage) {
-        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
+        content = `<div class="message-image generated-image-clickable"><img src="${msg.generatedImage}" alt="Generated Image" class="generated-image" data-image="${encodeURIComponent(msg.generatedImage)}"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
     }
     
     let feedbackIndicator = '';
@@ -735,6 +735,16 @@ function createMessageElement(msg, index) {
         if (previewGeneratedBtn) {
             previewGeneratedBtn.addEventListener('click', () => {
                 const imageUrl = decodeURIComponent(previewGeneratedBtn.dataset.image || '');
+                if (!imageUrl) return;
+                imagePreviewFull.src = imageUrl;
+                if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
+                imagePreviewModal?.classList.remove('hidden');
+            });
+        }
+        const generatedImage = messageDiv.querySelector('.generated-image');
+        if (generatedImage) {
+            generatedImage.addEventListener('click', () => {
+                const imageUrl = decodeURIComponent(generatedImage.dataset.image || '');
                 if (!imageUrl) return;
                 imagePreviewFull.src = imageUrl;
                 if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
