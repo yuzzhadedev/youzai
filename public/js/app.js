@@ -21,6 +21,12 @@ const MODEL_CATALOG = {
         tier: 'standard',
         available: true
     },
+    deepseek: {
+        label: 'DeepSeek V4 Flash',
+        detail: 'DeepSeek — Free via OpenRouter',
+        tier: 'standard',
+        available: true
+    },
     claude: {
         label: 'Claude Sonnet 4.5',
         detail: 'Anthropic — Best all-around',
@@ -1068,7 +1074,8 @@ function updateModelIndicator() {
         'gpt4o': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>ChatGPT</span>',
         'openai': '<img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg" alt="OpenAI"><span>OpenAI</span>',
         'gemini': '<img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg" alt="Gemini"><span>Gemini</span>',
-        'claude': '<i class="fas fa-feather-pointed"></i><span>Claude</span>'
+        'claude': '<i class="fas fa-feather-pointed"></i><span>Claude</span>',
+        'deepseek': '<i class="fas fa-bolt"></i><span>DeepSeek</span>'
     };
     if (modelIndicator) {
         modelIndicator.innerHTML = indicators[activeModel] || indicators['gpt4o'];
@@ -1078,7 +1085,7 @@ function updateModelIndicator() {
 function renderModelMenu() {
     if (!modelMenuStandardList || !modelMenuPremiumList) return;
     const isPremium = String(quotaState?.plan || 'free').toLowerCase() === 'premium';
-    const order = ['gemini', 'claude', 'gpt4o'];
+    const order = ['gemini', 'deepseek', 'claude', 'gpt4o'];
     modelMenuStandardList.innerHTML = '';
     modelMenuPremiumList.innerHTML = '';
     order.forEach((key) => {
@@ -1160,7 +1167,7 @@ function updateQuotaBadge(snapshot = null) {
         profilePlanBadge.classList.toggle('is-free', !isPremium);
         profilePlanBadge.classList.toggle('premium', isPremium);
     }
-    if (isPremium && !['gpt4o','claude','gemini'].includes(activeModel)) {
+    if (isPremium && !['gpt4o', 'claude', 'gemini', 'deepseek'].includes(activeModel)) {
         setActiveModel('gpt4o');
     }
     renderModelMenu();
@@ -1438,7 +1445,7 @@ async function typeWriterEffect(el, text, speed = 22) {
 
 
 async function streamChatSSE({ prompt, conversationId, signal }) {
-    const qs = new URLSearchParams({ prompt: String(prompt || ''), conversationId: String(conversationId || ''), userId: currentUser?.id || '', email: currentUser?.email || '' });
+    const qs = new URLSearchParams({ prompt: String(prompt || ''), conversationId: String(conversationId || ''), userId: currentUser?.id || '', email: currentUser?.email || '', modelType: activeModel });
     const response = await fetch(`/api/youz?mode=stream&${qs.toString()}`, { headers: { Accept: 'text/event-stream' }, signal });
     if (!response.ok || !response.body) {
         throw new Error(`Streaming gagal (${response.status})`);

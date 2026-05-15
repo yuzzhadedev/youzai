@@ -6,7 +6,8 @@ const MODEL_MAP = {
   openai: 'openai/gpt-4.1',
   gpt4o: 'openai/gpt-4o',
   gemini: 'google/gemini-2.0-flash-001',
-  claude: 'anthropic/claude-sonnet-4.5'
+  claude: 'anthropic/claude-sonnet-4.5',
+  deepseek: 'deepseek/deepseek-v4-flash:free'
 };
 
 function wait(ms) { return new Promise((r) => setTimeout(r, ms)); }
@@ -22,7 +23,7 @@ function buildSystemPrompt(thinkingMode, userContext = {}) {
 
 function normalizeModelType(modelType) {
   if (!modelType) return 'openai';
-  return ['openai', 'gpt4o', 'gemini', 'claude'].includes(modelType) ? modelType : 'gemini';
+  return ['openai', 'gpt4o', 'gemini', 'claude', 'deepseek'].includes(modelType) ? modelType : 'gemini';
 }
 
 function shouldGenerateImage(prompt = '', action = 'chat') {
@@ -200,12 +201,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, history, ts: Date.now() });
     }
     if (mode === 'stream') {
-      const { conversationId, prompt = '', userId = '', email = '' } = req.query || {};
+      const { conversationId, prompt = '', userId = '', email = '', modelType = '' } = req.query || {};
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive' });
       try {
         const cid = await ensureConversation({ conversationId, userId, email, title: String(prompt).slice(0, 60) || 'New Chat' });
         await saveConversationMessage({ conversationId: cid, role: 'user', content: String(prompt) });
-        const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', userContext: { id: userId, email }, conversationId: cid, disableAutoImage: true });
+        const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', modelType, userContext: { id: userId, email }, conversationId: cid, disableAutoImage: true });
         const text = String(response?.content || '');
         let built = '';
         for (const ch of text) { built += ch; res.write(`data: ${JSON.stringify({ type: 'token', token: ch, content: built })}\n\n`); await wait(35); }
