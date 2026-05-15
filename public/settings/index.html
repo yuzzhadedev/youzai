@@ -40,6 +40,29 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* ── LAYOUT ─────────────────────────────── */
 .layout{display:flex;height:100vh;overflow:hidden}
+.sidebar-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  opacity:0;pointer-events:none;transition:opacity .18s;
+  z-index:180;
+}
+.mobile-sidebar-toggle{
+  display:none;
+  position:fixed;top:12px;left:12px;z-index:260;
+  width:38px;height:38px;border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--bg-elevated);color:var(--text);
+  cursor:pointer;
+}
+.mobile-sidebar-toggle-icon{position:relative;display:block;width:100%;height:100%;}
+.mobile-sidebar-toggle-icon::before,
+.mobile-sidebar-toggle-icon::after{
+  content:'';position:absolute;
+  width:16px;height:12px;
+  border:2px solid currentColor;border-radius:3px;
+}
+.mobile-sidebar-toggle-icon::before{top:12px;left:12px;opacity:.65;}
+.mobile-sidebar-toggle-icon::after{top:10px;left:14px;}
+.mobile-sidebar-toggle:active{transform:scale(.98);}
 
 /* ── SIDEBAR ─────────────────────────────── */
 .sidebar{
@@ -336,10 +359,28 @@ input.inp[type=password]{letter-spacing:.1em}
 .content::-webkit-scrollbar{width:6px}
 .content::-webkit-scrollbar-track{background:transparent}
 .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@media (max-width: 900px){
+  .mobile-sidebar-toggle{display:inline-flex;align-items:center;justify-content:center;}
+  .sidebar{
+    position:fixed;left:0;top:0;height:100vh;z-index:220;
+    transform:translateX(-110%);
+    transition:transform .22s;
+    box-shadow:0 24px 64px rgba(0,0,0,.55);
+  }
+  .layout.sidebar-open .sidebar{transform:translateX(0);}
+  .layout.sidebar-open .sidebar-overlay{opacity:1;pointer-events:all;}
+  .page{padding:64px 16px 18px;max-width:100%;}
+  .page-head{margin-bottom:18px;padding-bottom:14px;}
+}
 </style>
 </head>
 <body>
 <div class="layout">
+  <button class="mobile-sidebar-toggle" id="mobileSidebarToggle" type="button" aria-label="Buka menu">
+    <span class="mobile-sidebar-toggle-icon" aria-hidden="true"></span>
+  </button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- ━━━ SIDEBAR ━━━ -->
 <nav class="sidebar">
@@ -777,6 +818,21 @@ const pageMap={
 const subParent={'account':['profile','security','login'],'plan':['plan-status','billing','upgrade'],'data':['export','delete']};
 const openSubs=new Set();
 let current='general';
+const layoutEl=document.querySelector('.layout');
+const mobileSidebarToggle=document.getElementById('mobileSidebarToggle');
+const sidebarOverlay=document.getElementById('sidebarOverlay');
+
+function setSidebarOpen(open){
+  if(!layoutEl) return;
+  layoutEl.classList.toggle('sidebar-open',Boolean(open));
+}
+function toggleSidebar(){
+  if(!layoutEl) return;
+  setSidebarOpen(!layoutEl.classList.contains('sidebar-open'));
+}
+mobileSidebarToggle?.addEventListener('click',toggleSidebar);
+sidebarOverlay?.addEventListener('click',()=>setSidebarOpen(false));
+window.addEventListener('resize',()=>{if(window.innerWidth>900) setSidebarOpen(false);});
 
 function go(page){
   document.getElementById('page-'+current).classList.remove('active');
@@ -791,6 +847,7 @@ function go(page){
     document.getElementById('nav-'+page)?.classList.add('active');
   }
   current=page;
+  if(window.innerWidth<=900) setSidebarOpen(false);
 }
 
 function openSub(id){

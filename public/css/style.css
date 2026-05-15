@@ -90,7 +90,7 @@ body {
 
 /* ===== SIDEBAR ===== */
 .sidebar {
-    width: 300px;
+    width: clamp(240px, 28vw, 300px);
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     display: flex;
@@ -538,8 +538,20 @@ body {
 }
 
 .sidebar-close-btn{
-    width:32px;height:32px;border:none;border-radius:8px;background:transparent;color:var(--text-secondary);cursor:pointer;
+    width:32px;height:32px;border:none;border-radius:8px;background:transparent;color:var(--text-secondary);cursor:pointer;position:relative;
 }
+.sidebar-close-btn i{display:none;}
+.sidebar-close-btn::before,
+.sidebar-close-btn::after{
+    content:'';
+    position:absolute;
+    width:14px;
+    height:10px;
+    border:2px solid currentColor;
+    border-radius:3px;
+}
+.sidebar-close-btn::before{top:10px;left:10px;opacity:.65;}
+.sidebar-close-btn::after{top:8px;left:12px;}
 .sidebar-close-btn:hover{background:var(--bg-input);}
 
 .chat-info {
