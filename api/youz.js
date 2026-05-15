@@ -78,9 +78,9 @@ async function generateImageWithHuggingFace(prompt, userKey) {
   await consumeQuota({ userKey, type: 'image', amount: 1 });
   return {
     success: true,
-    content: 'Gambar berhasil dibuat dengan FLUX.1-schnell.',
+    content: '',
     imageUrl,
-    model: 'black-forest-labs/FLUX.1-schnell',
+    model: 'image',
     hasSearch: false,
     sources: []
   };
@@ -112,14 +112,16 @@ async function callOpenRouter({ apiKey, model, messages, enableSearch, maxTokens
 }
 
 async function processChatRequest(req, payload = {}) {
-  const { messages = [], action = 'chat', modelType: rawModelType = 'openai', imageData, prompt, enableSearch = false, thinkingMode = false, userContext = {}, conversationId = '' } = payload;
+  const { messages = [], action = 'chat', modelType: rawModelType = 'openai', imageData, prompt, enableSearch = false, thinkingMode = false, userContext = {}, conversationId = '', disableAutoImage = false } = payload;
   const userKey = resolveUserKey(req, userContext);
   const modelType = normalizeModelType(rawModelType);
 
   const hasImage = Boolean(imageData);
-  const quotaType = hasImage ? 'image' : 'chat';
+  const safePrompt = String(prompt || messages[messages.length - 1]?.content || '').trim();
+  const wantsImageGeneration = !disableAutoImage && !hasImage && shouldGenerateImage(safePrompt, action);
+  const quotaType = (hasImage || wantsImageGeneration) ? 'image' : 'chat';
   const quotaSnapshot = await getQuotaSnapshot(userKey);
-  if (modelType === 'gpt4o' && quotaSnapshot?.plan !== 'premium') return { success: false, content: 'Model ChatGPT 4o hanya untuk pengguna Premium.', limit: { type: quotaType, ...quotaSnapshot } };
+  if (quotaType === 'chat' && modelType === 'gpt4o' && quotaSnapshot?.plan !== 'premium') return { success: false, content: 'Model ChatGPT 4o hanya untuk pengguna Premium.', limit: { type: quotaType, ...quotaSnapshot } };
   const currentUsage = quotaSnapshot?.usage?.[quotaType] || 0;
   const limitAmount = quotaSnapshot?.limits?.[quotaType] || 0;
   if (currentUsage >= limitAmount) {
@@ -132,8 +134,6 @@ async function processChatRequest(req, payload = {}) {
   }
 
   const systemPrompt = buildSystemPrompt(thinkingMode, userContext);
-  const safePrompt = String(prompt || messages[messages.length - 1]?.content || '').trim();
-  const wantsImageGeneration = !hasImage && shouldGenerateImage(safePrompt, action);
   if (wantsImageGeneration) {
     const generated = await generateImageWithHuggingFace(safePrompt, userKey);
     if (!generated.success) {
@@ -205,7 +205,7 @@ export default async function handler(req, res) {
       try {
         const cid = await ensureConversation({ conversationId, userId, email, title: String(prompt).slice(0, 60) || 'New Chat' });
         await saveConversationMessage({ conversationId: cid, role: 'user', content: String(prompt) });
-        const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', userContext: { id: userId, email }, conversationId: cid });
+        const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', userContext: { id: userId, email }, conversationId: cid, disableAutoImage: true });
         const text = String(response?.content || '');
         let built = '';
         for (const ch of text) { built += ch; res.write(`data: ${JSON.stringify({ type: 'token', token: ch, content: built })}\n\n`); await wait(35); }
