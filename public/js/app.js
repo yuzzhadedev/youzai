@@ -597,7 +597,7 @@ function renderMessages(messages) {
         chatMessages.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">
-                    <img src="/asset/logo.png" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
+                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
                 </div>
                 <h3>Youz AI</h3>
                 <p>Asisten AI cerdas buatan Yuzz Ofc</p>
@@ -644,7 +644,8 @@ function renderMessages(messages) {
 function createMessageElement(msg, index) {
     const isUser = msg.role === 'user';
     const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${msg.role} ${msg.isError ? 'error' : ''} ${msg.isComplete === false ? 'pending' : ''}`;
+    const isImageOnly = Boolean(msg.generatedImage) && !String(msg.content || '').trim();
+    messageDiv.className = `message ${msg.role} ${msg.isError ? 'error' : ''} ${msg.isComplete === false ? 'pending' : ''} ${isImageOnly ? 'image-only' : ''}`;
     messageDiv.dataset.messageIndex = index;
     messageDiv.dataset.messageId = msg.id || `msg-${Date.now()}-${index}`;
     
@@ -653,7 +654,8 @@ function createMessageElement(msg, index) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     if (msg.generatedImage) {
-        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
+        const imageData = encodeURIComponent(msg.generatedImage);
+        content = `${String(msg.content || '').trim() ? `${content}` : ''}<div class="message-image generated-image"><button class="generated-image-btn" type="button" data-image="${imageData}" aria-label="Preview gambar"><img src="${msg.generatedImage}" alt="Generated"></button></div>`;
     }
     
     let feedbackIndicator = '';
@@ -677,13 +679,14 @@ function createMessageElement(msg, index) {
         ? String(msg.searchTitle || msg.searchQuery || msg.queryTitle || '').trim() || 'Sumber'
         : '';
 
+    const showActions = !isUser && !msg.isError && !isImageOnly;
     messageDiv.innerHTML = `
         <div class="message-content-wrapper">
             ${metaHtml}
             <div class="message-content" id="msg-content-${index}">
                 ${content}
             </div>
-            ${!isUser && !msg.isError ? `
+            ${showActions ? `
                 <div class="message-actions">
                     <div class="message-actions-left">
                         <button class="action-btn copy-btn" data-content="${encodeURIComponent(msg.content || '')}" title="Salin" ${msg.isComplete === false ? 'disabled' : ''}>
@@ -768,6 +771,17 @@ function createMessageElement(msg, index) {
             } catch {}
         });
     });
+
+    const generatedImageBtn = messageDiv.querySelector('.generated-image-btn');
+    if (generatedImageBtn) {
+        generatedImageBtn.addEventListener('click', () => {
+            const imageUrl = decodeURIComponent(generatedImageBtn.dataset.image || '');
+            if (!imageUrl) return;
+            imagePreviewFull.src = imageUrl;
+            if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
+            imagePreviewModal?.classList.remove('hidden');
+        });
+    }
 
     applyCodeHighlighting(messageDiv);
     return messageDiv;
@@ -1293,6 +1307,13 @@ function shouldUseWebSearchFromPrompt(text) {
     return String(text || '').trim().length > 0;
 }
 
+function shouldGenerateImageFromPrompt(text) {
+    const raw = String(text || '').toLowerCase();
+    if (!raw.trim()) return false;
+    return /(generate|buatkan|buat|gambar|ilustrasi|poster|logo|image)/.test(raw)
+        && /(generate|buat|gambar|image)/.test(raw);
+}
+
 // ========== IMAGE DRAFT ==========
 function showImageDraft(file) {
     draftImageLoading?.classList.remove('hidden');
@@ -1517,15 +1538,26 @@ async function sendMessage(options = {}) {
     
     const loadingId = 'loading-' + Date.now();
     const hasImageDraft = Boolean(userMessage.image);
+    const wantsImageGeneration = !userMessage.image && shouldGenerateImageFromPrompt(text);
+    const isImageGenLoading = wantsImageGeneration && !hasImageDraft;
     chatMessages.insertAdjacentHTML('beforeend', `
-        <div class="message assistant pending" id="${loadingId}">
+        <div class="message assistant pending ${isImageGenLoading ? 'image-gen' : ''}" id="${loadingId}">
             <div class="message-content-wrapper">
-                <div class="message-meta"><span>${thinkingModeEnabled ? 'AI sedang berpikir' : '•••'}</span><span class="message-meta-chevron">›</span></div>
                 <div class="message-content">
-                    <div class="thinking-indicator">
-                        <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                        <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span>
-                    </div>
+                    ${isImageGenLoading ? `
+                        <div class="image-gen-loading">
+                            <div class="image-gen-loading-head">
+                                <div class="image-gen-loading-title">Membuat gambar</div>
+                                <div class="image-gen-loading-ticker"><span>loading</span></div>
+                            </div>
+                            <div class="image-gen-loading-card" aria-hidden="true"></div>
+                        </div>
+                    ` : `
+                        <div class="thinking-indicator">
+                            <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                            <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span>
+                        </div>
+                    `}
                 </div>
             </div>
         </div>
@@ -1535,9 +1567,9 @@ async function sendMessage(options = {}) {
     try {
         const thinkingStart = performance.now();
         const messages = conv.messages.map(m => ({ role: m.role, content: m.content }));
-        const enableSearch = !userMessage.image && shouldUseWebSearchFromPrompt(text);
+        const enableSearch = !userMessage.image && !wantsImageGeneration && shouldUseWebSearchFromPrompt(text);
         
-        const action = enableSearch ? 'search' : 'chat';
+        const action = wantsImageGeneration ? 'image' : (enableSearch ? 'search' : 'chat');
         let response;
         if (action === 'chat' && !userMessage.image) {
             response = await streamChatSSE({ prompt: text, conversationId: conv.serverId || '', signal: abortController.signal });
@@ -1583,6 +1615,13 @@ async function sendMessage(options = {}) {
         renderMessages(conv.messages);
         
         const contentEl = document.getElementById(`msg-content-${conv.messages.length - 1}`);
+        if (response.imageUrl && response.success) {
+            aiMessage.content = '';
+            aiMessage.isComplete = true;
+            saveToStorage();
+            renderMessages(conv.messages);
+            return;
+        }
         if (contentEl && response.success) {
             autoScrollDuringTyping = shouldStickToBottom();
             await typeWriterEffect(contentEl, response.content);
