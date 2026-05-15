@@ -2791,6 +2791,14 @@ body {
 
 * { -webkit-tap-highlight-color: transparent; }
 button:focus, button:focus-visible, .action-btn:focus, .panel-model-item:focus { outline: none !important; box-shadow: none !important; }
+.generated-image-btn:focus-visible,
+.composer-menu-model-item:focus-visible,
+.composer-menu-item:focus-visible,
+.attach-btn:focus-visible,
+.send-btn:focus-visible {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+}
 .profile-premium-badge.is-free{background:rgba(148,163,184,.18);color:#cbd5e1;}
 
 
