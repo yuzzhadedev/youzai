@@ -78,7 +78,7 @@ async function generateImageWithHuggingFace(prompt, userKey) {
   await consumeQuota({ userKey, type: 'image', amount: 1 });
   return {
     success: true,
-    content: 'Gambar berhasil dibuat dengan FLUX.1-schnell.',
+    content: 'Gambar berhasil dibuat.',
     imageUrl,
     model: 'black-forest-labs/FLUX.1-schnell',
     hasSearch: false,

@@ -241,6 +241,13 @@ function getConversationStorageKey() {
     return `youz_ai_conversations_${String(userKey).toLowerCase()}`;
 }
 
+
+function isImageGenerationPrompt(prompt = '') {
+    const text = String(prompt || '').toLowerCase();
+    return /(generate|buatkan|buat|gambar|ilustrasi|poster|logo|image)/.test(text)
+        && /(generate|buat|gambar|image)/.test(text);
+}
+
 function formatHeaderConversationTitle(rawTitle = '') {
     const text = String(rawTitle || '').trim() || 'Percakapan Baru';
     const maxLength = 34;
@@ -597,7 +604,7 @@ function renderMessages(messages) {
         chatMessages.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">
-                    <img src="/asset/logo.png" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
+                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
                 </div>
                 <h3>Youz AI</h3>
                 <p>Asisten AI cerdas buatan Yuzz Ofc</p>
@@ -653,7 +660,8 @@ function createMessageElement(msg, index) {
         content += `<div class="message-image"><img src="${msg.image}" alt="Uploaded"></div>`;
     }
     if (msg.generatedImage) {
-        content = `<strong>Gambar telah dibuat</strong><br>${content}<div class="message-image"><img src="${msg.generatedImage}" alt="Generated"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
+        const imageGeneratedLabel = content && content.trim() ? `<strong>Gambar telah dibuat</strong><br>${content}` : '<strong>Gambar telah dibuat</strong>';
+        content = `${imageGeneratedLabel}<div class="message-image"><img class="generated-image-preview" src="${msg.generatedImage}" alt="Generated" role="button" tabindex="0" title="Klik untuk preview"></div><div class="message-image-actions"><button class="action-btn preview-generated-btn" data-image="${encodeURIComponent(msg.generatedImage)}"><i class="fas fa-expand"></i><span>Preview</span></button><a class="action-btn" href="${msg.generatedImage}" download="youz-generated-image.png"><i class="fas fa-download"></i><span>Unduh</span></a></div>`;
     }
     
     let feedbackIndicator = '';
@@ -673,6 +681,14 @@ function createMessageElement(msg, index) {
     const metaHtml = showMeta && metaText
         ? `<div class="message-meta"><span>${escapeHtml(metaText)}</span><span class="message-meta-chevron">›</span></div>`
         : '';
+
+    const openGeneratedImagePreview = (imageUrl = '') => {
+        if (!imageUrl || !imagePreviewFull || !imagePreviewModal) return;
+        imagePreviewFull.src = imageUrl;
+        if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
+        imagePreviewModal.classList.remove('hidden');
+    };
+
     const sourcesButtonLabel = !isUser && !msg.isError && shouldShowSourcesButton(msg)
         ? String(msg.searchTitle || msg.searchQuery || msg.queryTitle || '').trim() || 'Sumber'
         : '';
@@ -735,10 +751,18 @@ function createMessageElement(msg, index) {
         if (previewGeneratedBtn) {
             previewGeneratedBtn.addEventListener('click', () => {
                 const imageUrl = decodeURIComponent(previewGeneratedBtn.dataset.image || '');
-                if (!imageUrl) return;
-                imagePreviewFull.src = imageUrl;
-                if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
-                imagePreviewModal?.classList.remove('hidden');
+                openGeneratedImagePreview(imageUrl);
+            });
+        }
+        const generatedImagePreview = messageDiv.querySelector('.generated-image-preview');
+        if (generatedImagePreview) {
+            const imageUrl = String(msg.generatedImage || '').trim();
+            generatedImagePreview.addEventListener('click', () => openGeneratedImagePreview(imageUrl));
+            generatedImagePreview.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openGeneratedImagePreview(imageUrl);
+                }
             });
         }
         
@@ -789,7 +813,8 @@ function decodeHtmlEntities(text) {
 }
 
 function normalizeResponseText(text) {
-    const raw = decodeHtmlEntities(String(text || ''));
+    const rawInput = typeof text === 'string' ? text : (text == null ? '' : JSON.stringify(text));
+    const raw = decodeHtmlEntities(rawInput);
     if (!raw.includes('\\n') && /\\\\n/.test(raw)) {
         return raw.replace(/\\\\n/g, '\\n');
     }
@@ -1517,16 +1542,15 @@ async function sendMessage(options = {}) {
     
     const loadingId = 'loading-' + Date.now();
     const hasImageDraft = Boolean(userMessage.image);
+    const isImageGenerationLoading = !hasImageDraft && isImageGenerationPrompt(text);
+    const pendingInner = isImageGenerationLoading
+        ? `<div class="image-gen-loading"><div class="image-gen-loading-title">Membuat gambar</div><div class="image-gen-loading-card" aria-hidden="true"></div></div>`
+        : `<div class="thinking-indicator"><div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div><span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span></div>`;
     chatMessages.insertAdjacentHTML('beforeend', `
         <div class="message assistant pending" id="${loadingId}">
             <div class="message-content-wrapper">
-                <div class="message-meta"><span>${thinkingModeEnabled ? 'AI sedang berpikir' : '•••'}</span><span class="message-meta-chevron">›</span></div>
-                <div class="message-content">
-                    <div class="thinking-indicator">
-                        <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                        <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span>
-                    </div>
-                </div>
+                <div class="message-meta"><span>${isImageGenerationLoading ? 'Membuat gambar' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span><span class="message-meta-chevron">›</span></div>
+                <div class="message-content">${pendingInner}</div>
             </div>
         </div>
     `);
