@@ -55,9 +55,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .brand{display:flex;align-items:center;gap:9px;margin-bottom:4px}
 .brand-mark{
   width:30px;height:30px;border-radius:9px;
-  background:linear-gradient(135deg,#6c63ff,#a78bfa);
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:600;color:#fff;flex-shrink:0;
+  display:block;object-fit:cover;
+  background:transparent;flex-shrink:0;
   box-shadow:0 0 0 1px rgba(108,99,255,.3);
 }
 .brand-name{font-size:14px;font-weight:500;letter-spacing:-.01em}
@@ -313,10 +312,37 @@ textarea.inp{
 }
 textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
 .btn-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+.sidebar-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  opacity:0;pointer-events:none;transition:opacity .18s;
+  z-index:40;
+}
+.sidebar-backdrop.open{opacity:1;pointer-events:auto}
+.sidebar-toggle{
+  position:fixed;left:12px;top:12px;width:36px;height:36px;border-radius:10px;
+  border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);
+  display:none;align-items:center;justify-content:center;cursor:pointer;
+  z-index:45;
+}
+.sidebar-toggle:hover{background:var(--bg-hover)}
+.sidebar-toggle svg{width:18px;height:18px}
+
+@media (max-width: 960px){
+  .sidebar{
+    position:fixed;left:0;top:0;height:100vh;z-index:50;
+    width:min(82vw,280px);
+    transform:translateX(-105%);
+    transition:transform .22s cubic-bezier(.4,0,.2,1);
+  }
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-toggle{display:flex}
+}
 </style>
 </head>
 <body>
 <div class="layout">
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <!-- ━━━ SIDEBAR ━━━ -->
 <nav class="sidebar">
@@ -424,6 +450,11 @@ textarea.inp:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px 
 
 <!-- ━━━ CONTENT ━━━ -->
 <main class="content">
+<button class="sidebar-toggle" id="sidebarToggleBtn" type="button" aria-label="Buka sidebar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+  </svg>
+</button>
 
 <!-- ── DASHBOARD ── -->
 <div class="page active" id="page-dashboard">
@@ -782,6 +813,21 @@ const subParent={
 };
 const openSubs=new Set();
 let current='dashboard';
+
+const sidebarEl = document.querySelector('.sidebar');
+const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+
+function setSidebarOpen(nextOpen){
+  if(!sidebarEl || !sidebarBackdrop) return;
+  sidebarEl.classList.toggle('open', nextOpen);
+  sidebarBackdrop.classList.toggle('open', nextOpen);
+  sidebarToggleBtn?.setAttribute('aria-label', nextOpen ? 'Tutup sidebar' : 'Buka sidebar');
+}
+sidebarToggleBtn?.addEventListener('click', ()=> setSidebarOpen(!sidebarEl.classList.contains('open')));
+sidebarBackdrop?.addEventListener('click', ()=> setSidebarOpen(false));
+document.querySelector('.nav')?.addEventListener('click', ()=>{ if(window.innerWidth <= 960) setSidebarOpen(false); });
+window.addEventListener('resize', ()=>{ if(window.innerWidth > 960) setSidebarOpen(false); });
 
 function go(page){
   document.getElementById('page-'+current).classList.remove('active');

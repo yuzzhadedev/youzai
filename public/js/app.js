@@ -55,6 +55,8 @@ function protectLogos() {
 const sidebar = document.getElementById('sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
+const sidebarToggleIconSidebar = document.getElementById('sidebarToggleIconSidebar');
 const conversationList = document.getElementById('conversationList');
 const chatMessages = document.getElementById('chatMessages');
 const chatTitle = document.getElementById('chatTitle');
@@ -118,6 +120,22 @@ const confirmMessage = document.getElementById('confirmMessage');
 const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 const confirmOkBtn = document.getElementById('confirmOkBtn');
 const toastContainer = document.getElementById('toastContainer');
+
+function syncSidebarToggleUI() {
+    if (!sidebar) return;
+    const isClosed = sidebar.classList.contains('closed');
+    const iconClass = isClosed ? 'fa-regular fa-window-maximize' : 'fa-regular fa-window-restore';
+    if (sidebarToggleIcon) sidebarToggleIcon.className = iconClass;
+    if (sidebarToggleIconSidebar) sidebarToggleIconSidebar.className = iconClass;
+    hamburgerBtn?.setAttribute('aria-label', isClosed ? 'Buka sidebar' : 'Tutup sidebar');
+    closeSidebarBtn?.setAttribute('aria-label', isClosed ? 'Buka sidebar' : 'Tutup sidebar');
+}
+
+function applySidebarViewportDefaults() {
+    if (!sidebar) return;
+    sidebar.classList.toggle('closed', window.innerWidth <= 768);
+    syncSidebarToggleUI();
+}
 // ========== TAMBAHAN: HEADER NEW CHAT BUTTON ==========
 const headerNewChatBtn = document.getElementById('headerNewChatBtn');
 
@@ -502,6 +520,7 @@ function openSettings(defaultTab = 'general') {
     settingsModal.classList.remove('hidden');
     
     sidebar.classList.add('closed');
+    syncSidebarToggleUI();
     if (currentUser) {
         profileName.value = currentUser.name || '';
         profileEmail.value = currentUser.email || '';
@@ -595,6 +614,7 @@ function switchConversation(id) {
     }
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
+        syncSidebarToggleUI();
     }
 }
 
@@ -1851,9 +1871,11 @@ document.querySelectorAll('.suggestion-item').forEach(item => {
 // ========== EVENT LISTENERS ==========
 hamburgerBtn?.addEventListener('click', () => {
     sidebar.classList.toggle('closed');
+    syncSidebarToggleUI();
 });
 closeSidebarBtn?.addEventListener('click', () => {
-    sidebar.classList.add('closed');
+    sidebar.classList.toggle('closed');
+    syncSidebarToggleUI();
 });
 
 document.addEventListener('click', (e) => {
@@ -1867,6 +1889,7 @@ newChatBtn?.addEventListener('click', () => {
     switchConversation(activeConversationId);
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
+        syncSidebarToggleUI();
     }
 });
 
@@ -1875,6 +1898,7 @@ headerNewChatBtn?.addEventListener('click', () => {
     switchConversation(activeConversationId);
     if (window.innerWidth <= 768) {
         sidebar.classList.add('closed');
+        syncSidebarToggleUI();
     }
 });
 
@@ -2143,12 +2167,13 @@ document.addEventListener('click', (e) => {
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && !sidebar.classList.contains('closed')) {
             sidebar.classList.add('closed');
+            syncSidebarToggleUI();
         }
     }
 });
 
 window.addEventListener('resize', () => {
-    sidebar.classList.add('closed');
+    applySidebarViewportDefaults();
 });
 
 document.addEventListener('keydown', (e) => {
@@ -2189,7 +2214,7 @@ async function init() {
     }
     updateScrollBottomVisibility();
     setProcessingUI(false);
-    sidebar.classList.add('closed');
+    applySidebarViewportDefaults();
     
     if (currentTimeSpan) {
         updateCurrentTime();
