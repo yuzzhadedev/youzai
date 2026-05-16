@@ -96,9 +96,60 @@ body {
     display: flex;
     flex-direction: column;
     padding: 16px 12px 12px;
-    transition: transform 0.3s;
+    transition: transform 0.3s, width 0.22s;
     overflow: hidden;
     gap: 2px;
+}
+
+.sidebar.collapsed{
+    width: 76px;
+    padding: 14px 10px 10px;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .history-label,
+.sidebar.collapsed .history-group,
+.sidebar.collapsed .conv-title,
+.sidebar.collapsed .delete-conv,
+.sidebar.collapsed .sidebar-auth-links,
+.sidebar.collapsed .sidebar-footer,
+.sidebar.collapsed .user-info,
+.sidebar.collapsed .profile-premium-badge{
+    display: none !important;
+}
+
+.sidebar.collapsed .sidebar-header{
+    justify-content: center;
+}
+
+.sidebar.collapsed .new-chat-btn{
+    justify-content: center;
+    padding: 10px 0;
+    font-size: 0;
+    gap: 0;
+}
+
+.sidebar.collapsed .new-chat-btn i{
+    font-size: 15px;
+}
+
+.sidebar.collapsed .conv-item{
+    justify-content: center;
+}
+
+.sidebar-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s;
+    z-index: 90;
+}
+
+.sidebar-backdrop.open{
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .sidebar.closed {
@@ -2452,6 +2503,10 @@ body {
         z-index: 100;
         box-shadow: var(--shadow-lg);
         max-width: 260px;
+    }
+
+    .sidebar-backdrop{
+        display: block;
     }
     
     .sidebar.closed {

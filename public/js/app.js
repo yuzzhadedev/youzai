@@ -55,6 +55,7 @@ function protectLogos() {
 const sidebar = document.getElementById('sidebar');
 const hamburgerBtn = document.getElementById('hamburgerBtn');
 const closeSidebarBtn = document.getElementById('closeSidebarBtn');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
 const sidebarToggleIconSidebar = document.getElementById('sidebarToggleIconSidebar');
 const conversationList = document.getElementById('conversationList');
@@ -121,19 +122,56 @@ const confirmCancelBtn = document.getElementById('confirmCancelBtn');
 const confirmOkBtn = document.getElementById('confirmOkBtn');
 const toastContainer = document.getElementById('toastContainer');
 
+function isMobileViewport() {
+    return window.innerWidth <= 768;
+}
+
+function toggleSidebarVisibility() {
+    if (!sidebar) return;
+    if (isMobileViewport()) {
+        sidebar.classList.toggle('closed');
+    } else {
+        const nextCollapsed = !sidebar.classList.contains('collapsed');
+        sidebar.classList.toggle('collapsed', nextCollapsed);
+        localStorage.setItem('youz_sidebar_collapsed', nextCollapsed ? '1' : '0');
+    }
+    syncSidebarToggleUI();
+}
+
+function closeSidebarVisibility() {
+    if (!sidebar) return;
+    if (isMobileViewport()) {
+        sidebar.classList.add('closed');
+    } else {
+        sidebar.classList.add('collapsed');
+        localStorage.setItem('youz_sidebar_collapsed', '1');
+    }
+    syncSidebarToggleUI();
+}
+
 function syncSidebarToggleUI() {
     if (!sidebar) return;
-    const isClosed = sidebar.classList.contains('closed');
-    const iconClass = isClosed ? 'fa-regular fa-window-maximize' : 'fa-regular fa-window-restore';
+    const isMobile = isMobileViewport();
+    const isHidden = isMobile ? sidebar.classList.contains('closed') : sidebar.classList.contains('collapsed');
+    const iconClass = isHidden ? 'fas fa-bars' : 'fas fa-times';
     if (sidebarToggleIcon) sidebarToggleIcon.className = iconClass;
     if (sidebarToggleIconSidebar) sidebarToggleIconSidebar.className = iconClass;
-    hamburgerBtn?.setAttribute('aria-label', isClosed ? 'Buka sidebar' : 'Tutup sidebar');
-    closeSidebarBtn?.setAttribute('aria-label', isClosed ? 'Buka sidebar' : 'Tutup sidebar');
+    hamburgerBtn?.setAttribute('aria-label', isHidden ? 'Buka sidebar' : 'Tutup sidebar');
+    closeSidebarBtn?.setAttribute('aria-label', isHidden ? 'Buka sidebar' : 'Tutup sidebar');
+    sidebarBackdrop?.classList.toggle('open', isMobile && !isHidden);
 }
 
 function applySidebarViewportDefaults() {
     if (!sidebar) return;
-    sidebar.classList.toggle('closed', window.innerWidth <= 768);
+    const isMobile = isMobileViewport();
+    if (isMobile) {
+        sidebar.classList.add('closed');
+        sidebar.classList.remove('collapsed');
+    } else {
+        sidebar.classList.remove('closed');
+        const saved = localStorage.getItem('youz_sidebar_collapsed');
+        sidebar.classList.toggle('collapsed', saved === '1');
+    }
     syncSidebarToggleUI();
 }
 // ========== TAMBAHAN: HEADER NEW CHAT BUTTON ==========
@@ -519,8 +557,7 @@ function closeSourcesSheet() {
 function openSettings(defaultTab = 'general') {
     settingsModal.classList.remove('hidden');
     
-    sidebar.classList.add('closed');
-    syncSidebarToggleUI();
+    closeSidebarVisibility();
     if (currentUser) {
         profileName.value = currentUser.name || '';
         profileEmail.value = currentUser.email || '';
@@ -612,9 +649,8 @@ function switchConversation(id) {
         saveToStorage();
         updateChatRoute(conv.messages?.length ? conv.id : null);
     }
-    if (window.innerWidth <= 768) {
-        sidebar.classList.add('closed');
-        syncSidebarToggleUI();
+    if (isMobileViewport()) {
+        closeSidebarVisibility();
     }
 }
 
@@ -1870,12 +1906,13 @@ document.querySelectorAll('.suggestion-item').forEach(item => {
 
 // ========== EVENT LISTENERS ==========
 hamburgerBtn?.addEventListener('click', () => {
-    sidebar.classList.toggle('closed');
-    syncSidebarToggleUI();
+    toggleSidebarVisibility();
 });
 closeSidebarBtn?.addEventListener('click', () => {
-    sidebar.classList.toggle('closed');
-    syncSidebarToggleUI();
+    toggleSidebarVisibility();
+});
+sidebarBackdrop?.addEventListener('click', () => {
+    closeSidebarVisibility();
 });
 
 document.addEventListener('click', (e) => {
@@ -1887,18 +1924,16 @@ document.addEventListener('click', (e) => {
 newChatBtn?.addEventListener('click', () => {
     createNewConversation();
     switchConversation(activeConversationId);
-    if (window.innerWidth <= 768) {
-        sidebar.classList.add('closed');
-        syncSidebarToggleUI();
+    if (isMobileViewport()) {
+        closeSidebarVisibility();
     }
 });
 
 headerNewChatBtn?.addEventListener('click', () => {
     createNewConversation();
     switchConversation(activeConversationId);
-    if (window.innerWidth <= 768) {
-        sidebar.classList.add('closed');
-        syncSidebarToggleUI();
+    if (isMobileViewport()) {
+        closeSidebarVisibility();
     }
 });
 
@@ -2166,8 +2201,7 @@ document.addEventListener('click', (e) => {
     }
     if (window.innerWidth <= 768) {
         if (!sidebar.contains(e.target) && !hamburgerBtn.contains(e.target) && !sidebar.classList.contains('closed')) {
-            sidebar.classList.add('closed');
-            syncSidebarToggleUI();
+            closeSidebarVisibility();
         }
     }
 });
@@ -2180,6 +2214,10 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         if (confirmModal && !confirmModal.classList.contains('hidden')) {
             closeConfirmDialog(false);
+            return;
+        }
+        if (sidebar && window.innerWidth <= 768 && !sidebar.classList.contains('closed')) {
+            closeSidebarVisibility();
             return;
         }
         closeSourcesSheet();
