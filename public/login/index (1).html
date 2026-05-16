@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Login · Youz AI</title>
+  <link rel="icon" href="/asset/logo.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="/asset/logo.jpg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --void: #020409;
+      --deep: #060d1a;
+      --surface: #0a1628;
+      --panel: rgba(8, 18, 36, 0.92);
+      --border: rgba(255,255,255,0.07);
+      --border-glow: rgba(99, 179, 237, 0.25);
+      --gold: #c8a96e;
+      --gold-light: #e8cc96;
+      --gold-dim: rgba(200, 169, 110, 0.15);
+      --sky: #63b3ed;
+      --sky-dim: rgba(99, 179, 237, 0.1);
+      --text: #e8edf5;
+      --text-muted: #6b7fa3;
+      --text-dim: #3d4f6e;
+      --error: #fc8181;
+      --success: #68d391;
+      --radius: 16px;
+    }
+
+    html { height: 100%; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--void);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── BACKGROUND ── */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-canvas::before {
+      content: '';
+      position: absolute;
+      width: 900px;
+      height: 900px;
+      top: -300px;
+      left: -200px;
+      background: radial-gradient(circle, rgba(99,179,237,0.055) 0%, transparent 65%);
+      animation: drift1 20s ease-in-out infinite alternate;
+    }
+
+    .bg-canvas::after {
+      content: '';
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      bottom: -200px;
+      right: -100px;
+      background: radial-gradient(circle, rgba(200,169,110,0.04) 0%, transparent 65%);
+      animation: drift2 25s ease-in-out infinite alternate;
+    }
+
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    .bg-stars {
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 40% 70%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.15) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 60% 40%, rgba(200,169,110,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 30%, rgba(99,179,237,0.35) 0%, transparent 100%);
+    }
+
+    @keyframes drift1 {
+      from { transform: translate(0,0) scale(1); }
+      to { transform: translate(60px, 40px) scale(1.1); }
+    }
+
+    @keyframes drift2 {
+      from { transform: translate(0,0) scale(1); }
+      to { transform: translate(-40px, -60px) scale(1.08); }
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1000px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 0;
+      min-height: 580px;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px var(--border),
+        0 40px 80px -20px rgba(0,0,0,0.7),
+        0 0 120px -40px rgba(99,179,237,0.08);
+      animation: pageReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes pageReveal {
+      from { opacity: 0; transform: translateY(24px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: linear-gradient(145deg, #06101f 0%, #040b17 100%);
+      padding: 52px 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse 120% 80% at 20% 10%, rgba(99,179,237,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 80% 90%, rgba(200,169,110,0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; right: -1px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle at bottom right, rgba(99,179,237,0.06), transparent 70%);
+      pointer-events: none;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+
+    .logo-img-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(200,169,110,0.3);
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .logo-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+    }
+
+    .logo-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .logo-img-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--sky) 0%, var(--gold) 100%);
+      align-items: center;
+      justify-content: center;
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--void);
+    }
+
+    .brand-name {
+      font-family: 'Sora', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .brand-name span {
+      background: linear-gradient(90deg, var(--sky), var(--gold-light));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .tagline {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+      margin-top: 2px;
+    }
+
+    .left-headline {
+      position: relative;
+      z-index: 1;
+    }
+
+    .left-headline h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+      color: #fff;
+    }
+
+    .left-headline h2 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--sky));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .left-headline p {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      max-width: 280px;
+      font-weight: 300;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: border-color 0.3s, color 0.3s;
+    }
+
+    .pill:hover {
+      border-color: rgba(200,169,110,0.2);
+      color: var(--text);
+    }
+
+    .pill-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .pill-icon.blue { background: var(--sky-dim); color: var(--sky); }
+    .pill-icon.gold { background: var(--gold-dim); color: var(--gold); }
+    .pill-icon.purple { background: rgba(167,139,250,0.1); color: #a78bfa; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      background: var(--panel);
+      backdrop-filter: blur(32px);
+      padding: 44px 36px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-header {
+      margin-bottom: 28px;
+    }
+
+    .right-header h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+      margin-bottom: 5px;
+    }
+
+    .right-header p {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      margin-bottom: 26px;
+    }
+
+    .tab {
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 9px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 13.5px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      letter-spacing: 0.1px;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, rgba(99,179,237,0.18), rgba(200,169,110,0.12));
+      color: var(--text);
+      border: 1px solid rgba(99,179,237,0.2);
+    }
+
+    .tab:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    /* ── FORMS ── */
+    .form {
+      display: none;
+      flex-direction: column;
+      gap: 13px;
+      flex: 1;
+    }
+
+    .form.active { display: flex; }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap .icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-size: 13px;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11.5px 14px 11.5px 38px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 400;
+      outline: none;
+      transition: all 0.25s;
+      -webkit-appearance: none;
+    }
+
+    .input-wrap input::placeholder { color: var(--text-dim); }
+
+    .input-wrap input:focus {
+      border-color: rgba(99,179,237,0.35);
+      background: rgba(99,179,237,0.04);
+      box-shadow: 0 0 0 3px rgba(99,179,237,0.08);
+    }
+
+    .input-wrap input:focus + .icon,
+    .input-wrap:focus-within .icon {
+      color: var(--sky);
+    }
+
+    .input-wrap .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+
+    .input-wrap .toggle-pw:hover { color: var(--text-muted); }
+
+    .forgot {
+      text-align: right;
+      margin-top: -4px;
+    }
+
+    .forgot a, .link {
+      color: var(--sky);
+      text-decoration: none;
+      font-size: 12px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .forgot a:hover, .link:hover { opacity: 1; text-decoration: underline; }
+
+    .hint {
+      font-size: 11.5px;
+      color: var(--text-dim);
+      margin-top: -4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* ── BUTTON PRIMARY ── */
+    .btn-primary {
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2a7dcc, #3b9de8);
+      color: #fff;
+      padding: 12.5px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.1px;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px -6px rgba(59,157,232,0.5);
+    }
+
+    .btn-primary:hover::before { opacity: 1; }
+    .btn-primary:active { transform: translateY(0); box-shadow: none; }
+
+    .btn-primary.loading {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .btn-primary.loading i {
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 6px 0;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── GOOGLE BUTTON ── */
+    .btn-google {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      padding: 11px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+
+    .btn-google:hover {
+      border-color: rgba(99,179,237,0.2);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .btn-google .g-icon {
+      width: 17px;
+      height: 17px;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    .form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 12.5px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--sky); }
+
+    .legal {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .legal a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .legal a:hover { color: var(--text-muted); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      background: rgba(8,18,36,0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 11px 20px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+      z-index: 9999;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .toast.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(16px);
+    }
+
+    .toast.success { border-color: rgba(104,211,145,0.25); }
+    .toast.success i { color: var(--success); }
+    .toast.error { border-color: rgba(252,129,129,0.25); }
+    .toast.error i { color: var(--error); }
+    .toast.info i { color: var(--sky); }
+
+    /* ── FIELD ERROR ── */
+    .field-error {
+      font-size: 11px;
+      color: var(--error);
+      margin-top: -6px;
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .field-error.show { display: flex; }
+
+    /* ── STRENGTH BAR ── */
+    .strength-wrap {
+      margin-top: -4px;
+    }
+
+    .strength-bar {
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      width: 0%;
+      transition: width 0.4s, background 0.4s;
+    }
+
+    .strength-label {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 720px) {
+      .page {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+        border-radius: 24px;
+        min-height: auto;
+      }
+
+      .left-panel {
+        padding: 32px 28px 28px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .left-headline {
+        display: none;
+      }
+
+      .feature-pills {
+        display: none;
+      }
+
+      .brand-logo {
+        margin-bottom: 0;
+      }
+
+      .right-panel {
+        padding: 32px 28px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 12px; }
+      .page { border-radius: 20px; }
+      .left-panel { padding: 24px 20px; }
+      .right-panel { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-canvas">
+    <div class="bg-grid"></div>
+    <div class="bg-stars"></div>
+  </div>
+
+  <div class="page">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="brand">
+        <div class="brand-logo">
+          <div class="logo-img-wrap">
+            <img
+              src="/asset/logo.jpg"
+              alt="Youz AI"
+              draggable="false"
+              oncontextmenu="return false;"
+              onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';"
+            >
+            <div class="logo-img-fallback" id="logoFallback">Y</div>
+          </div>
+          <div>
+            <div class="brand-name"><span>Youz</span> AI</div>
+            <div class="tagline">Asisten cerdas berbasis AI</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="left-headline">
+        <h2>Teknologi AI<br>yang <em>Intuitif</em><br>&amp; Andal.</h2>
+        <p>Rasakan pengalaman berinteraksi dengan AI generasi berikutnya. Cepat, cerdas, dan selalu siap membantu.</p>
+      </div>
+
+      <div class="feature-pills">
+        <div class="pill">
+          <div class="pill-icon blue"><i class="fas fa-bolt"></i></div>
+          Respons cepat &amp; presisi tinggi
+        </div>
+        <div class="pill">
+          <div class="pill-icon gold"><i class="fas fa-shield-halved"></i></div>
+          Data aman &amp; terenkripsi
+        </div>
+        <div class="pill">
+          <div class="pill-icon purple"><i class="fas fa-brain"></i></div>
+          Model AI terdepan
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      <div class="right-header">
+        <h1>Selamat Datang</h1>
+        <p>Masuk atau buat akun untuk melanjutkan</p>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" id="tabLogin">Masuk</button>
+        <button class="tab" id="tabRegister">Daftar</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form class="form active" id="loginForm" novalidate>
+        <div class="input-wrap">
+          <input type="email" name="email" id="loginEmail" placeholder="Alamat email" autocomplete="email">
+          <i class="far fa-envelope icon"></i>
+        </div>
+        <div class="field-error" id="loginEmailErr"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="input-wrap">
+          <input type="password" name="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+          <i class="fas fa-lock icon"></i>
+          <button type="button" class="toggle-pw" onclick="togglePw('loginPassword', this)">
+            <i class="far fa-eye"></i>
+          </button>
+        </div>
+        <div class="field-error" id="loginPassErr"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="forgot">
+          <a href="#" id="forgotBtn">Lupa password?</a>
+        </div>
+
+        <button class="btn-primary" type="submit" id="loginBtn">
+          <i class="fas fa-arrow-right-to-bracket"></i> Masuk Sekarang
+        </button>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form class="form" id="registerForm" novalidate>
+        <div class="input-wrap">
+          <input type="text" name="name" id="regName" placeholder="Nama lengkap" autocomplete="name">
+          <i class="far fa-user icon"></i>
+        </div>
+        <div class="field-error" id="regNameErr"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="input-wrap">
+          <input type="email" name="email" id="regEmail" placeholder="Alamat email" autocomplete="email">
+          <i class="far fa-envelope icon"></i>
+        </div>
+        <div class="field-error" id="regEmailErr"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="input-wrap">
+          <input type="password" name="password" id="regPassword" placeholder="Buat password" autocomplete="new-password" oninput="checkStrength(this.value)">
+          <i class="fas fa-lock icon"></i>
+          <button type="button" class="toggle-pw" onclick="togglePw('regPassword', this)">
+            <i class="far fa-eye"></i>
+          </button>
+        </div>
+        <div class="field-error" id="regPassErr"><i class="fas fa-circle-exclamation"></i><span></span></div>
+
+        <div class="strength-wrap">
+          <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+          <div class="strength-label" id="strengthLabel"></div>
+        </div>
+
+        <button class="btn-primary" type="submit" id="registerBtn">
+          <i class="fas fa-user-plus"></i> Buat Akun Gratis
+        </button>
+      </form>
+
+      <!-- DIVIDER + GOOGLE -->
+      <div class="divider">atau lanjutkan dengan</div>
+      <a class="btn-google" href="/api/auth/login">
+        <svg class="g-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Lanjutkan dengan Google
+      </a>
+
+      <!-- FOOTER -->
+      <div class="form-footer">
+        <a class="back-link" href="/"><i class="fas fa-chevron-left" style="font-size:10px"></i> Kembali ke chat</a>
+        <div class="legal"><a href="#">Privasi</a> &nbsp;·&nbsp; <a href="#">Syarat</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden">
+    <i class="fas fa-info-circle"></i>
+    <span id="toastMsg"></span>
+  </div>
+
+  <script>
+    /* ── TAB SWITCH ── */
+    const tabLogin    = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const loginForm   = document.getElementById('loginForm');
+    const registerForm= document.getElementById('registerForm');
+
+    function switchTab(isLogin) {
+      tabLogin.classList.toggle('active', isLogin);
+      tabRegister.classList.toggle('active', !isLogin);
+      loginForm.classList.toggle('active', isLogin);
+      registerForm.classList.toggle('active', !isLogin);
+      clearErrors();
+    }
+    tabLogin.onclick    = () => switchTab(true);
+    tabRegister.onclick = () => switchTab(false);
+
+    /* ── TOAST ── */
+    let toastTimer;
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const icon  = toast.querySelector('i');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.className = 'toast ' + type;
+      icon.className = type === 'success'
+        ? 'fas fa-circle-check'
+        : type === 'error'
+        ? 'fas fa-circle-exclamation'
+        : 'fas fa-circle-info';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
+
+    /* ── TOGGLE PASSWORD ── */
+    function togglePw(id, btn) {
+      const inp = document.getElementById(id);
+      const isText = inp.type === 'text';
+      inp.type = isText ? 'password' : 'text';
+      btn.querySelector('i').className = isText ? 'far fa-eye' : 'far fa-eye-slash';
+    }
+
+    /* ── PASSWORD STRENGTH ── */
+    function checkStrength(val) {
+      const fill  = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      if (!val) { fill.style.width = '0%'; label.textContent = ''; return; }
+      let score = 0;
+      if (val.length >= 8)  score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+      const levels = [
+        { w: '20%', bg: '#fc8181', txt: 'Terlalu lemah' },
+        { w: '45%', bg: '#f6ad55', txt: 'Lemah' },
+        { w: '70%', bg: '#63b3ed', txt: 'Cukup kuat' },
+        { w: '100%', bg: '#68d391', txt: 'Kuat' },
+      ];
+      const l = levels[Math.min(score - 1, 3)] || levels[0];
+      fill.style.width = l.w;
+      fill.style.background = l.bg;
+      label.textContent = l.txt;
+      label.style.color = l.bg;
+    }
+
+    /* ── VALIDATION ── */
+    function showErr(id, msg) {
+      const el = document.getElementById(id);
+      el.querySelector('span').textContent = msg;
+      el.classList.add('show');
+    }
+
+    function clearErr(id) {
+      document.getElementById(id).classList.remove('show');
+    }
+
+    function clearErrors() {
+      ['loginEmailErr','loginPassErr','regNameErr','regEmailErr','regPassErr']
+        .forEach(id => document.getElementById(id).classList.remove('show'));
+    }
+
+    function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+    /* ── LOGIN SUBMIT ── */
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      clearErrors();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass  = document.getElementById('loginPassword').value;
+      let valid = true;
+      if (!email)         { showErr('loginEmailErr', 'Email wajib diisi.'); valid = false; }
+      else if (!isEmail(email)) { showErr('loginEmailErr', 'Format email tidak valid.'); valid = false; }
+      if (!pass)          { showErr('loginPassErr', 'Password wajib diisi.'); valid = false; }
+      if (!valid) return;
+
+      const btn = document.getElementById('loginBtn');
+      btn.classList.add('loading');
+      btn.innerHTML = '<i class="fas fa-spinner"></i> Memproses...';
+
+      try {
+        const res  = await fetch('/api/auth/email-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: pass })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          showToast(data.message || 'Login gagal. Periksa kembali data Anda.', 'error');
+        } else {
+          localStorage.setItem('youz_user', JSON.stringify(data.user));
+          showToast('Berhasil masuk!', 'success');
+          setTimeout(() => { window.location.href = '/'; }, 700);
+        }
+      } catch {
+        showToast('Terjadi kesalahan jaringan.', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fas fa-arrow-right-to-bracket"></i> Masuk Sekarang';
+      }
+    };
+
+    /* ── REGISTER SUBMIT ── */
+    registerForm.onsubmit = async (e) => {
+      e.preventDefault();
+      clearErrors();
+      const name  = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass  = document.getElementById('regPassword').value;
+      let valid = true;
+      if (!name)          { showErr('regNameErr',  'Nama wajib diisi.'); valid = false; }
+      if (!email)         { showErr('regEmailErr', 'Email wajib diisi.'); valid = false; }
+      else if (!isEmail(email)) { showErr('regEmailErr', 'Format email tidak valid.'); valid = false; }
+      if (!pass)          { showErr('regPassErr',  'Password wajib diisi.'); valid = false; }
+      else if (pass.length < 8) { showErr('regPassErr', 'Password minimal 8 karakter.'); valid = false; }
+      if (!valid) return;
+
+      const btn = document.getElementById('registerBtn');
+      btn.classList.add('loading');
+      btn.innerHTML = '<i class="fas fa-spinner"></i> Membuat akun...';
+
+      try {
+        const res  = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password: pass })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          showToast(data.message || 'Registrasi gagal.', 'error');
+        } else {
+          localStorage.setItem('youz_user', JSON.stringify(data.user));
+          showToast('Akun berhasil dibuat!', 'success');
+          setTimeout(() => { window.location.href = '/'; }, 700);
+        }
+      } catch {
+        showToast('Terjadi kesalahan jaringan.', 'error');
+      } finally {
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fas fa-user-plus"></i> Buat Akun Gratis';
+      }
+    };
+
+    /* ── FORGOT PASSWORD ── */
+    document.getElementById('forgotBtn').onclick = (e) => {
+      e.preventDefault();
+      showToast('Fitur reset password segera hadir.', 'info');
+    };
+
+    /* ── URL PARAMS (OAuth callback) ── */
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('user')) {
+      try {
+        const user = JSON.parse(decodeURIComponent(params.get('user')));
+        localStorage.setItem('youz_user', JSON.stringify(user));
+        showToast('Berhasil masuk!', 'success');
+        setTimeout(() => { window.location.href = '/'; }, 1000);
+      } catch {}
+    } else if (params.get('error')) {
+      showToast('Login gagal. Silakan coba lagi.', 'error');
+    }
+  </script>
+</body>
+</html>
