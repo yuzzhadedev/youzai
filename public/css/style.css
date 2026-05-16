@@ -96,9 +96,60 @@ body {
     display: flex;
     flex-direction: column;
     padding: 16px 12px 12px;
-    transition: transform 0.3s;
+    transition: transform 0.3s, width 0.22s;
     overflow: hidden;
     gap: 2px;
+}
+
+.sidebar.collapsed{
+    width: 76px;
+    padding: 14px 10px 10px;
+}
+
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .history-label,
+.sidebar.collapsed .history-group,
+.sidebar.collapsed .conv-title,
+.sidebar.collapsed .delete-conv,
+.sidebar.collapsed .sidebar-auth-links,
+.sidebar.collapsed .sidebar-footer,
+.sidebar.collapsed .user-info,
+.sidebar.collapsed .profile-premium-badge{
+    display: none !important;
+}
+
+.sidebar.collapsed .sidebar-header{
+    justify-content: center;
+}
+
+.sidebar.collapsed .new-chat-btn{
+    justify-content: center;
+    padding: 10px 0;
+    font-size: 0;
+    gap: 0;
+}
+
+.sidebar.collapsed .new-chat-btn i{
+    font-size: 15px;
+}
+
+.sidebar.collapsed .conv-item{
+    justify-content: center;
+}
+
+.sidebar-backdrop{
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s;
+    z-index: 90;
+}
+
+.sidebar-backdrop.open{
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .sidebar.closed {
@@ -111,23 +162,46 @@ body {
     justify-content: space-between;
     margin-bottom: 16px;
     padding: 0 4px;
+    gap: 10px;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
 }
 
 .logo-image {
-    width: 86px;
-    height: 56px;
-    object-fit: contain;
-    border-radius: 12px;
+    width: 34px;
+    height: 34px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
 }
 
 .logo-text {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    min-width: 0;
+}
+
+.logo-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.logo-subtitle {
+    font-size: 11px;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .menu-btn {
@@ -2411,6 +2485,16 @@ body {
 
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
+    .logo-image {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+    }
+    
+    .logo-subtitle {
+        display: none;
+    }
+    
     .sidebar {
         position: fixed;
         left: 0;
@@ -2419,6 +2503,10 @@ body {
         z-index: 100;
         box-shadow: var(--shadow-lg);
         max-width: 260px;
+    }
+
+    .sidebar-backdrop{
+        display: block;
     }
     
     .sidebar.closed {
