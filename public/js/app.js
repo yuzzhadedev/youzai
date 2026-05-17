@@ -44,10 +44,19 @@ const MODEL_CATALOG = {
 };
 
 function protectLogos() {
-    document.querySelectorAll('img.secure-logo').forEach((img) => {
+    document.querySelectorAll('img.secure-logo, img.brand-mark').forEach((img) => {
         img.setAttribute('draggable', 'false');
+        img.setAttribute('loading', img.getAttribute('loading') || 'lazy');
         img.addEventListener('dragstart', (e) => e.preventDefault());
         img.addEventListener('contextmenu', (e) => e.preventDefault());
+        img.addEventListener('mousedown', (e) => {
+            if (e.button === 1) e.preventDefault();
+        });
+    });
+    document.addEventListener('keydown', (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const blocked = ['s', 'u', 'p'];
+        if (blocked.includes(String(e.key || '').toLowerCase())) e.preventDefault();
     });
 }
 
@@ -296,6 +305,7 @@ function loadFromStorage() {
 
 function saveToStorage() {
     localStorage.setItem(getConversationStorageKey(), JSON.stringify(conversations));
+    queueConversationBackup();
 }
 
 function getConversationStorageKey() {
@@ -421,6 +431,23 @@ async function syncHistoryFromServerIfEmpty() {
         activeConversationId = newConv.id;
         saveToStorage();
     } catch {}
+}
+
+function restoreConversationBackup(settings = null) {
+    if (!settings || !Array.isArray(settings.conversation_backup) || settings.conversation_backup.length === 0) return false;
+    const hasLocalMessages = Array.isArray(conversations) && conversations.some((c) => (c?.messages || []).length > 0);
+    if (hasLocalMessages) return false;
+    conversations = settings.conversation_backup.map((conv) => ({
+        id: conv.id || createNanoId(16),
+        serverId: conv.serverId || null,
+        title: conv.title || 'Percakapan',
+        createdAt: conv.createdAt || new Date().toISOString(),
+        updatedAt: conv.updatedAt || new Date().toISOString(),
+        messages: Array.isArray(conv.messages) ? conv.messages : []
+    }));
+    activeConversationId = conversations[0]?.id || null;
+    saveToStorage();
+    return true;
 }
 
 function updateUserUI() {
@@ -1287,6 +1314,7 @@ async function readApiResponse(res) {
 
 let pendingSettingsPatch = {};
 let settingsSaveTimer = null;
+let conversationBackupTimer = null;
 
 async function fetchUserSettings() {
     if (!currentUser) return null;
@@ -1342,6 +1370,36 @@ function queueUserSettingsSave(patch = {}) {
             });
         } catch {}
     }, 400);
+}
+
+function buildConversationBackupPayload() {
+    return (conversations || []).slice(0, 12).map((conv) => ({
+        id: conv.id,
+        serverId: conv.serverId || null,
+        title: conv.title || 'Percakapan',
+        createdAt: conv.createdAt || new Date().toISOString(),
+        updatedAt: conv.updatedAt || new Date().toISOString(),
+        messages: (conv.messages || []).slice(-40).map((msg) => ({
+            id: msg.id,
+            role: msg.role,
+            content: String(msg.content || ''),
+            isComplete: msg.isComplete !== false
+        }))
+    }));
+}
+
+function queueConversationBackup() {
+    if (!currentUser) return;
+    if (conversationBackupTimer) window.clearTimeout(conversationBackupTimer);
+    conversationBackupTimer = window.setTimeout(async () => {
+        try {
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversation_backup: buildConversationBackupPayload(), userContext: getUserContext() })
+            });
+        } catch {}
+    }, 800);
 }
 
 async function callUnifiedAPI(messages, action, imageData, prompt, enableSearch, conversationId, signal) {
@@ -1521,7 +1579,13 @@ async function streamChatSSE({ prompt, conversationId, signal }) {
         for (const chunk of chunks) {
             const line = chunk.split('\n').find(l => l.startsWith('data:'));
             if (!line) continue;
-            const data = JSON.parse(line.slice(5).trim());
+            let data = null;
+            try {
+                data = JSON.parse(line.slice(5).trim());
+            } catch {
+                continue;
+            }
+            if (!data || typeof data !== 'object') continue;
             if (data.type === 'token') finalContent = data.content || finalContent;
             if (data.type === 'error') errorMessage = data.message || 'Streaming gagal.';
             if (data.type === 'done') doneConversationId = data.conversationId || doneConversationId;
@@ -1647,6 +1711,9 @@ async function sendMessage(options = {}) {
                 abortController.signal
             );
         }
+        if (!response || typeof response !== 'object') {
+            response = { success: false, content: 'Server mengirim respons tidak valid.' };
+        }
         const thinkingMs = performance.now() - thinkingStart;
         
         document.getElementById(loadingId)?.remove();
@@ -1675,7 +1742,7 @@ async function sendMessage(options = {}) {
         conv.messages.push(aiMessage);
         conv.updatedAt = new Date().toISOString();
         saveToStorage();
-        renderMessages(conv.messages);
+        if (!response.imageUrl) renderMessages(conv.messages);
         
         const contentEl = document.getElementById(`msg-content-${conv.messages.length - 1}`);
         if (response.imageUrl && response.success) {
@@ -2206,8 +2273,12 @@ document.addEventListener('click', (e) => {
     }
 });
 
+let sidebarResizeTimer = null;
 window.addEventListener('resize', () => {
-    applySidebarViewportDefaults();
+    if (sidebarResizeTimer) window.clearTimeout(sidebarResizeTimer);
+    sidebarResizeTimer = window.setTimeout(() => {
+        applySidebarViewportDefaults();
+    }, 120);
 });
 
 document.addEventListener('keydown', (e) => {
@@ -2269,6 +2340,7 @@ async function init() {
     const serverSettings = await fetchUserSettings();
     if (serverSettings) {
         applyUserSettingsSnapshot(serverSettings);
+        restoreConversationBackup(serverSettings);
     }
     
     if (window.location.pathname === '/' || window.location.pathname.startsWith('/c/')) {
