@@ -1373,13 +1373,13 @@ body {
 .composer-menu {
     position: absolute;
     left: 16px;
-    width: min(280px, calc(100% - 32px));
+    width: min(240px, calc(100% - 32px));
     bottom: calc(100% + 10px);
     background: #0b0c10;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
+    border-radius: 14px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
-    padding: 8px;
+    padding: 6px;
     z-index: 1450;
     max-height: min(58vh, 460px);
     overflow-y: auto;
@@ -1390,12 +1390,12 @@ body {
     width: 100%;
     border: none;
     background: transparent;
-    padding: 7px 7px;
+    padding: 6px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     cursor: pointer;
-    border-radius: 14px;
+    border-radius: 12px;
 }
 
 .composer-menu-item:hover {
@@ -1403,9 +1403,9 @@ body {
 }
 
 .composer-menu-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.06);
     display: inline-flex;
     align-items: center;
@@ -1416,7 +1416,7 @@ body {
 
 .composer-menu-label {
     color: rgba(255, 255, 255, 0.92);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     white-space: normal;
 }
@@ -1462,24 +1462,24 @@ body {
 }
 
 .composer-menu-section {
-    margin-top: 8px;
+    margin-top: 6px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding-top: 10px;
+    padding-top: 8px;
 }
 
 .composer-menu-section-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.72);
-    padding: 0 6px 8px;
+    padding: 0 4px 6px;
 }
 
 .composer-menu-models {
     display: grid;
-    gap: 8px;
+    gap: 6px;
 }
 
 .composer-menu-model-item {
@@ -1488,18 +1488,18 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.10);
     background: rgba(255, 255, 255, 0.06);
     color: rgba(255, 255, 255, 0.92);
-    border-radius: 12px;
-    padding: 8px 9px;
+    border-radius: 10px;
+    padding: 7px 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
 }
 .composer-model-main{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:8px;
     min-width:0;
 }
 .model-brand-logo{
@@ -2735,7 +2735,7 @@ body {
     .composer-menu{
         left: 12px;
         right: auto;
-        width: min(250px, calc(100% - 24px));
+        width: min(220px, calc(100% - 24px));
     }
     .composer-menu-item{
         padding: 6px;
