@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Pengaturan · Youz AI</title>
+<link rel="icon" href="/asset/logo.jpg" type="image/jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#07070b;--bg1:#0c0c12;--bg2:#101018;--bg3:#14141e;
+  --bg-hover:rgba(255,255,255,.035);
+  --border:rgba(255,255,255,.06);--border-hi:rgba(255,255,255,.11);--border-foc:rgba(124,58,237,.55);
+  --text:#ededf5;--text-2:#9494ab;--text-3:#45455a;
+  --v:#7c3aed;--v2:#5b21b6;--vg:rgba(124,58,237,.18);--vs:rgba(124,58,237,.1);--vb:rgba(124,58,237,.28);
+  --em:#10b981;--ems:rgba(16,185,129,.1);
+  --rose:#f43f5e;--roses:rgba(244,63,94,.08);--rosebd:rgba(244,63,94,.22);
+  --amber:#f59e0b;--ambers:rgba(245,158,11,.1);--amberbd:rgba(245,158,11,.25);
+  --sw:258px;--r:12px;--r2:8px;
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
+::selection{background:var(--vs);color:var(--text)}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 55% 45% at 4% 0%,rgba(124,58,237,.09) 0%,transparent 70%),
+             radial-gradient(ellipse 38% 38% at 96% 100%,rgba(91,33,182,.06) 0%,transparent 70%);}
+
+.shell{display:flex;height:100vh;overflow:hidden;position:relative;z-index:1}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sw);flex-shrink:0;display:flex;flex-direction:column;
+  background:var(--bg1);border-right:1px solid var(--border);
+  transition:transform .2s cubic-bezier(.4,0,.2,1);overflow:hidden;position:relative;}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(124,58,237,.5),transparent);}
+
+.sb-top{padding:16px 12px 13px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.brand-logo{width:30px;height:30px;border-radius:8px;object-fit:cover;flex-shrink:0;
+  border:1px solid var(--vb);box-shadow:0 0 12px var(--vg);background:var(--bg3);}
+.brand-name{font-size:14px;font-weight:800;letter-spacing:-.025em;
+  background:linear-gradient(130deg,#e4d9ff 30%,var(--v));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.back-btn{display:flex;align-items:center;gap:7px;width:100%;padding:7px 10px;
+  border-radius:var(--r2);border:1px solid var(--border);background:transparent;
+  font:13px/1 var(--font);color:var(--text-2);cursor:pointer;transition:all .16s;}
+.back-btn:hover{background:var(--bg-hover);color:var(--text);border-color:var(--border-hi);transform:translateX(-1px)}
+.back-btn svg{width:12px;height:12px}
+
+.nav-scroll{flex:1;overflow-y:auto;padding:6px 8px;scrollbar-width:none}
+.nav-scroll::-webkit-scrollbar{display:none}
+.nav-sec{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--text-3);padding:10px 6px 3px}
+.ni{display:flex;align-items:center;padding:7px 9px;border-radius:var(--r2);
+  cursor:pointer;transition:background .15s;user-select:none;position:relative;}
+.ni:hover{background:var(--bg-hover)}
+.ni.active{background:var(--bg3)}
+.ni.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:2.5px;border-radius:0 3px 3px 0;background:var(--v);box-shadow:0 0 7px var(--vg);}
+.ni-l{display:flex;align-items:center;gap:8px}
+.ni-ico{width:17px;height:17px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-3);transition:color .15s;flex-shrink:0}
+.ni.active .ni-ico,.ni:hover .ni-ico{color:var(--v)}
+.ni-lbl{font-size:13px;color:var(--text-2);font-weight:400;transition:color .15s}
+.ni.active .ni-lbl,.ni:hover .ni-lbl{color:var(--text)}
+.ni.active .ni-lbl{font-weight:600}
+
+/* upgrade pill */
+.up-pill{display:flex;align-items:center;gap:7px;margin:4px 8px 8px;padding:8px 11px;border-radius:var(--r);
+  background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(91,33,182,.1));
+  border:1px solid var(--vb);cursor:pointer;transition:all .16s;}
+.up-pill:hover{background:linear-gradient(135deg,rgba(124,58,237,.22),rgba(91,33,182,.16));transform:translateY(-1px)}
+.up-pill-t{font-size:12px;font-weight:700;color:#c4b5fd}
+.up-pill-s{font-size:10px;color:var(--text-2);margin-top:1px}
+
+/* sidebar footer */
+.sb-foot{padding:9px;border-top:1px solid var(--border)}
+.u-card{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:var(--r);
+  border:1px solid var(--border);background:linear-gradient(135deg,var(--bg2),var(--bg3));
+  position:relative;overflow:hidden;transition:border-color .16s;}
+.u-card:hover{border-color:var(--vb)}
+.u-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--vs),transparent);opacity:0;transition:opacity .16s}
+.u-card:hover::before{opacity:1}
+.u-av{width:29px;height:29px;border-radius:50%;flex-shrink:0;position:relative;z-index:1;
+  background:linear-gradient(135deg,var(--v2),var(--v));
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#e9d5ff;box-shadow:0 0 10px var(--vg);}
+.u-name{font-size:12px;font-weight:600;position:relative;z-index:1;line-height:1.2}
+.u-plan{font-size:10px;color:var(--text-2);position:relative;z-index:1;margin-top:1px}
+.pbadge{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:999px;
+  font-size:9px;font-weight:700;letter-spacing:.03em;
+  background:var(--ambers);color:var(--amber);border:1px solid var(--amberbd);}
+.pbadge.free{background:var(--vs);color:#a78bfa;border-color:var(--vb)}
+
+/* backdrop + hamburger */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:40;backdrop-filter:blur(6px);}
+.backdrop.show{opacity:1;pointer-events:auto}
+.ham{position:fixed;left:12px;top:12px;z-index:45;width:35px;height:35px;border-radius:var(--r2);
+  border:1px solid var(--border);background:var(--bg1);color:var(--text);
+  display:none;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
+.ham:hover{background:var(--bg2);border-color:var(--border-hi)}
+.ham svg{width:16px;height:16px}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;background:var(--bg);scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;position:relative;z-index:1;}
+.page{display:none;padding:34px 42px;max-width:700px;animation:pgIn .22s ease both}
+.page.show{display:block}
+@keyframes pgIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.pg-head{margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.pg-head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pg-title{font-size:20px;font-weight:800;letter-spacing:-.03em;margin-bottom:3px;
+  background:linear-gradient(130deg,var(--text) 55%,rgba(167,139,250,.6));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pg-sub{font-size:12px;color:var(--text-2)}
+
+/* ── CARD ── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;}
+.card-head{display:flex;align-items:center;gap:7px;padding:11px 15px;border-bottom:1px solid var(--border)}
+.card-ico{width:15px;height:15px;display:flex;align-items:center;justify-content:center;color:var(--v)}
+.card-lbl{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3)}
+
+/* ── ROW ── */
+.row{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:12px 15px;border-bottom:1px solid var(--border);transition:background .14s;}
+.row:last-child{border-bottom:none}
+.row:hover{background:var(--bg-hover)}
+.row-l .r-name{font-size:13px;font-weight:500;color:var(--text)}
+.row-l .r-hint{font-size:11.5px;color:var(--text-2);margin-top:2px;line-height:1.5}
+.row-r{flex-shrink:0}
+
+/* ── TOGGLE ── */
+.tog{position:relative;width:37px;height:20px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{position:absolute;inset:0;border-radius:999px;background:var(--bg3);
+  border:1px solid var(--border-hi);cursor:pointer;transition:all .18s;}
+.tog input:checked+.tog-track{background:linear-gradient(135deg,var(--v2),var(--v));
+  border-color:var(--v);box-shadow:0 0 9px var(--vg);}
+.tog-thumb{position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;
+  background:#555;transition:transform .18s,background .18s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4);}
+.tog input:checked~.tog-thumb{transform:translateX(17px);background:#fff}
+
+/* ── SEGMENTED ── */
+.seg{display:flex;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:2px;gap:2px}
+.seg-btn{padding:5px 11px;border-radius:6px;border:none;background:transparent;color:var(--text-2);
+  font:12px/1 var(--font);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.seg-btn:hover{color:var(--text)}
+.seg-btn.on{background:var(--bg3);color:var(--text);font-weight:600;border:1px solid var(--border-hi)}
+
+/* ── SELECT ── */
+select.sel{border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  padding:7px 27px 7px 10px;border-radius:var(--r2);font:12.5px var(--font);cursor:pointer;
+  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;transition:border-color .15s;}
+select.sel:focus{outline:none;border-color:var(--border-foc);box-shadow:0 0 0 3px var(--vs)}
+
+/* ── INPUT ── */
+input.inp{border:1px solid var(--border);background:var(--bg3);color:var(--text);
+  padding:7px 11px;border-radius:var(--r2);font:13px var(--font);width:210px;transition:all .15s;}
+input.inp:focus{outline:none;border-color:var(--border-foc);box-shadow:0 0 0 3px var(--vs)}
+input.inp::placeholder{color:var(--text-3)}
+input.inp[type=password]{letter-spacing:.1em}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--r2);
+  border:1px solid var(--border);background:var(--bg2);font:500 12.5px var(--font);color:var(--text);
+  cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--bg3);border-color:var(--border-hi);transform:translateY(-1px)}
+.btn:active{transform:none}
+.btn svg{width:13px;height:13px;flex-shrink:0}
+.btn.primary{background:linear-gradient(135deg,var(--v2),var(--v));border-color:var(--v);
+  color:#fff;box-shadow:0 4px 14px var(--vg);}
+.btn.primary:hover{opacity:.9;box-shadow:0 6px 20px var(--vg)}
+.btn.danger{border-color:var(--rosebd);background:var(--roses);color:var(--rose)}
+.btn.danger:hover{background:rgba(244,63,94,.14);border-color:rgba(244,63,94,.38)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* ── CHIPS ── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;
+  font-size:10.5px;font-weight:600;border:1px solid;letter-spacing:.02em}
+.chip-g{background:var(--ems);color:var(--em);border-color:rgba(16,185,129,.2)}
+.chip-v{background:var(--vs);color:#a78bfa;border-color:var(--vb)}
+.chip-a{background:var(--ambers);color:var(--amber);border-color:var(--amberbd)}
+.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+/* ── PLAN GRID ── */
+.plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.plan-card{border:1px solid var(--border);border-radius:var(--r);padding:16px;background:var(--bg2);transition:all .2s;position:relative;overflow:hidden;}
+.plan-card:hover{border-color:var(--border-hi);transform:translateY(-2px)}
+.plan-card.premium{border-color:var(--vb);background:linear-gradient(145deg,var(--bg2),rgba(124,58,237,.07));box-shadow:0 0 36px rgba(124,58,237,.07)}
+.plan-card.premium::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,.5),transparent)}
+.plan-name{font-size:14px;font-weight:800;margin-bottom:2px}
+.plan-price{font-size:20px;font-weight:800;margin:7px 0 4px;letter-spacing:-.03em}
+.plan-price span{font-size:11px;font-weight:400;color:var(--text-2)}
+.plan-desc{font-size:11.5px;color:var(--text-2);margin-bottom:12px;line-height:1.5}
+.pf{list-style:none;margin-bottom:12px}
+.pf li{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;color:var(--text-2)}
+.pf li svg{width:13px;height:13px;color:var(--em);flex-shrink:0}
+
+/* usage bar */
+.bar-bg{background:var(--bg3);border-radius:999px;height:4px;overflow:hidden;margin:8px 0 4px}
+.bar{height:4px;border-radius:999px;background:linear-gradient(90deg,var(--v2),var(--v));animation:bIn .7s ease both}
+@keyframes bIn{from{width:0}}
+
+/* feat matrix */
+.feat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.feat-row:last-child{border-bottom:none}
+.feat-name{font-size:13px;color:var(--text)}
+
+/* provider rows (now inside profil page) */
+.prov-row{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border)}
+.prov-row:last-child{border-bottom:none}
+.prov-l{display:flex;align-items:center;gap:9px}
+.prov-ico{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prov-ico.google{background:rgba(66,133,244,.12);border:1px solid rgba(66,133,244,.2)}
+.prov-ico.email{background:var(--bg3);border:1px solid var(--border-hi)}
+.prov-name{font-size:13px;font-weight:500}
+.prov-email{font-size:11px;color:var(--text-2);margin-top:1px}
+
+/* billing */
+.bill-item{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;border-bottom:1px solid var(--border)}
+.bill-item:last-child{border-bottom:none}
+.bill-item:hover{background:var(--bg-hover)}
+.bill-name{font-size:13px;font-weight:500;color:var(--text)}
+.bill-meta{font-size:11px;color:var(--text-2);margin-top:2px}
+.bill-amt{font-size:13px;font-weight:700;color:var(--em);font-family:var(--mono)}
+
+/* danger card */
+.card.danger-card{border-color:var(--rosebd);background:var(--roses)}
+.card.danger-card .card-ico{color:var(--rose)}
+
+/* version badge */
+.ver-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;
+  background:var(--vs);border:1px solid var(--vb);font:11.5px var(--mono);color:#a78bfa;}
+
+/* kebab */
+.kb-wrap{position:relative}
+.kb-btn{width:34px;height:34px;border-radius:var(--r2);border:1px solid var(--border);
+  background:var(--bg2);color:var(--text-2);display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;}
+.kb-btn:hover{background:var(--bg3);color:var(--text);border-color:var(--border-hi)}
+.kb-btn svg{width:15px;height:15px}
+.kb-menu{position:absolute;top:40px;right:0;min-width:200px;background:var(--bg2);
+  border:1px solid var(--border-hi);border-radius:var(--r);padding:5px;display:none;z-index:25;
+  box-shadow:0 20px 50px rgba(0,0,0,.55);animation:pgIn .15s ease;}
+.kb-menu.show{display:block}
+.kb-item{width:100%;border:none;background:transparent;color:var(--text-2);font:12.5px var(--font);
+  text-align:left;padding:7px 10px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .12s;}
+.kb-item:hover{background:var(--bg3);color:var(--text)}
+
+/* toast */
+.toast{position:fixed;bottom:20px;right:20px;z-index:300;display:flex;align-items:center;gap:8px;
+  padding:10px 15px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--border-hi);
+  font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.5);
+  opacity:0;transform:translateY(10px) scale(.97);
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0) scale(1)}
+.t-dot{width:6px;height:6px;border-radius:50%;background:var(--em);flex-shrink:0;box-shadow:0 0 5px rgba(16,185,129,.5)}
+.toast.err .t-dot{background:var(--rose);box-shadow:0 0 5px rgba(244,63,94,.5)}
+
+/* modal */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;
+  justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;
+  backdrop-filter:blur(8px);}
+.modal-wrap.show{opacity:1;pointer-events:auto}
+.modal{background:var(--bg2);border:1px solid var(--border-hi);border-radius:var(--r);padding:24px;
+  width:350px;box-shadow:0 32px 80px rgba(0,0,0,.7);
+  transform:scale(.93) translateY(8px);transition:transform .22s cubic-bezier(.34,1.56,.64,1);}
+.modal-wrap.show .modal{transform:scale(1) translateY(0)}
+.m-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:13px;background:var(--roses);border:1px solid var(--rosebd);color:var(--rose)}
+.m-ico svg{width:17px;height:17px}
+.m-title{font-size:15px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
+.m-desc{font-size:13px;color:var(--text-2);margin-bottom:20px;line-height:1.7}
+.m-foot{display:flex;gap:8px;justify-content:flex-end}
+.m-cancel{padding:7px 15px;border-radius:var(--r2);border:1px solid var(--border);background:transparent;
+  color:var(--text);font:500 13px var(--font);cursor:pointer;transition:all .14s;}
+.m-cancel:hover{background:var(--bg3);border-color:var(--border-hi)}
+.m-ok{padding:7px 15px;border-radius:var(--r2);border:none;background:var(--rose);color:#fff;
+  font:600 13px var(--font);cursor:pointer;transition:opacity .14s;box-shadow:0 4px 12px rgba(244,63,94,.3);}
+.m-ok:hover{opacity:.85}
+
+/* responsive */
+@media(max-width:960px){
+  .sidebar{position:fixed;left:0;top:0;height:100vh;z-index:50;width:min(80vw,275px);transform:translateX(-110%)}
+  .sidebar.open{transform:translateX(0)}
+  .ham{display:flex}
+}
+@media(max-width:600px){
+  .page{padding:20px 14px;max-width:none}
+  .row{flex-direction:column;align-items:flex-start;gap:8px}
+  input.inp{width:100%}
+  .plan-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="backdrop" id="bd"></div>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav class="sidebar" id="sb">
+  <div class="sb-top">
+    <div class="brand">
+      <img src="/asset/logo.jpg" alt="Youz AI" class="brand-logo"
+        onerror="this.style.cssText='width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#5b21b6,#7c3aed);display:block'"/>
+      <span class="brand-name">Youz AI</span>
+    </div>
+    <button class="back-btn" onclick="window.location.href='/'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Kembali ke chat
+    </button>
+  </div>
+
+  <div class="nav-scroll">
+
+    <div class="nav-sec">Umum</div>
+    <div class="ni active" id="ni-general" onclick="go('general')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+        <span class="ni-lbl">Umum</span>
+      </div>
+    </div>
+    <div class="ni" id="ni-appearance" onclick="go('appearance')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z"/></svg></span>
+        <span class="ni-lbl">Tampilan</span>
+      </div>
+    </div>
+
+    <div class="nav-sec">Akun</div>
+    <!-- Profil & Metode Login digabung jadi satu -->
+    <div class="ni" id="ni-profil" onclick="go('profil')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="ni-lbl">Profil & Login</span>
+      </div>
+    </div>
+    <div class="ni" id="ni-security" onclick="go('security')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <span class="ni-lbl">Keamanan</span>
+      </div>
+    </div>
+
+    <div class="nav-sec">Data</div>
+    <div class="ni" id="ni-data" onclick="go('data')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+        <span class="ni-lbl">Manajemen Data</span>
+      </div>
+    </div>
+
+    <div class="nav-sec">Langganan</div>
+    <div class="ni" id="ni-plan" onclick="go('plan')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+        <span class="ni-lbl">Status & Upgrade</span>
+      </div>
+    </div>
+    <div class="ni" id="ni-billing" onclick="go('billing')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+        <span class="ni-lbl">Riwayat Pembayaran</span>
+      </div>
+    </div>
+
+    <div class="nav-sec">Lainnya</div>
+    <div class="ni" id="ni-about" onclick="go('about')">
+      <div class="ni-l">
+        <span class="ni-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+        <span class="ni-lbl">Tentang Youz AI</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="up-pill" id="upgradePill" onclick="go('plan')">
+    <div style="flex:1">
+      <div class="up-pill-t">✦ Get Premium</div>
+      <div class="up-pill-s">Unlock model & fitur lengkap</div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+  </div>
+
+  <div class="sb-foot">
+    <div class="u-card">
+      <div class="u-av" id="ua">AF</div>
+      <div>
+        <div class="u-name" id="un">Ahmad Fauzi</div>
+        <div class="u-plan"><span class="pbadge" id="pb">✦ PREMIUM</span></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="content" id="main">
+<button class="ham" id="ham" aria-label="Menu">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+</button>
+
+<!-- ── UMUM ── -->
+<div class="page show" id="pg-general">
+  <div class="pg-head">
+    <div class="pg-head-row">
+      <div><div class="pg-title">Umum</div><div class="pg-sub">Pengaturan umum Youz AI</div></div>
+      <div class="kb-wrap">
+        <button class="kb-btn" id="kbBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+        </button>
+        <div class="kb-menu" id="kbMenu">
+          <button class="kb-item" data-act="go-plan"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Upgrade Premium</button>
+          <button class="kb-item" data-act="logout"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10A15.3 15.3 0 0 1 8 12a15.3 15.3 0 0 1 4-10z"/></svg></span>
+      <span class="card-lbl">Bahasa</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Bahasa antarmuka</div><div class="r-hint">Pilih bahasa tampilan aplikasi</div></div>
+      <div class="row-r">
+        <select class="sel" id="langSel">
+          <option value="id">🇮🇩 Indonesia</option>
+          <option value="en">🇺🇸 English</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+      <span class="card-lbl">Perilaku Chat</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Kirim dengan Enter</div><div class="r-hint">Tekan Enter untuk kirim; Shift+Enter baris baru</div></div>
+      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Simpan riwayat otomatis</div><div class="r-hint">Percakapan tersimpan ke akun Anda</div></div>
+      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Tampilkan saran pesan</div><div class="r-hint">Saran pesan pembuka di percakapan baru</div></div>
+      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+      <span class="card-lbl">Notifikasi</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Notifikasi desktop</div><div class="r-hint">Notifikasi browser saat respons selesai</div></div>
+      <div class="row-r"><label class="tog"><input id="browserNotifToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Suara notifikasi</div><div class="r-hint">Putar suara saat AI selesai menjawab</div></div>
+      <div class="row-r"><label class="tog"><input id="soundNotifToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAMPILAN ── -->
+<div class="page" id="pg-appearance">
+  <div class="pg-head"><div class="pg-title">Tampilan</div><div class="pg-sub">Sesuaikan tampilan visual Youz AI</div></div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
+      <span class="card-lbl">Tema</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Mode warna</div><div class="r-hint">Terang, gelap, atau ikuti sistem perangkat</div></div>
+      <div class="row-r">
+        <div class="seg" id="themeSeg">
+          <button class="seg-btn" data-theme="light" onclick="seg(this)">☀ Terang</button>
+          <button class="seg-btn on" data-theme="dark" onclick="seg(this)">☾ Gelap</button>
+          <button class="seg-btn" data-theme="system" onclick="seg(this)">⊞ Sistem</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></span>
+      <span class="card-lbl">Efek Visual</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Animasi antarmuka</div><div class="r-hint">Efek transisi saat berpindah halaman</div></div>
+      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Efek blur sidebar</div><div class="r-hint">Efek kaca frosted pada panel samping</div></div>
+      <div class="row-r"><label class="tog"><input type="checkbox" onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROFIL & LOGIN (digabung) ── -->
+<div class="page" id="pg-profil">
+  <div class="pg-head"><div class="pg-title">Profil & Login</div><div class="pg-sub">Informasi akun dan metode masuk Anda</div></div>
+
+  <!-- Informasi Profil -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="card-lbl">Informasi Profil</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Nama</div><div class="r-hint">Nama yang tampil di aplikasi</div></div>
+      <div class="row-r"><input id="profileNameInput" class="inp" type="text" value="Ahmad Fauzi"/></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Email</div><div class="r-hint">Email akun terdaftar</div></div>
+      <div class="row-r"><input id="profileEmailInput" class="inp" type="email" value="ahmad@email.com"/></div>
+    </div>
+  </div>
+  <div class="btn-row" style="margin-bottom:22px">
+    <button id="saveProfileBtn" class="btn primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      Simpan Perubahan
+    </button>
+  </div>
+
+  <!-- Metode Login -->
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></span>
+      <span class="card-lbl">Metode Login</span>
+    </div>
+    <div class="prov-row">
+      <div class="prov-l">
+        <div class="prov-ico google">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        </div>
+        <div><div class="prov-name">Google</div><div class="prov-email" id="gEmail">ahmad@gmail.com</div></div>
+      </div>
+      <span class="chip chip-g"><span class="dot" style="background:var(--em)"></span>Terhubung</span>
+    </div>
+    <div class="prov-row">
+      <div class="prov-l">
+        <div class="prov-ico email">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div><div class="prov-name">Email & Password</div><div class="prov-email" id="eEmail">ahmad@email.com</div></div>
+      </div>
+      <span class="chip chip-v"><span class="dot" style="background:var(--v)"></span>Aktif</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── KEAMANAN ── -->
+<div class="page" id="pg-security">
+  <div class="pg-head"><div class="pg-title">Keamanan</div><div class="pg-sub">Kelola password akun Anda</div></div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      <span class="card-lbl">Ubah Password</span>
+    </div>
+    <div class="row"><div class="row-l"><div class="r-name">Password saat ini</div></div><div class="row-r"><input class="inp" type="password" placeholder="••••••••"/></div></div>
+    <div class="row"><div class="row-l"><div class="r-name">Password baru</div></div><div class="row-r"><input class="inp" type="password" placeholder="••••••••"/></div></div>
+    <div class="row"><div class="row-l"><div class="r-name">Konfirmasi</div></div><div class="row-r"><input class="inp" type="password" placeholder="••••••••"/></div></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" onclick="qSave('Password berhasil diperbarui')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Simpan password
+    </button>
+    <button class="btn danger" onclick="openModal('account')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Hapus akun
+    </button>
+  </div>
+</div>
+
+<!-- ── MANAJEMEN DATA ── -->
+<div class="page" id="pg-data">
+  <div class="pg-head"><div class="pg-title">Manajemen Data</div><div class="pg-sub">Ekspor atau hapus data percakapan Anda</div></div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+      <span class="card-lbl">Ekspor Data</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Format file</div><div class="r-hint">Unduh semua riwayat percakapan Anda</div></div>
+      <div class="row-r"><select class="sel"><option>JSON</option><option>CSV</option><option>TXT</option><option>Markdown</option></select></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Sertakan metadata</div><div class="r-hint">Waktu, model AI, dan info sesi</div></div>
+      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+    </div>
+    <div style="padding:12px 15px;border-top:1px solid var(--border)">
+      <button class="btn" onclick="qSave('Mengunduh data...')">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ekspor Data
+      </button>
+    </div>
+  </div>
+
+  <div class="card danger-card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+      <span class="card-lbl" style="color:var(--rose)">Hapus Percakapan</span>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Hapus percakapan lama</div><div class="r-hint">Chat lebih dari 30 hari dihapus permanen</div></div>
+      <div class="row-r"><button class="btn sm" onclick="qSave('Percakapan lama dihapus')">Hapus</button></div>
+    </div>
+    <div class="row">
+      <div class="row-l"><div class="r-name">Hapus Semua Percakapan</div><div class="r-hint">Seluruh riwayat chat dihapus permanen</div></div>
+      <div class="row-r"><button class="btn sm danger" onclick="openModal('chats')">Hapus Semua</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATUS & UPGRADE ── -->
+<div class="page" id="pg-plan">
+  <div class="pg-head"><div class="pg-title">Status & Upgrade</div><div class="pg-sub">Kelola langganan dan tingkatkan paket Anda</div></div>
+
+  <!-- Active plan bar -->
+  <div class="card" style="border-color:var(--vb);background:linear-gradient(145deg,var(--bg2),rgba(124,58,237,.07));margin-bottom:16px">
+    <div style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <span style="font-size:14px;font-weight:800;background:linear-gradient(135deg,#ddd6fe,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">✦ Premium</span>
+        <span class="chip chip-g"><span class="dot" style="background:var(--em)"></span>Aktif</span>
+      </div>
+      <div style="font-size:11.5px;color:var(--text-2);margin-bottom:11px">Berakhir 9 Juni 2026 · 28 hari tersisa</div>
+      <div class="bar-bg"><div class="bar" style="width:65%"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:5px">
+        <span style="font-size:10.5px;color:var(--text-2)">Diperpanjang otomatis</span>
+        <span style="font-size:10.5px;color:var(--text-2);font-family:var(--mono)">Rp 49.000/bln</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan-grid">
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">Gratis<span></span></div>
+      <div class="plan-desc">Mulai tanpa biaya, cocok untuk penggunaan ringan</div>
+      <ul class="pf">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>20 pesan per hari</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Model standar (GPT, Gemini, DeepSeek)</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Web search</li>
+      </ul>
+      <button class="btn" style="width:100%;justify-content:center" onclick="qSave('Anda sudah di plan ini')">Plan saat ini</button>
+    </div>
+    <div class="plan-card premium">
+      <div class="plan-name" style="background:linear-gradient(135deg,#ddd6fe,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">✦ Premium</div>
+      <div class="plan-price" style="color:#a78bfa">49k<span>/bulan</span></div>
+      <div class="plan-desc">Fitur penuh, model terbaik, unlimited</div>
+      <ul class="pf">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Pesan unlimited</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Semua model premium</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Generate gambar AI</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Thinking / Deep reasoning</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Prioritas respons</li>
+      </ul>
+      <button class="btn primary" style="width:100%;justify-content:center" onclick="qSave('Membuka halaman pembayaran...')">Upgrade sekarang →</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      <span class="card-lbl">Perbandingan Fitur</span>
+    </div>
+    <div style="padding:0 15px">
+      <div class="feat-row"><span class="feat-name">Web Search</span><div style="display:flex;gap:5px"><span class="chip chip-g" style="font-size:9.5px">Free</span><span class="chip chip-v" style="font-size:9.5px">Premium</span></div></div>
+      <div class="feat-row"><span class="feat-name">Model Standar (GPT/Gemini/DeepSeek)</span><div style="display:flex;gap:5px"><span class="chip chip-g" style="font-size:9.5px">Free</span><span class="chip chip-v" style="font-size:9.5px">Premium</span></div></div>
+      <div class="feat-row"><span class="feat-name">Model Premium (GPT-4o, Claude, o3)</span><span class="chip chip-v" style="font-size:9.5px">Premium</span></div>
+      <div class="feat-row"><span class="feat-name">Generate Gambar AI</span><span class="chip chip-v" style="font-size:9.5px">Premium</span></div>
+      <div class="feat-row"><span class="feat-name">Thinking / Reasoning Mode</span><span class="chip chip-v" style="font-size:9.5px">Premium</span></div>
+      <div class="feat-row" style="border-bottom:none"><span class="feat-name">Pesan Unlimited</span><span class="chip chip-v" style="font-size:9.5px">Premium</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RIWAYAT PEMBAYARAN ── -->
+<div class="page" id="pg-billing">
+  <div class="pg-head"><div class="pg-title">Riwayat Pembayaran</div><div class="pg-sub">Invoice dan transaksi langganan Anda</div></div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+      <span class="card-lbl">Transaksi</span>
+    </div>
+    <div class="bill-item"><div><div class="bill-name">Premium — Mei 2026</div><div class="bill-meta">9 Mei 2026 · Transfer Bank</div></div><span class="bill-amt">Rp 49.000</span></div>
+    <div class="bill-item"><div><div class="bill-name">Premium — Apr 2026</div><div class="bill-meta">9 Apr 2026 · Transfer Bank</div></div><span class="bill-amt">Rp 49.000</span></div>
+    <div class="bill-item"><div><div class="bill-name">Premium — Mar 2026</div><div class="bill-meta">9 Mar 2026 · OVO</div></div><span class="bill-amt">Rp 49.000</span></div>
+    <div class="bill-item" style="border-bottom:none"><div><div class="bill-name">Premium — Feb 2026</div><div class="bill-meta">9 Feb 2026 · GoPay</div></div><span class="bill-amt">Rp 49.000</span></div>
+  </div>
+  <div class="btn-row" style="margin-top:0">
+    <button class="btn" onclick="qSave('Mengunduh laporan...')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Unduh semua invoice
+    </button>
+  </div>
+</div>
+
+<!-- ── TENTANG ── -->
+<div class="page" id="pg-about">
+  <div class="pg-head"><div class="pg-title">Tentang Youz AI</div><div class="pg-sub">v1.1 · dibuat oleh Yuzz Ofc</div></div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+      <span class="card-lbl">Versi & Build</span>
+    </div>
+    <div class="row"><div class="row-l"><div class="r-name">Versi aplikasi</div></div><div class="row-r"><span class="ver-badge">v1.1</span></div></div>
+    <div class="row"><div class="row-l"><div class="r-name">Build</div></div><div class="row-r"><span style="font-size:11.5px;color:var(--text-2);font-family:var(--mono)">20260512</span></div></div>
+    <div class="row"><div class="row-l"><div class="r-name">Model default</div></div><div class="row-r"><span style="font-size:11.5px;color:var(--text-2);font-family:var(--mono)">GPT-4o Mini</span></div></div>
+    <div class="row"><div class="row-l"><div class="r-name">Dibuat oleh</div></div><div class="row-r"><span style="font-size:13px;font-weight:700;color:#a78bfa">Yuzz Ofc</span></div></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      <span class="card-lbl">Legal</span>
+    </div>
+    <div class="row" style="cursor:pointer" onclick="qSave('Membuka kebijakan privasi...')">
+      <div class="row-l"><div class="r-name">Kebijakan Privasi</div></div>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-3)"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </div>
+    <div class="row" style="cursor:pointer" onclick="qSave('Membuka syarat layanan...')">
+      <div class="row-l"><div class="r-name">Syarat Layanan</div></div>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-3)"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn danger" onclick="openModal('logout')">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-wrap" id="mWrap">
+  <div class="modal">
+    <div class="m-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+    <div class="m-title" id="mTitle"></div>
+    <div class="m-desc" id="mDesc"></div>
+    <div class="m-foot"><button class="m-cancel" onclick="closeModal()">Batal</button><button class="m-ok" id="mOk"></button></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"><span class="t-dot" id="tdot"></span><span id="toastMsg"></span></div>
+
+<script>
+const pageMap = {
+  general:'ni-general', appearance:'ni-appearance',
+  profil:'ni-profil', security:'ni-security',
+  data:'ni-data', plan:'ni-plan', billing:'ni-billing', about:'ni-about'
+};
+let cur = 'general';
+
+function go(id) {
+  document.getElementById('pg-'+cur)?.classList.remove('show');
+  document.getElementById('pg-'+id)?.classList.add('show');
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById(pageMap[id])?.classList.add('active');
+  cur = id;
+  if (window.innerWidth <= 960) setSB(false);
+  document.getElementById('main').scrollTo({top:0, behavior:'smooth'});
+}
+
+const sbEl = document.getElementById('sb'), bdEl = document.getElementById('bd'), hamEl = document.getElementById('ham');
+function setSB(open) { sbEl.classList.toggle('open', open); bdEl.classList.toggle('show', open); }
+hamEl.addEventListener('click', () => setSB(!sbEl.classList.contains('open')));
+bdEl.addEventListener('click', () => setSB(false));
+window.addEventListener('resize', () => { if (window.innerWidth > 960) setSB(false); });
+
+const kbBtn = document.getElementById('kbBtn'), kbMenu = document.getElementById('kbMenu');
+kbBtn?.addEventListener('click', e => { e.stopPropagation(); kbMenu.classList.toggle('show'); });
+kbMenu?.addEventListener('click', e => {
+  const a = e.target.closest('[data-act]')?.dataset.act;
+  if (a === 'go-plan') go('plan');
+  if (a === 'logout') openModal('logout');
+  kbMenu.classList.remove('show');
+});
+document.addEventListener('click', e => { if (!kbMenu?.contains(e.target) && !kbBtn?.contains(e.target)) kbMenu?.classList.remove('show'); });
+
+function seg(btn) { btn.closest('.seg').querySelectorAll('.seg-btn').forEach(b => b.classList.remove('on')); btn.classList.add('on'); }
+
+let tt;
+function toast(msg, err=false) {
+  const el = document.getElementById('toastEl');
+  document.getElementById('toastMsg').textContent = msg;
+  el.classList.toggle('err', err);
+  el.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+const modals = {
+  account: {title:'Hapus akun?', desc:'Semua data Anda akan dihapus permanen dan tidak dapat dipulihkan.', ok:'Hapus akun'},
+  chats:   {title:'Hapus semua percakapan?', desc:'Seluruh riwayat chat dihapus permanen dan tidak bisa dikembalikan.', ok:'Hapus semua'},
+  logout:  {title:'Logout?', desc:'Anda akan keluar dari akun Youz AI. Riwayat chat tetap tersimpan di akun Anda.', ok:'Logout'}
+};
+let activeModal = '';
+function openModal(type) {
+  activeModal = type;
+  const m = modals[type];
+  document.getElementById('mTitle').textContent = m.title;
+  document.getElementById('mDesc').textContent = m.desc;
+  document.getElementById('mOk').textContent = m.ok;
+  document.getElementById('mWrap').classList.add('show');
+}
+function closeModal() { document.getElementById('mWrap').classList.remove('show'); }
+document.getElementById('mOk').addEventListener('click', () => {
+  closeModal();
+  if (activeModal === 'logout') { toast('Logout berhasil'); setTimeout(() => window.location.href = '/login', 1000); }
+  else if (activeModal === 'account') toast('Permintaan hapus akun dikirim');
+  else toast('Semua percakapan dihapus');
+});
+document.getElementById('mWrap').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+/* ── Settings state ── */
+const S = { theme:'dark', language:'id', browser_notifications_enabled:false, sound_notifications_enabled:false };
+let saveT = null;
+function getUser() { try { return JSON.parse(localStorage.getItem('youz_ai_user') || '{}'); } catch { return {}; } }
+
+function applyUI(s = {}) {
+  Object.assign(S, s);
+  document.querySelectorAll('#themeSeg .seg-btn').forEach(b => b.classList.toggle('on', b.dataset.theme === S.theme));
+  const ls = document.getElementById('langSel'); if (ls) ls.value = S.language;
+  const bn = document.getElementById('browserNotifToggle'); if (bn) bn.checked = !!S.browser_notifications_enabled;
+  const sn = document.getElementById('soundNotifToggle'); if (sn) sn.checked = !!S.sound_notifications_enabled;
+}
+
+async function saveSettings() {
+  const res = await fetch('/api/settings', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...S, userContext:getUser()}) });
+  const j = await res.json();
+  if (!res.ok || !j?.success) throw new Error(j?.message || 'Gagal menyimpan');
+  applyUI(j.settings);
+}
+
+function qSave(msg = 'Pengaturan disimpan') {
+  toast(msg);
+  clearTimeout(saveT);
+  saveT = setTimeout(async () => { try { await saveSettings(); } catch (err) { toast(err?.message || 'Gagal sync', true); } }, 300);
+}
+
+async function loadSettings() {
+  try {
+    const u = getUser();
+    const q = u?.email ? `?email=${encodeURIComponent(u.email)}` : '';
+    const res = await fetch(`/api/settings${q}`);
+    const j = await res.json();
+    if (j?.success && j?.settings) applyUI(j.settings); else applyUI();
+  } catch { applyUI(); }
+}
+
+async function loadUser() {
+  const u = getUser();
+  const qs = u?.email ? `?email=${encodeURIComponent(u.email)}` : '';
+  const [me, pr] = await Promise.all([
+    fetch('/api/auth/me').then(r => r.json()).catch(() => null),
+    fetch(`/api/premium${qs}`).then(r => r.json()).catch(() => null)
+  ]);
+  const user = me?.user || u || {};
+  const name = user?.name || 'Pengguna';
+  const email = (user?.email || u?.email || '').toLowerCase();
+  const plan = String(pr?.plan || me?.user?.plan || 'free').toUpperCase();
+  const ini = name.split(' ').slice(0,2).map(n => n[0] || '').join('').toUpperCase() || 'YZ';
+
+  document.getElementById('ua').textContent = ini;
+  document.getElementById('un').textContent = name;
+  const pb = document.getElementById('pb');
+  if (plan === 'FREE') { pb.textContent = 'FREE'; pb.classList.add('free'); document.getElementById('upgradePill').style.display = 'flex'; }
+  else { pb.textContent = `✦ ${plan}`; document.getElementById('upgradePill').style.display = 'none'; }
+
+  document.getElementById('profileNameInput').value = user?.name || '';
+  document.getElementById('profileEmailInput').value = user?.email || '';
+  document.getElementById('gEmail').textContent = user?.email || '';
+  document.getElementById('eEmail').textContent = user?.email || '';
+}
+
+/* listeners */
+document.getElementById('langSel')?.addEventListener('change', e => { S.language = e.target.value; qSave('Bahasa diperbarui'); });
+document.getElementById('browserNotifToggle')?.addEventListener('change', async e => {
+  S.browser_notifications_enabled = e.target.checked;
+  if (e.target.checked && 'Notification' in window && Notification.permission === 'default') try { await Notification.requestPermission(); } catch {}
+  qSave('Notifikasi diperbarui');
+});
+document.getElementById('soundNotifToggle')?.addEventListener('change', e => { S.sound_notifications_enabled = e.target.checked; qSave('Suara notifikasi diperbarui'); });
+document.querySelectorAll('#themeSeg .seg-btn').forEach(btn => btn.addEventListener('click', () => { S.theme = btn.dataset.theme; qSave('Tema diperbarui'); }));
+document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
+  try {
+    const payload = { name: document.getElementById('profileNameInput').value.trim(), email: document.getElementById('profileEmailInput').value.trim().toLowerCase() };
+    const res = await fetch('/api/auth/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const j = await res.json();
+    if (!res.ok || !j?.success) throw new Error(j?.message || 'Gagal');
+    localStorage.setItem('youz_ai_user', JSON.stringify(j.user || {}));
+    toast('Profil berhasil disimpan');
+  } catch (err) { toast(err?.message || 'Gagal menyimpan', true); }
+});
+
+loadSettings();
+loadUser().catch(() => {});
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>
