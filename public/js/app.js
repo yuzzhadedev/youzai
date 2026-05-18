@@ -19,27 +19,34 @@ const MODEL_CATALOG = {
         label: 'Gemini 2.0 Flash',
         detail: 'Google — Previous gen flash',
         tier: 'standard',
-        available: true
+        available: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg',
+        brand: 'Gemini'
     },
     deepseek: {
         label: 'DeepSeek V4 Flash',
         detail: 'DeepSeek — Free via OpenRouter',
         tier: 'standard',
-        available: true
+        available: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e4/DeepSeek_logo.svg',
+        brand: 'DeepSeek'
     },
     claude: {
         label: 'Claude Sonnet 4.5',
         detail: 'Anthropic — Best all-around',
         tier: 'standard',
-        available: false,
-        badge: 'Maintenance'
+        available: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Anthropic_logo.svg',
+        brand: 'Claude'
     },
     gpt4o: {
         label: 'ChatGPT 4o',
         detail: 'OpenAI — Premium Model due to limited Credit',
         tier: 'premium',
         available: true,
-        requiresPremium: true
+        requiresPremium: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg',
+        brand: 'OpenAI'
     }
 };
 
@@ -1183,7 +1190,10 @@ function renderModelMenu() {
         const badge = spec.badge
             ? `<span class="composer-menu-badge">${escapeHtml(spec.badge)}</span>`
             : (locked ? '<i class="fas fa-lock"></i>' : '');
-        btn.innerHTML = `<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span>${badge}`;
+        const logo = spec.logo
+            ? `<img class="model-brand-logo brand-mark" src="${escapeHtml(spec.logo)}" alt="${escapeHtml(spec.brand || spec.label)}" loading="lazy" draggable="false">`
+            : '<i class="fas fa-robot model-brand-fallback" aria-hidden="true"></i>';
+        btn.innerHTML = `<span class="composer-model-main">${logo}<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span></span>${badge}`;
         btn.addEventListener('click', () => {
             if (disabled) {
                         if (!spec.available) showToast('Claude Sonnet sedang maintenance.', 'info');
