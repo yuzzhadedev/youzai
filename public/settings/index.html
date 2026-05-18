@@ -465,15 +465,15 @@ input.inp[type=password]{letter-spacing:.1em}
     </div>
     <div class="row">
       <div class="row-l"><div class="r-name">Kirim dengan Enter</div><div class="r-hint">Tekan Enter untuk kirim; Shift+Enter baris baru</div></div>
-      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row-r"><label class="tog"><input id="sendWithEnterToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
     <div class="row">
       <div class="row-l"><div class="r-name">Simpan riwayat otomatis</div><div class="r-hint">Percakapan tersimpan ke akun Anda</div></div>
-      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row-r"><label class="tog"><input id="autoSaveHistoryToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
     <div class="row">
       <div class="row-l"><div class="r-name">Tampilkan saran pesan</div><div class="r-hint">Saran pesan pembuka di percakapan baru</div></div>
-      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row-r"><label class="tog"><input id="showPromptSuggestionsToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
   </div>
 
@@ -857,10 +857,13 @@ document.getElementById('mWrap').addEventListener('click', function(e) { if (e.t
 
 /* ── Settings state ── */
 const S = {
-  theme:'dark',
-  language:'id',
-  browser_notifications_enabled:false,
-  sound_notifications_enabled:false
+  theme:localStorage.getItem('youz_theme') || 'dark',
+  language:localStorage.getItem('youz_language') || 'id',
+  browser_notifications_enabled:localStorage.getItem('youz_browser_notifications_enabled') === '1',
+  sound_notifications_enabled:localStorage.getItem('youz_sound_notifications_enabled') === '1',
+  send_with_enter_enabled:localStorage.getItem('youz_send_with_enter_enabled') !== '0',
+  auto_save_history_enabled:localStorage.getItem('youz_auto_save_history_enabled') !== '0',
+  prompt_suggestions_enabled:localStorage.getItem('youz_prompt_suggestions_enabled') !== '0'
 };
 let saveT = null;
 function getUser() { try { return JSON.parse(localStorage.getItem('youz_ai_user') || '{}'); } catch { return {}; } }
@@ -871,6 +874,9 @@ function applyUI(s = {}) {
   const ls = document.getElementById('langSel'); if (ls) ls.value = S.language;
   const bn = document.getElementById('browserNotifToggle'); if (bn) bn.checked = !!S.browser_notifications_enabled;
   const sn = document.getElementById('soundNotifToggle'); if (sn) sn.checked = !!S.sound_notifications_enabled;
+  const se = document.getElementById('sendWithEnterToggle'); if (se) se.checked = S.send_with_enter_enabled !== false;
+  const ah = document.getElementById('autoSaveHistoryToggle'); if (ah) ah.checked = S.auto_save_history_enabled !== false;
+  const ps = document.getElementById('showPromptSuggestionsToggle'); if (ps) ps.checked = S.prompt_suggestions_enabled !== false;
 }
 
 async function saveSettings() {
@@ -878,6 +884,13 @@ async function saveSettings() {
   const j = await res.json();
   if (!res.ok || !j?.success) throw new Error(j?.message || 'Gagal menyimpan');
   applyUI(j.settings);
+  localStorage.setItem('youz_theme', S.theme);
+  localStorage.setItem('youz_language', S.language);
+  localStorage.setItem('youz_browser_notifications_enabled', S.browser_notifications_enabled ? '1' : '0');
+  localStorage.setItem('youz_sound_notifications_enabled', S.sound_notifications_enabled ? '1' : '0');
+  localStorage.setItem('youz_send_with_enter_enabled', S.send_with_enter_enabled ? '1' : '0');
+  localStorage.setItem('youz_auto_save_history_enabled', S.auto_save_history_enabled ? '1' : '0');
+  localStorage.setItem('youz_prompt_suggestions_enabled', S.prompt_suggestions_enabled ? '1' : '0');
 }
 
 function qSave(msg = 'Pengaturan disimpan') {
@@ -953,6 +966,9 @@ document.getElementById('browserNotifToggle')?.addEventListener('change', async 
   qSave('Notifikasi diperbarui');
 });
 document.getElementById('soundNotifToggle')?.addEventListener('change', e => { S.sound_notifications_enabled = e.target.checked; qSave('Suara notifikasi diperbarui'); });
+document.getElementById('sendWithEnterToggle')?.addEventListener('change', e => { S.send_with_enter_enabled = e.target.checked; qSave('Mode Enter diperbarui'); });
+document.getElementById('autoSaveHistoryToggle')?.addEventListener('change', e => { S.auto_save_history_enabled = e.target.checked; qSave('Simpan riwayat diperbarui'); });
+document.getElementById('showPromptSuggestionsToggle')?.addEventListener('change', e => { S.prompt_suggestions_enabled = e.target.checked; qSave('Saran pesan diperbarui'); });
 document.querySelectorAll('#themeSeg .seg-btn').forEach(btn => btn.addEventListener('click', () => { S.theme = btn.dataset.theme; qSave('Tema diperbarui'); }));
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
   try {

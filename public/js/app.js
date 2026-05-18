@@ -11,6 +11,8 @@ let typingAbortRequested = false;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
 let thinkingModeEnabled = false;
+let sendWithEnterEnabled = localStorage.getItem('youz_send_with_enter_enabled') !== '0';
+let promptSuggestionsEnabled = localStorage.getItem('youz_prompt_suggestions_enabled') !== '0';
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
 let quotaState = null;
@@ -690,13 +692,7 @@ function switchConversation(id) {
 
 function renderMessages(messages) {
     if (!messages || messages.length === 0) {
-        chatMessages.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
-                </div>
-                <h3>Youz AI</h3>
-                <p>Asisten AI cerdas buatan Yuzz Ofc</p>
+        const suggestionSection = promptSuggestionsEnabled ? `
                 <div class="suggestions">
                     <button class="suggestion-btn" data-prompt="📅 Tanggal berapa hari ini?">
                         <i class="far fa-calendar"></i> Tanggal hari ini?
@@ -717,6 +713,15 @@ function renderMessages(messages) {
                         <i class="fas fa-lightbulb"></i> Tips produktif
                     </button>
                 </div>
+        ` : '';
+        chatMessages.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
+                </div>
+                <h3>Youz AI</h3>
+                <p>Asisten AI cerdas buatan Yuzz Ofc</p>
+                ${suggestionSection}
             </div>
         `;
         
@@ -1358,6 +1363,14 @@ function applyUserSettingsSnapshot(settings) {
         thinkingModeEnabled = snapshot.thinking_enabled;
         if (toolThinking) toolThinking.checked = thinkingModeEnabled;
         localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
+    }
+    if (typeof snapshot.send_with_enter_enabled === 'boolean') {
+        sendWithEnterEnabled = snapshot.send_with_enter_enabled;
+        localStorage.setItem('youz_send_with_enter_enabled', sendWithEnterEnabled ? '1' : '0');
+    }
+    if (typeof snapshot.prompt_suggestions_enabled === 'boolean') {
+        promptSuggestionsEnabled = snapshot.prompt_suggestions_enabled;
+        localStorage.setItem('youz_prompt_suggestions_enabled', promptSuggestionsEnabled ? '1' : '0');
     }
 }
 
@@ -2033,7 +2046,7 @@ confirmCancelBtn?.addEventListener('click', () => closeConfirmDialog(false));
 confirmOkBtn?.addEventListener('click', () => closeConfirmDialog(true));
 
 messageInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (sendWithEnterEnabled && e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
     }
