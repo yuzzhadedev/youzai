@@ -1186,9 +1186,10 @@ function renderModelMenu() {
         const badge = spec.badge
             ? `<span class="composer-menu-badge">${escapeHtml(spec.badge)}</span>`
             : (locked ? '<i class="fas fa-lock"></i>' : '');
+        const brandShort = String(spec.brand || spec.label || 'AI').trim().slice(0, 2).toUpperCase();
         const logo = spec.logo
-            ? `<img class="model-brand-logo brand-mark" src="${escapeHtml(spec.logo)}" alt="${escapeHtml(spec.brand || spec.label)}" loading="lazy" draggable="false">`
-            : '<i class="fas fa-robot model-brand-fallback" aria-hidden="true"></i>';
+            ? `<img class="model-brand-logo brand-mark" src="${escapeHtml(spec.logo)}" alt="${escapeHtml(spec.brand || spec.label)}" loading="lazy" draggable="false" onerror="this.style.display='none'; this.nextElementSibling?.classList.remove('hidden');"><span class="model-brand-chip hidden">${escapeHtml(brandShort)}</span>`
+            : `<span class="model-brand-chip">${escapeHtml(brandShort)}</span>`;
         btn.innerHTML = `<span class="composer-model-main">${logo}<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span></span>${badge}`;
         btn.addEventListener('click', () => {
             if (disabled) {
