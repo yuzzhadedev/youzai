@@ -347,11 +347,17 @@
     <div class="image-preview-modal hidden" id="imagePreviewModal">
         <div class="image-preview-backdrop" id="imagePreviewBackdrop"></div>
         <div class="image-preview-panel">
-            <img id="imagePreviewFull" src="" alt="Preview gambar">
-            <div class="image-preview-actions">
-                <a id="downloadPreviewBtn" class="save-profile-btn" download="youz-image.png">Unduh</a>
-                <button id="closeImagePreviewBtn" class="danger-btn" type="button">Tutup</button>
+            <div class="image-preview-topbar">
+                <button id="closeImagePreviewBtn" class="image-preview-nav-btn" type="button" aria-label="Kembali">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Kembali</span>
+                </button>
+                <a id="downloadPreviewBtn" class="image-preview-save-btn" download="youz-image.png">
+                    <i class="fas fa-download"></i>
+                    <span>Simpan</span>
+                </a>
             </div>
+            <img id="imagePreviewFull" src="" alt="Preview gambar">
         </div>
     </div>
 

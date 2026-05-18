@@ -11,6 +11,8 @@ let typingAbortRequested = false;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
 let thinkingModeEnabled = false;
+let sendWithEnterEnabled = localStorage.getItem('youz_send_with_enter_enabled') !== '0';
+let promptSuggestionsEnabled = localStorage.getItem('youz_prompt_suggestions_enabled') !== '0';
 let typingTimeout = null;
 let currentDraftImage = null; // { file, dataURL, fileName, fileSize }
 let quotaState = null;
@@ -19,27 +21,34 @@ const MODEL_CATALOG = {
         label: 'Gemini 2.0 Flash',
         detail: 'Google — Previous gen flash',
         tier: 'standard',
-        available: true
+        available: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg',
+        brand: 'Gemini'
     },
     deepseek: {
         label: 'DeepSeek V4 Flash',
         detail: 'DeepSeek — Free via OpenRouter',
         tier: 'standard',
-        available: true
+        available: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/e/e4/DeepSeek_logo.svg',
+        brand: 'DeepSeek'
     },
     claude: {
         label: 'Claude Sonnet 4.5',
         detail: 'Anthropic — Best all-around',
         tier: 'standard',
-        available: false,
-        badge: 'Maintenance'
+        available: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/7/78/Anthropic_logo.svg',
+        brand: 'Claude'
     },
     gpt4o: {
         label: 'ChatGPT 4o',
         detail: 'OpenAI — Premium Model due to limited Credit',
         tier: 'premium',
         available: true,
-        requiresPremium: true
+        requiresPremium: true,
+        logo: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg',
+        brand: 'OpenAI'
     }
 };
 
@@ -683,13 +692,7 @@ function switchConversation(id) {
 
 function renderMessages(messages) {
     if (!messages || messages.length === 0) {
-        chatMessages.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
-                </div>
-                <h3>Youz AI</h3>
-                <p>Asisten AI cerdas buatan Yuzz Ofc</p>
+        const suggestionSection = promptSuggestionsEnabled ? `
                 <div class="suggestions">
                     <button class="suggestion-btn" data-prompt="📅 Tanggal berapa hari ini?">
                         <i class="far fa-calendar"></i> Tanggal hari ini?
@@ -710,6 +713,15 @@ function renderMessages(messages) {
                         <i class="fas fa-lightbulb"></i> Tips produktif
                     </button>
                 </div>
+        ` : '';
+        chatMessages.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="secure-logo" draggable="false" oncontextmenu="return false;">
+                </div>
+                <h3>Youz AI</h3>
+                <p>Asisten AI cerdas buatan Yuzz Ofc</p>
+                ${suggestionSection}
             </div>
         `;
         
@@ -828,9 +840,7 @@ function createMessageElement(msg, index) {
             previewGeneratedBtn.addEventListener('click', () => {
                 const imageUrl = decodeURIComponent(previewGeneratedBtn.dataset.image || '');
                 if (!imageUrl) return;
-                imagePreviewFull.src = imageUrl;
-                if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
-                imagePreviewModal?.classList.remove('hidden');
+                openGeneratedImagePreview(imageUrl);
             });
         }
         
@@ -866,9 +876,7 @@ function createMessageElement(msg, index) {
         generatedImageBtn.addEventListener('click', () => {
             const imageUrl = decodeURIComponent(generatedImageBtn.dataset.image || '');
             if (!imageUrl) return;
-            imagePreviewFull.src = imageUrl;
-            if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
-            imagePreviewModal?.classList.remove('hidden');
+            openGeneratedImagePreview(imageUrl);
         });
     }
 
@@ -1183,7 +1191,11 @@ function renderModelMenu() {
         const badge = spec.badge
             ? `<span class="composer-menu-badge">${escapeHtml(spec.badge)}</span>`
             : (locked ? '<i class="fas fa-lock"></i>' : '');
-        btn.innerHTML = `<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span>${badge}`;
+        const brandShort = String(spec.brand || spec.label || 'AI').trim().slice(0, 2).toUpperCase();
+        const logo = spec.logo
+            ? `<img class="model-brand-logo brand-mark" src="${escapeHtml(spec.logo)}" alt="${escapeHtml(spec.brand || spec.label)}" loading="lazy" draggable="false" onerror="this.style.display='none'; this.nextElementSibling?.classList.remove('hidden');"><span class="model-brand-chip hidden">${escapeHtml(brandShort)}</span>`
+            : `<span class="model-brand-chip">${escapeHtml(brandShort)}</span>`;
+        btn.innerHTML = `<span class="composer-model-main">${logo}<span>${escapeHtml(spec.label)}<small>${escapeHtml(spec.detail)}</small></span></span>${badge}`;
         btn.addEventListener('click', () => {
             if (disabled) {
                         if (!spec.available) showToast('Claude Sonnet sedang maintenance.', 'info');
@@ -1352,6 +1364,14 @@ function applyUserSettingsSnapshot(settings) {
         if (toolThinking) toolThinking.checked = thinkingModeEnabled;
         localStorage.setItem('youz_thinking_enabled', thinkingModeEnabled ? '1' : '0');
     }
+    if (typeof snapshot.send_with_enter_enabled === 'boolean') {
+        sendWithEnterEnabled = snapshot.send_with_enter_enabled;
+        localStorage.setItem('youz_send_with_enter_enabled', sendWithEnterEnabled ? '1' : '0');
+    }
+    if (typeof snapshot.prompt_suggestions_enabled === 'boolean') {
+        promptSuggestionsEnabled = snapshot.prompt_suggestions_enabled;
+        localStorage.setItem('youz_prompt_suggestions_enabled', promptSuggestionsEnabled ? '1' : '0');
+    }
 }
 
 function queueUserSettingsSave(patch = {}) {
@@ -1468,12 +1488,26 @@ function clearImageDraft() {
 function openImagePreview() {
     if (!currentDraftImage?.dataURL || !imagePreviewModal || !imagePreviewFull) return;
     imagePreviewFull.src = currentDraftImage.dataURL;
-    if (downloadPreviewBtn) downloadPreviewBtn.href = currentDraftImage.dataURL;
+    if (downloadPreviewBtn) {
+        downloadPreviewBtn.href = currentDraftImage.dataURL;
+        downloadPreviewBtn.setAttribute('download', currentDraftImage?.fileName || `youz-image-${Date.now()}.png`);
+    }
     imagePreviewModal.classList.remove('hidden');
 }
 
 function closeImagePreview() {
     imagePreviewModal?.classList.add('hidden');
+}
+
+function openGeneratedImagePreview(imageUrl = '', fileName = '') {
+    const safeUrl = String(imageUrl || '').trim();
+    if (!safeUrl || !imagePreviewModal || !imagePreviewFull) return;
+    imagePreviewFull.src = safeUrl;
+    if (downloadPreviewBtn) {
+        downloadPreviewBtn.href = safeUrl;
+        downloadPreviewBtn.setAttribute('download', fileName || `youz-generated-${Date.now()}.png`);
+    }
+    imagePreviewModal.classList.remove('hidden');
 }
 
 function formatFileSize(bytes) {
@@ -2012,7 +2046,7 @@ confirmCancelBtn?.addEventListener('click', () => closeConfirmDialog(false));
 confirmOkBtn?.addEventListener('click', () => closeConfirmDialog(true));
 
 messageInput?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (sendWithEnterEnabled && e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
     }
@@ -2235,6 +2269,11 @@ scrollBottomBtn?.addEventListener('click', () => {
 });
 imagePreviewBackdrop?.addEventListener('click', closeImagePreview);
 closeImagePreviewBtn?.addEventListener('click', closeImagePreview);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && imagePreviewModal && !imagePreviewModal.classList.contains('hidden')) {
+        closeImagePreview();
+    }
+});
 
 chatMessages?.addEventListener('touchstart', () => {
     isTouchingChat = true;

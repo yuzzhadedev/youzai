@@ -108,7 +108,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 /* ── CONTENT ── */
 .content{flex:1;overflow-y:auto;background:var(--bg);scrollbar-width:thin;
   scrollbar-color:var(--border) transparent;position:relative;z-index:1;}
-.page{display:none;padding:34px 42px;max-width:700px;animation:pgIn .22s ease both}
+.page{display:none;padding:30px 34px 36px;max-width:860px;animation:pgIn .22s ease both}
 .page.show{display:block}
 @keyframes pgIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 .pg-head{margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--border)}
@@ -117,6 +117,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background:linear-gradient(130deg,var(--text) 55%,rgba(167,139,250,.6));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .pg-sub{font-size:12px;color:var(--text-2)}
+.settings-search{margin-top:14px;position:relative}
+.settings-search input{width:100%;padding:10px 12px 10px 34px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font:12.5px var(--font)}
+.settings-search input:focus{outline:none;border-color:var(--border-foc);box-shadow:0 0 0 3px var(--vs)}
+.settings-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:13px;height:13px;color:var(--text-3)}
 
 /* ── CARD ── */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px;}
@@ -132,6 +136,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 .row-l .r-name{font-size:13px;font-weight:500;color:var(--text)}
 .row-l .r-hint{font-size:11.5px;color:var(--text-2);margin-top:2px;line-height:1.5}
 .row-r{flex-shrink:0}
+.row.hidden-row{display:none}
+.card.hidden-card{display:none}
 
 /* ── TOGGLE ── */
 .tog{position:relative;width:37px;height:20px;flex-shrink:0}
@@ -287,14 +293,22 @@ input.inp[type=password]{letter-spacing:.1em}
 
 /* responsive */
 @media(max-width:960px){
-  .sidebar{position:fixed;left:0;top:0;height:100vh;z-index:50;width:min(80vw,275px);transform:translateX(-110%)}
+  .sidebar{position:fixed;left:0;top:0;height:100vh;z-index:50;width:min(86vw,290px);transform:translateX(-110%)}
   .sidebar.open{transform:translateX(0)}
   .ham{display:flex}
+  .page{padding:22px 16px 28px;max-width:none}
+  .pg-head{margin-bottom:16px;padding-bottom:14px}
+  .card{margin-bottom:10px}
 }
 @media(max-width:600px){
-  .page{padding:20px 14px;max-width:none}
-  .row{flex-direction:column;align-items:flex-start;gap:8px}
+  .page{padding:18px 12px 24px}
+  .row{flex-direction:column;align-items:flex-start;gap:8px;padding:11px 12px}
+  .row-r{width:100%}
+  .row-r .sel,.row-r .inp,.row-r .seg{width:100%}
+  .row-r .seg{justify-content:space-between}
+  .seg-btn{flex:1;text-align:center;padding:7px 6px}
   input.inp{width:100%}
+  .btn-row .btn{width:100%;justify-content:center}
   .plan-grid{grid-template-columns:1fr}
 }
 </style>
@@ -422,6 +436,10 @@ input.inp[type=password]{letter-spacing:.1em}
         </div>
       </div>
     </div>
+    <div class="settings-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="settingsSearchInput" type="text" placeholder="Cari pengaturan di halaman ini…"/>
+    </div>
   </div>
 
   <div class="card">
@@ -447,15 +465,15 @@ input.inp[type=password]{letter-spacing:.1em}
     </div>
     <div class="row">
       <div class="row-l"><div class="r-name">Kirim dengan Enter</div><div class="r-hint">Tekan Enter untuk kirim; Shift+Enter baris baru</div></div>
-      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row-r"><label class="tog"><input id="sendWithEnterToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
     <div class="row">
       <div class="row-l"><div class="r-name">Simpan riwayat otomatis</div><div class="r-hint">Percakapan tersimpan ke akun Anda</div></div>
-      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row-r"><label class="tog"><input id="autoSaveHistoryToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
     <div class="row">
       <div class="row-l"><div class="r-name">Tampilkan saran pesan</div><div class="r-hint">Saran pesan pembuka di percakapan baru</div></div>
-      <div class="row-r"><label class="tog"><input type="checkbox" checked onchange="qSave('Disimpan')"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
+      <div class="row-r"><label class="tog"><input id="showPromptSuggestionsToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
     </div>
   </div>
 
@@ -781,6 +799,7 @@ function go(id) {
   document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
   document.getElementById(pageMap[id])?.classList.add('active');
   cur = id;
+  clearSettingsSearch();
   if (window.innerWidth <= 960) setSB(false);
   document.getElementById('main').scrollTo({top:0, behavior:'smooth'});
 }
@@ -837,7 +856,15 @@ document.getElementById('mOk').addEventListener('click', () => {
 document.getElementById('mWrap').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
 
 /* ── Settings state ── */
-const S = { theme:'dark', language:'id', browser_notifications_enabled:false, sound_notifications_enabled:false };
+const S = {
+  theme:localStorage.getItem('youz_theme') || 'dark',
+  language:localStorage.getItem('youz_language') || 'id',
+  browser_notifications_enabled:localStorage.getItem('youz_browser_notifications_enabled') === '1',
+  sound_notifications_enabled:localStorage.getItem('youz_sound_notifications_enabled') === '1',
+  send_with_enter_enabled:localStorage.getItem('youz_send_with_enter_enabled') !== '0',
+  auto_save_history_enabled:localStorage.getItem('youz_auto_save_history_enabled') !== '0',
+  prompt_suggestions_enabled:localStorage.getItem('youz_prompt_suggestions_enabled') !== '0'
+};
 let saveT = null;
 function getUser() { try { return JSON.parse(localStorage.getItem('youz_ai_user') || '{}'); } catch { return {}; } }
 
@@ -847,6 +874,9 @@ function applyUI(s = {}) {
   const ls = document.getElementById('langSel'); if (ls) ls.value = S.language;
   const bn = document.getElementById('browserNotifToggle'); if (bn) bn.checked = !!S.browser_notifications_enabled;
   const sn = document.getElementById('soundNotifToggle'); if (sn) sn.checked = !!S.sound_notifications_enabled;
+  const se = document.getElementById('sendWithEnterToggle'); if (se) se.checked = S.send_with_enter_enabled !== false;
+  const ah = document.getElementById('autoSaveHistoryToggle'); if (ah) ah.checked = S.auto_save_history_enabled !== false;
+  const ps = document.getElementById('showPromptSuggestionsToggle'); if (ps) ps.checked = S.prompt_suggestions_enabled !== false;
 }
 
 async function saveSettings() {
@@ -854,12 +884,43 @@ async function saveSettings() {
   const j = await res.json();
   if (!res.ok || !j?.success) throw new Error(j?.message || 'Gagal menyimpan');
   applyUI(j.settings);
+  localStorage.setItem('youz_theme', S.theme);
+  localStorage.setItem('youz_language', S.language);
+  localStorage.setItem('youz_browser_notifications_enabled', S.browser_notifications_enabled ? '1' : '0');
+  localStorage.setItem('youz_sound_notifications_enabled', S.sound_notifications_enabled ? '1' : '0');
+  localStorage.setItem('youz_send_with_enter_enabled', S.send_with_enter_enabled ? '1' : '0');
+  localStorage.setItem('youz_auto_save_history_enabled', S.auto_save_history_enabled ? '1' : '0');
+  localStorage.setItem('youz_prompt_suggestions_enabled', S.prompt_suggestions_enabled ? '1' : '0');
 }
 
 function qSave(msg = 'Pengaturan disimpan') {
   toast(msg);
   clearTimeout(saveT);
   saveT = setTimeout(async () => { try { await saveSettings(); } catch (err) { toast(err?.message || 'Gagal sync', true); } }, 300);
+}
+
+function clearSettingsSearch() {
+  const input = document.getElementById('settingsSearchInput');
+  if (input) input.value = '';
+  document.querySelectorAll('.row.hidden-row').forEach(r => r.classList.remove('hidden-row'));
+  document.querySelectorAll('.card.hidden-card').forEach(c => c.classList.remove('hidden-card'));
+}
+
+function filterCurrentPageSettings(keyword) {
+  const activePage = document.querySelector('.page.show');
+  if (!activePage) return;
+  const q = String(keyword || '').trim().toLowerCase();
+  const cards = activePage.querySelectorAll('.card');
+  cards.forEach(card => {
+    let visibleRows = 0;
+    card.querySelectorAll('.row').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const hit = !q || text.includes(q);
+      row.classList.toggle('hidden-row', !hit);
+      if (hit) visibleRows += 1;
+    });
+    card.classList.toggle('hidden-card', q && visibleRows === 0);
+  });
 }
 
 async function loadSettings() {
@@ -905,6 +966,9 @@ document.getElementById('browserNotifToggle')?.addEventListener('change', async 
   qSave('Notifikasi diperbarui');
 });
 document.getElementById('soundNotifToggle')?.addEventListener('change', e => { S.sound_notifications_enabled = e.target.checked; qSave('Suara notifikasi diperbarui'); });
+document.getElementById('sendWithEnterToggle')?.addEventListener('change', e => { S.send_with_enter_enabled = e.target.checked; qSave('Mode Enter diperbarui'); });
+document.getElementById('autoSaveHistoryToggle')?.addEventListener('change', e => { S.auto_save_history_enabled = e.target.checked; qSave('Simpan riwayat diperbarui'); });
+document.getElementById('showPromptSuggestionsToggle')?.addEventListener('change', e => { S.prompt_suggestions_enabled = e.target.checked; qSave('Saran pesan diperbarui'); });
 document.querySelectorAll('#themeSeg .seg-btn').forEach(btn => btn.addEventListener('click', () => { S.theme = btn.dataset.theme; qSave('Tema diperbarui'); }));
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
   try {
@@ -916,6 +980,7 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', async () =>
     toast('Profil berhasil disimpan');
   } catch (err) { toast(err?.message || 'Gagal menyimpan', true); }
 });
+document.getElementById('settingsSearchInput')?.addEventListener('input', e => filterCurrentPageSettings(e.target.value));
 
 loadSettings();
 loadUser().catch(() => {});
