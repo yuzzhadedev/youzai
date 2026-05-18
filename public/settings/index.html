@@ -461,32 +461,6 @@ input.inp[type=password]{letter-spacing:.1em}
 
   <div class="card">
     <div class="card-head">
-      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3 3-7z"/></svg></span>
-      <span class="card-lbl">AI & Model</span>
-    </div>
-    <div class="row">
-      <div class="row-l"><div class="r-name">Model default</div><div class="r-hint">Model utama yang dipakai saat memulai chat baru</div></div>
-      <div class="row-r">
-        <select class="sel" id="defaultModelSel">
-          <option value="gemini">✨ Gemini 2.0 Flash</option>
-          <option value="deepseek">⚡ DeepSeek V4 Flash</option>
-          <option value="claude">🪶 Claude Sonnet 4.5</option>
-          <option value="gpt4o">🧠 ChatGPT 4o</option>
-        </select>
-      </div>
-    </div>
-    <div class="row">
-      <div class="row-l"><div class="r-name">Web Search</div><div class="r-hint">Izinkan AI melakukan pencarian web saat dibutuhkan</div></div>
-      <div class="row-r"><label class="tog"><input id="webSearchToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-    </div>
-    <div class="row">
-      <div class="row-l"><div class="r-name">Thinking mode</div><div class="r-hint">Gunakan penalaran lebih mendalam untuk jawaban kompleks</div></div>
-      <div class="row-r"><label class="tog"><input id="thinkingToggle" type="checkbox"><div class="tog-track"></div><div class="tog-thumb"></div></label></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
       <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
       <span class="card-lbl">Notifikasi</span>
     </div>
@@ -867,10 +841,7 @@ const S = {
   theme:'dark',
   language:'id',
   browser_notifications_enabled:false,
-  sound_notifications_enabled:false,
-  model:'gemini',
-  web_search_enabled:true,
-  thinking_enabled:false
+  sound_notifications_enabled:false
 };
 let saveT = null;
 function getUser() { try { return JSON.parse(localStorage.getItem('youz_ai_user') || '{}'); } catch { return {}; } }
@@ -881,9 +852,6 @@ function applyUI(s = {}) {
   const ls = document.getElementById('langSel'); if (ls) ls.value = S.language;
   const bn = document.getElementById('browserNotifToggle'); if (bn) bn.checked = !!S.browser_notifications_enabled;
   const sn = document.getElementById('soundNotifToggle'); if (sn) sn.checked = !!S.sound_notifications_enabled;
-  const ms = document.getElementById('defaultModelSel'); if (ms) ms.value = S.model || 'gemini';
-  const ws = document.getElementById('webSearchToggle'); if (ws) ws.checked = S.web_search_enabled !== false;
-  const th = document.getElementById('thinkingToggle'); if (th) th.checked = !!S.thinking_enabled;
 }
 
 async function saveSettings() {
@@ -942,21 +910,6 @@ document.getElementById('browserNotifToggle')?.addEventListener('change', async 
   qSave('Notifikasi diperbarui');
 });
 document.getElementById('soundNotifToggle')?.addEventListener('change', e => { S.sound_notifications_enabled = e.target.checked; qSave('Suara notifikasi diperbarui'); });
-document.getElementById('defaultModelSel')?.addEventListener('change', e => {
-  S.model = e.target.value || 'gemini';
-  localStorage.setItem('youz_model', S.model);
-  qSave('Model default diperbarui');
-});
-document.getElementById('webSearchToggle')?.addEventListener('change', e => {
-  S.web_search_enabled = e.target.checked;
-  localStorage.setItem('youz_web_search_enabled', S.web_search_enabled ? '1' : '0');
-  qSave(S.web_search_enabled ? 'Web Search aktif' : 'Web Search dimatikan');
-});
-document.getElementById('thinkingToggle')?.addEventListener('change', e => {
-  S.thinking_enabled = e.target.checked;
-  localStorage.setItem('youz_thinking_enabled', S.thinking_enabled ? '1' : '0');
-  qSave(S.thinking_enabled ? 'Thinking mode aktif' : 'Thinking mode dimatikan');
-});
 document.querySelectorAll('#themeSeg .seg-btn').forEach(btn => btn.addEventListener('click', () => { S.theme = btn.dataset.theme; qSave('Tema diperbarui'); }));
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
   try {
