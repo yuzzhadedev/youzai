@@ -49,6 +49,8 @@ async function generateImageWithHuggingFace(prompt, userKey) {
   let imageBytes = null;
 
   for (const endpoint of endpoints) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { Authorization: `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
@@ -56,8 +58,15 @@ async function generateImageWithHuggingFace(prompt, userKey) {
         inputs: String(prompt || 'Generate gambar artistik berkualitas tinggi.'),
         parameters: { guidance_scale: 3.5, num_inference_steps: 4 },
         options: { wait_for_model: true, use_cache: false }
-      })
-    });
+      }),
+      signal: controller.signal
+    }).catch((error) => ({ ok: false, status: 599, _error: error }));
+    clearTimeout(timeout);
+
+    if (!response || response._error) {
+      lastError = response?._error?.message || 'Koneksi ke Hugging Face timeout/gagal.';
+      continue;
+    }
 
     const contentType = String(response.headers.get('content-type') || '').toLowerCase();
     if (response.ok && contentType.startsWith('image/')) {
@@ -65,8 +74,23 @@ async function generateImageWithHuggingFace(prompt, userKey) {
       break;
     }
 
-    const errText = await response.text();
-    lastError = errText || `${response.status}`;
+    if (response.ok && contentType.includes('application/json')) {
+      try {
+        const data = await response.json();
+        const maybeBase64 = data?.image_base64 || data?.data?.[0]?.b64_json || data?.images?.[0];
+        if (maybeBase64 && typeof maybeBase64 === 'string') {
+          imageBytes = Buffer.from(maybeBase64, 'base64');
+          break;
+        }
+        lastError = data?.error || data?.message || JSON.stringify(data).slice(0, 280);
+      } catch {
+        lastError = 'Respons JSON image generator tidak valid.';
+      }
+      continue;
+    }
+
+    const errText = await response.text().catch(() => '');
+    lastError = errText || `HTTP ${response.status}`;
   }
 
   if (!imageBytes) {

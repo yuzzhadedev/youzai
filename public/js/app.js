@@ -835,9 +835,7 @@ function createMessageElement(msg, index) {
             previewGeneratedBtn.addEventListener('click', () => {
                 const imageUrl = decodeURIComponent(previewGeneratedBtn.dataset.image || '');
                 if (!imageUrl) return;
-                imagePreviewFull.src = imageUrl;
-                if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
-                imagePreviewModal?.classList.remove('hidden');
+                openGeneratedImagePreview(imageUrl);
             });
         }
         
@@ -873,9 +871,7 @@ function createMessageElement(msg, index) {
         generatedImageBtn.addEventListener('click', () => {
             const imageUrl = decodeURIComponent(generatedImageBtn.dataset.image || '');
             if (!imageUrl) return;
-            imagePreviewFull.src = imageUrl;
-            if (downloadPreviewBtn) downloadPreviewBtn.href = imageUrl;
-            imagePreviewModal?.classList.remove('hidden');
+            openGeneratedImagePreview(imageUrl);
         });
     }
 
@@ -1478,12 +1474,26 @@ function clearImageDraft() {
 function openImagePreview() {
     if (!currentDraftImage?.dataURL || !imagePreviewModal || !imagePreviewFull) return;
     imagePreviewFull.src = currentDraftImage.dataURL;
-    if (downloadPreviewBtn) downloadPreviewBtn.href = currentDraftImage.dataURL;
+    if (downloadPreviewBtn) {
+        downloadPreviewBtn.href = currentDraftImage.dataURL;
+        downloadPreviewBtn.setAttribute('download', currentDraftImage?.fileName || `youz-image-${Date.now()}.png`);
+    }
     imagePreviewModal.classList.remove('hidden');
 }
 
 function closeImagePreview() {
     imagePreviewModal?.classList.add('hidden');
+}
+
+function openGeneratedImagePreview(imageUrl = '', fileName = '') {
+    const safeUrl = String(imageUrl || '').trim();
+    if (!safeUrl || !imagePreviewModal || !imagePreviewFull) return;
+    imagePreviewFull.src = safeUrl;
+    if (downloadPreviewBtn) {
+        downloadPreviewBtn.href = safeUrl;
+        downloadPreviewBtn.setAttribute('download', fileName || `youz-generated-${Date.now()}.png`);
+    }
+    imagePreviewModal.classList.remove('hidden');
 }
 
 function formatFileSize(bytes) {
@@ -2245,6 +2255,11 @@ scrollBottomBtn?.addEventListener('click', () => {
 });
 imagePreviewBackdrop?.addEventListener('click', closeImagePreview);
 closeImagePreviewBtn?.addEventListener('click', closeImagePreview);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && imagePreviewModal && !imagePreviewModal.classList.contains('hidden')) {
+        closeImagePreview();
+    }
+});
 
 chatMessages?.addEventListener('touchstart', () => {
     isTouchingChat = true;
