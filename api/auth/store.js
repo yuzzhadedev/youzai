@@ -1,29 +1,27 @@
 import crypto from 'crypto';
-
-const db = globalThis.__youzAuthDb || {
-  users: new Map()
-};
-
-globalThis.__youzAuthDb = db;
+import { findAuthUserByEmail, saveAuthUser, upsertUserProfile } from '../../lib/db.js';
 
 export function hashPassword(password) {
   return crypto.createHash('sha256').update(String(password)).digest('hex');
 }
 
-export function findUserByEmail(email = '') {
-  return db.users.get(String(email).trim().toLowerCase()) || null;
+export async function findUserByEmail(email = '') {
+  return findAuthUserByEmail(email);
 }
 
-export function saveUser({ name, email, password }) {
+export async function saveUser({ name, email, password }) {
   const normalizedEmail = String(email).trim().toLowerCase();
-  const user = {
-    id: `email-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    name: String(name || '').trim() || normalizedEmail.split('@')[0],
+  const user = await saveAuthUser({
+    name,
     email: normalizedEmail,
-    picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(name || normalizedEmail)}&background=3b82f6&color=fff`,
     passwordHash: hashPassword(password),
     provider: 'email'
-  };
-  db.users.set(normalizedEmail, user);
-  return user;
+  });
+  await upsertUserProfile({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    picture: user.picture
+  });
+  return { ...user, passwordHash: user.password_hash };
 }
