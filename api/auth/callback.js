@@ -1,3 +1,5 @@
+import { upsertUserProfile } from '../../lib/db.js';
+
 export default async function handler(req, res) {
   const { code } = req.query;
   
@@ -45,6 +47,7 @@ export default async function handler(req, res) {
       name: userData.name,
       picture: userData.picture
     };
+    await upsertUserProfile(userInfo);
 
     const encodedCookieUser = encodeURIComponent(JSON.stringify(userInfo));
     const secureFlag = process.env.VERCEL_URL ? ' Secure;' : '';

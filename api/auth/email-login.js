@@ -1,6 +1,7 @@
+import { upsertUserProfile } from '../../lib/db.js';
 import { findUserByEmail, hashPassword } from './store.js';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method not allowed' });
 
   const { email, password } = req.body || {};
@@ -8,12 +9,14 @@ export default function handler(req, res) {
     return res.status(400).json({ success: false, message: 'Email dan password wajib diisi.' });
   }
 
-  const user = findUserByEmail(email);
-  if (!user || user.passwordHash !== hashPassword(password)) {
+  const user = await findUserByEmail(email);
+  const storedHash = user?.passwordHash || user?.password_hash;
+  if (!user || storedHash !== hashPassword(password)) {
     return res.status(401).json({ success: false, message: 'Email atau password salah.' });
   }
 
-  const { passwordHash, ...safeUser } = user;
+  await upsertUserProfile(user);
+  const { passwordHash, password_hash, ...safeUser } = user;
   const secureFlag = process.env.VERCEL_URL ? ' Secure;' : '';
   res.setHeader('Set-Cookie', `youz_user=${encodeURIComponent(JSON.stringify(safeUser))}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax;${secureFlag}`);
   return res.status(200).json({ success: true, user: safeUser });

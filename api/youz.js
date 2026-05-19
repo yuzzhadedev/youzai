@@ -1,4 +1,4 @@
-import { consumeQuota, resolveUserKey, getQuotaSnapshot, ensureConversation, saveConversationMessage, getConversationWithMessages } from '../lib/db.js';
+import { consumeQuota, resolveUserKey, getQuotaSnapshot, ensureConversation, saveConversationMessage, getConversationWithMessages, getUserPlan } from '../lib/db.js';
 
 const SEARCH_MODEL = 'openai/gpt-4o-search-preview';
 
@@ -35,6 +35,8 @@ function shouldGenerateImage(prompt = '', action = 'chat') {
 }
 
 async function generateImageWithHuggingFace(prompt, userKey) {
+  const plan = await getUserPlan(userKey);
+  const startMs = Date.now();
   const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.HF_API_KEY;
   if (!hfKey) {
     return { success: false, content: 'HUGGINGFACE_API_KEY belum dikonfigurasi.' };
@@ -101,6 +103,9 @@ async function generateImageWithHuggingFace(prompt, userKey) {
   const base64 = Buffer.from(arrayBuffer).toString('base64');
   const imageUrl = `data:image/png;base64,${base64}`;
   await consumeQuota({ userKey, type: 'image', amount: 1 });
+  const minDurationMs = plan === 'premium' ? 22000 : 60000;
+  const elapsed = Date.now() - startMs;
+  if (elapsed < minDurationMs) await wait(minDurationMs - elapsed);
   return {
     success: true,
     content: '',
@@ -139,6 +144,7 @@ async function callOpenRouter({ apiKey, model, messages, enableSearch, maxTokens
 async function processChatRequest(req, payload = {}) {
   const { messages = [], action = 'chat', modelType: rawModelType = 'openai', imageData, prompt, enableSearch = false, thinkingMode = false, userContext = {}, conversationId = '', disableAutoImage = false } = payload;
   const userKey = resolveUserKey(req, userContext);
+  const plan = await getUserPlan(userKey);
   const modelType = normalizeModelType(rawModelType);
 
   const hasImage = Boolean(imageData);
@@ -202,6 +208,9 @@ async function processChatRequest(req, payload = {}) {
   }
 
   if (providerResponse.success) await consumeQuota({ userKey, type: quotaType, amount: 1 });
+  if (providerResponse.success && quotaType === 'chat') {
+    await wait(plan === 'premium' ? 200 : 1200);
+  }
   return {
     success: providerResponse.success,
     content: providerResponse.content,
@@ -233,7 +242,8 @@ export default async function handler(req, res) {
         const response = await processChatRequest(req, { messages: [{ role: 'user', content: String(prompt) }], action: 'chat', modelType, userContext: { id: userId, email }, conversationId: cid, disableAutoImage: true });
         const text = String(response?.content || '');
         let built = '';
-        for (const ch of text) { built += ch; res.write(`data: ${JSON.stringify({ type: 'token', token: ch, content: built })}\n\n`); await wait(35); }
+        const streamDelay = response?.limit?.plan === 'premium' ? 18 : 45;
+        for (const ch of text) { built += ch; res.write(`data: ${JSON.stringify({ type: 'token', token: ch, content: built })}\n\n`); await wait(streamDelay); }
         await saveConversationMessage({ conversationId: cid, role: 'assistant', content: built });
         res.write(`data: ${JSON.stringify({ type: 'done', conversationId: cid })}\n\n`);
         return res.end();
