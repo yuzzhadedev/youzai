@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="LnTbq-pXfTwYiCRh2__S7hUo-FSo0dAOFaYZrsbORMM" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+
+    <title>Youz AI</title>
+    <meta name="description" content="Youz AI adalah asisten AI cerdas buatan Indonesia untuk chat dan generate gambar.">
+    <meta name="keywords" content="Youz AI, AI Chat, chatbot AI Indonesia, ChatGPT gratis, Gemini AI, DeepSeek, Claude, generator gambar AI, AI image generator, asisten AI, Yuzz Ofc">
+    <meta name="author" content="Yuzz Ofc">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://youzai.my.id" />
+
+    <meta property="og:title" content="Youz AI - Asisten AI Cerdas Gratis">
+    <meta property="og:description" content="Chat dengan ChatGPT, Gemini, dan DeepSeek secara gratis. Buatan Indonesia!">
+    <meta property="og:image" content="https://youzai.my.id/asset/logo.jpg">
+    <meta property="og:url" content="https://youzai.my.id">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Youz AI">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Youz AI - Asisten AI Cerdas">
+    <meta name="twitter:description" content="Chat dengan AI gratis! ChatGPT, Gemini, DeepSeek.">
+    <meta name="twitter:image" content="https://youzai.my.id/asset/logo.jpg">
+
+    <link rel="icon" href="/asset/logo.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="/asset/logo.jpg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="app" id="appRoot">
+
+    <!-- ══════════ SIDEBAR BACKDROP (mobile) ══════════ -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
+
+    <!-- ══════════════════════════════
+         SIDEBAR
+    ══════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="logo-mark">
+                <img src="/asset/logo.jpg" alt="Youz AI Logo" draggable="false" oncontextmenu="return false;">
+            </div>
+            <div class="logo-wordmark">
+                <div class="logo-name">Youz AI</div>
+                <div class="logo-tagline">Asisten AI · Yuzz Ofc</div>
+            </div>
+            <button class="collapse-btn" id="collapseSidebarBtn" type="button" aria-label="Collapse sidebar">
+                <i class="fas fa-sidebar-flip" style="transform: scaleX(-1); display:inline-block;"></i>
+                <i class="fas fa-angles-left" style="font-size:11px;"></i>
+            </button>
+        </div>
+
+        <!-- New Chat -->
+        <button class="new-chat-btn" id="newChatBtn" type="button">
+            <i class="fas fa-plus"></i>
+            <span>Percakapan Baru</span>
+        </button>
+
+        <!-- History -->
+        <div class="history-section" id="historySectionScroll">
+            <div class="history-label" id="historyLabel">Riwayat</div>
+            <ul class="history-group" id="conversationList"></ul>
+        </div>
+
+        <!-- Bottom -->
+        <div class="sidebar-bottom">
+
+            <!-- Logged in -->
+            <div class="user-section" id="userSection" style="position:relative;">
+                <div id="userProfile" class="user-card hidden">
+                    <img id="userAvatar" src="" alt="Avatar" class="user-avatar">
+                    <div class="user-info">
+                        <div class="user-name" id="userName"></div>
+                        <div class="user-plan" id="userPlanIndicator">
+                            <i class="fas fa-circle-dot"></i>
+                            <span id="profilePlanBadge">Free</span>
+                        </div>
+                    </div>
+                    <div class="user-menu-trigger" id="userMenuBtn">
+                        <i class="fas fa-ellipsis-vertical"></i>
+                    </div>
+
+                    <div id="userMenuDropdown" class="user-menu-dropdown hidden">
+                        <button id="userProfileBtn" class="user-menu-item" type="button">
+                            <i class="fas fa-user"></i> Profil
+                        </button>
+                        <button id="userSettingsBtn" class="user-menu-item" type="button">
+                            <i class="fas fa-gear"></i> Pengaturan
+                        </button>
+                        <button id="userPremiumBtn" class="user-menu-item" type="button">
+                            <i class="fas fa-crown"></i> Get Premium
+                        </button>
+                        <button id="userLogoutBtn" class="user-menu-item danger" type="button">
+                            <i class="fas fa-right-from-bracket"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auth CTA (guest) -->
+            <div id="sidebarAuthLinks" class="auth-cta">
+                <a href="/login" class="auth-btn primary">
+                    <i class="fas fa-right-to-bracket" style="margin-right:5px;"></i>
+                    Masuk / Daftar
+                </a>
+            </div>
+
+            <div class="sidebar-footer-text">v1.1 · Yuzz Ofc · 2025</div>
+        </div>
+    </aside>
+
+    <!-- ══════════════════════════════
+         MAIN AREA
+    ══════════════════════════════ -->
+    <main class="main">
+
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="header-left">
+                <button class="mobile-logo-btn" id="hamburgerBtn" type="button" aria-label="Buka menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="chat-title-wrap">
+                    <h2 class="chat-title" id="chatTitle">Youz AI</h2>
+                </div>
+                <div class="model-pill" id="modelIndicator">
+                    <span class="model-dot"></span>
+                    <span id="modelPillText">Gemini</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="header-action-btn" id="headerNewChatBtn" type="button" title="Percakapan Baru">
+                    <i class="fas fa-pen-to-square"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Limit Notice -->
+        <div class="limit-notice hidden" id="limitNotice">
+            <button class="limit-notice-close" id="limitNoticeClose" type="button"><i class="fas fa-times"></i></button>
+            <div class="limit-notice-text" id="limitNoticeText"></div>
+            <button class="limit-notice-cta hidden" id="limitNoticeCta" type="button">Upgrade ke Premium</button>
+        </div>
+
+        <!-- Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="empty-state">
+                <div class="empty-icon-ring">
+                    <img src="/asset/logo.jpg" alt="Youz AI Logo" class="empty-logo" draggable="false" oncontextmenu="return false;">
+                </div>
+                <h3 class="empty-headline">Halo, ada yang bisa dibantu?</h3>
+                <p class="empty-sub">Asisten AI cerdas buatan Yuzz Ofc — gratis, cepat, dan akurat.</p>
+                <div class="suggestions-grid">
+                    <button class="suggestion-chip" data-prompt="📅 Tanggal berapa hari ini?" type="button">
+                        <i class="far fa-calendar"></i> Tanggal hari ini?
+                    </button>
+                    <button class="suggestion-chip" data-prompt="⏰ Jam berapa sekarang?" type="button">
+                        <i class="far fa-clock"></i> Jam sekarang?
+                    </button>
+                    <button class="suggestion-chip" data-prompt="🔍 Cari berita terbaru tentang AI 2026" type="button">
+                        <i class="fas fa-newspaper"></i> Berita AI terbaru
+                    </button>
+                    <button class="suggestion-chip" data-prompt="🤖 Apa itu kecerdasan buatan?" type="button">
+                        <i class="fas fa-brain"></i> Apa itu AI?
+                    </button>
+                    <button class="suggestion-chip" data-prompt="✍️ Buatkan puisi tentang teknologi" type="button">
+                        <i class="fas fa-pen-nib"></i> Buat puisi
+                    </button>
+                    <button class="suggestion-chip" data-prompt="💡 Tips produktif untuk programmer" type="button">
+                        <i class="fas fa-lightbulb"></i> Tips produktif
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button class="scroll-bottom-btn hidden" id="scrollBottomBtn" type="button" title="Scroll ke bawah">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <!-- Image Draft -->
+        <div class="image-draft-container hidden" id="imageDraftContainer">
+            <div class="image-draft" id="imageDraft">
+                <div class="image-draft-preview" id="imageDraftPreview">
+                    <img id="draftImage" src="" alt="Draft">
+                    <div class="image-draft-loading hidden" id="draftImageLoading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);border-radius:8px;">
+                        <div style="width:24px;height:24px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinDraft .7s linear infinite;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="image-draft-name" id="draftFileName"></div>
+                    <div class="image-draft-size" id="draftFileSize"></div>
+                </div>
+                <button class="image-draft-remove" id="removeDraftBtn" type="button" aria-label="Hapus">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-area">
+            <!-- Composer Menu Backdrop -->
+            <div class="composer-menu-backdrop hidden" id="composerMenuBackdrop"></div>
+
+            <div class="input-wrapper">
+                <!-- Composer Menu (popup) -->
+                <div class="composer-menu hidden" id="composerMenu" role="dialog" aria-label="Pilihan composer">
+                    <button class="composer-menu-item" id="composerMenuPhoto" type="button">
+                        <span class="composer-menu-icon"><i class="fas fa-image"></i></span>
+                        <span class="composer-menu-label">Foto / Gambar</span>
+                    </button>
+                    <label class="composer-menu-item composer-menu-toggle">
+                        <span class="composer-menu-icon"><i class="fas fa-brain"></i></span>
+                        <span class="composer-menu-label">Mode Berpikir</span>
+                        <input type="checkbox" id="toolThinking" aria-label="Berpikir/Thinking">
+                    </label>
+                    <label class="composer-menu-item composer-menu-toggle">
+                        <span class="composer-menu-icon"><i class="fas fa-globe"></i></span>
+                        <span class="composer-menu-label">Pencarian Web</span>
+                        <input type="checkbox" id="toolWebSearch" checked aria-label="Web Search">
+                    </label>
+
+                    <!-- Standard Models -->
+                    <div class="composer-menu-section">
+                        <div class="composer-menu-section-title">STANDARD MODELS</div>
+                        <div class="composer-menu-models" id="modelMenuStandardList"></div>
+                    </div>
+
+                    <!-- Premium Models -->
+                    <div class="composer-menu-section">
+                        <div class="composer-menu-section-title">
+                            PREMIUM MODELS &nbsp;
+                            <span class="composer-menu-badge" id="premiumUpgradeBadge">Upgrade</span>
+                        </div>
+                        <div class="composer-menu-models" id="modelMenuPremiumList"></div>
+                        <small class="model-panel-note" id="modelPanelNote"></small>
+                    </div>
+                </div>
+
+                <!-- Main Input Box -->
+                <div class="input-box" id="composerContainer">
+                    <div class="input-row">
+                        <button class="composer-plus-btn" id="attachBtn" type="button" title="Lebih banyak opsi" aria-label="Buka menu composer">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <textarea
+                            id="messageInput"
+                            placeholder="Tanya apa saja kepada Youz AI…"
+                            rows="1"
+                            autofocus
+                            aria-label="Pesan"
+                        ></textarea>
+                        <button class="send-btn" id="sendBtn" type="button" title="Kirim" aria-label="Kirim pesan">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                    </div>
+
+                    <!-- Toolbar -->
+                    <div class="input-toolbar">
+                        <button class="toolbar-btn active" id="toolbarWebSearchBtn" type="button" title="Web Search">
+                            <i class="fas fa-globe"></i>
+                            <span>Search</span>
+                        </button>
+                        <button class="toolbar-btn" id="toolbarThinkBtn" type="button" title="Mode Berpikir">
+                            <i class="fas fa-brain"></i>
+                            <span>Think</span>
+                        </button>
+                        <div class="toolbar-spacer"></div>
+                        <span class="input-hint">⏎ Kirim · ⇧⏎ Baris baru</span>
+                    </div>
+                </div>
+
+                <!-- Search suggestions -->
+                <div class="search-suggestions hidden" id="searchSuggestions" style="position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--surface-2);border:1px solid var(--line-lit);border-radius:16px;box-shadow:var(--shadow-elevated);overflow:hidden;z-index:20;">
+                    <div style="padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-faint);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-magnifying-glass" style="font-size:10px;color:var(--gold);"></i> Saran Pencarian
+                    </div>
+                    <div class="suggestion-item" data-query="Berita terbaru hari ini 2026" style="padding:9px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12.5px;color:var(--ink-faint);transition:background 0.1s;">
+                        <i class="fas fa-newspaper" style="font-size:12px;color:var(--gold);width:14px;"></i>
+                        <span>Berita terbaru hari ini</span>
+                    </div>
+                    <div class="suggestion-item" data-query="Cuaca Jakarta hari ini" style="padding:9px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12.5px;color:var(--ink-faint);transition:background 0.1s;">
+                        <i class="fas fa-cloud-sun" style="font-size:12px;color:var(--gold);width:14px;"></i>
+                        <span>Cuaca Jakarta hari ini</span>
+                    </div>
+                    <div class="suggestion-item" data-query="Apa itu artificial intelligence?" style="padding:9px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12.5px;color:var(--ink-faint);transition:background 0.1s;">
+                        <i class="fas fa-robot" style="font-size:12px;color:var(--gold);width:14px;"></i>
+                        <span>Apa itu artificial intelligence?</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="imageInput" accept="image/*" style="display:none;">
+    </main>
+</div>
+
+<!-- ══════════ SOURCES SHEET ══════════ -->
+<div class="sources-sheet hidden" id="sourcesSheet">
+    <div class="sources-sheet-backdrop" id="sourcesBackdrop"></div>
+    <div class="sources-sheet-panel">
+        <div class="sources-sheet-handle"></div>
+        <div class="sources-sheet-header">
+            <div class="sources-sheet-header-top">
+                <div class="sources-sheet-title">Sumber</div>
+                <button class="sources-sheet-close" id="sourcesCloseBtn" type="button">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sources-sheet-header-sub">
+                <span class="source-logo-stack" id="sourcesHeaderLogos"></span>
+                <span class="sources-sheet-query" id="sourcesHeaderQuery"></span>
+            </div>
+        </div>
+        <div class="sources-list" id="sourcesList"></div>
+    </div>
+</div>
+
+<!-- ══════════ SETTINGS MODAL ══════════ -->
+<div class="settings-modal hidden" id="settingsModal">
+    <div class="settings-overlay" id="settingsOverlay"></div>
+    <div class="settings-container">
+        <div class="settings-header">
+            <h2 id="settingsTitle">Pengaturan</h2>
+            <button class="settings-close-btn" id="settingsCloseBtn" type="button">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="settings-tabs">
+            <button class="settings-tab active" id="tabGeneral" type="button">Umum</button>
+            <button class="settings-tab" id="tabProfile" type="button">Profil</button>
+            <button class="settings-tab" id="tabData" type="button">Data</button>
+        </div>
+
+        <div class="settings-content" id="generalContent">
+            <div class="settings-section">
+                <h3 id="themeTitle">Tema</h3>
+                <div class="theme-options">
+                    <button class="theme-btn" id="themeLight" type="button"><i class="fas fa-sun"></i><span id="lightText">Terang</span></button>
+                    <button class="theme-btn" id="themeDark" type="button"><i class="fas fa-moon"></i><span id="darkText">Gelap</span></button>
+                    <button class="theme-btn active" id="themeSystem" type="button"><i class="fas fa-desktop"></i><span id="systemText">Sistem</span></button>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 id="languageTitle">Bahasa</h3>
+                <select class="language-select" id="languageSelect">
+                    <option value="id">Indonesia</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="settings-content hidden" id="profileContent">
+            <div class="settings-section">
+                <h3 id="profileInfoTitle">Informasi Profil</h3>
+                <div class="profile-form">
+                    <div class="form-group">
+                        <label id="nameLabel" for="profileName">Nama</label>
+                        <input type="text" id="profileName" placeholder="Nama kamu">
+                    </div>
+                    <div class="form-group">
+                        <label id="emailLabel" for="profileEmail">Email</label>
+                        <input type="email" id="profileEmail" placeholder="Email" disabled>
+                    </div>
+                    <button class="save-profile-btn" id="saveProfileBtn" type="button">Simpan Perubahan</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-content hidden" id="dataContent">
+            <div class="settings-section">
+                <h3 id="dataManagementTitle">Manajemen Data</h3>
+                <button class="danger-btn" id="clearAllDataBtn" type="button">
+                    <i class="fas fa-trash-alt"></i> Hapus Semua Percakapan
+                </button>
+                <button class="danger-btn" id="exportDataBtn" type="button">
+                    <i class="fas fa-download"></i> Ekspor Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ CONFIRM MODAL ══════════ -->
+<div class="confirm-modal hidden" id="confirmModal">
+    <div class="confirm-backdrop" id="confirmBackdrop"></div>
+    <div class="confirm-panel" role="dialog" aria-modal="true">
+        <div class="confirm-title" id="confirmTitle"></div>
+        <div class="confirm-message" id="confirmMessage"></div>
+        <div class="confirm-actions">
+            <button class="confirm-btn cancel" id="confirmCancelBtn" type="button">Batal</button>
+            <button class="confirm-btn ok" id="confirmOkBtn" type="button">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ TOAST ══════════ -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ══════════ IMAGE PREVIEW ══════════ -->
+<div class="image-preview-modal hidden" id="imagePreviewModal">
+    <div class="image-preview-backdrop" id="imagePreviewBackdrop"></div>
+    <div class="image-preview-panel">
+        <div class="image-preview-topbar">
+            <button id="closeImagePreviewBtn" class="image-preview-nav-btn" type="button">
+                <i class="fas fa-arrow-left"></i> <span>Kembali</span>
+            </button>
+            <a id="downloadPreviewBtn" class="image-preview-save-btn" download="youz-image.png">
+                <i class="fas fa-download"></i> <span>Simpan</span>
+            </a>
+        </div>
+        <img id="imagePreviewFull" src="" alt="Preview">
+    </div>
+</div>
+
+<style>
+@keyframes spinDraft { to { transform: rotate(360deg); } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js" defer></script>
+<script src="/js/app.js"></script>
+<script defer src="/_vercel/insights/script.js"></script>
+
+<!-- Bridge: sync toolbar buttons with composer menu toggles -->
+<script>
+(function() {
+    function ready(fn) {
+        if (document.readyState !== 'loading') fn();
+        else document.addEventListener('DOMContentLoaded', fn);
+    }
+
+    ready(function() {
+        const toolbarSearch = document.getElementById('toolbarWebSearchBtn');
+        const toolbarThink = document.getElementById('toolbarThinkBtn');
+        const checkSearch = document.getElementById('toolWebSearch');
+        const checkThink = document.getElementById('toolThinking');
+
+        if (toolbarSearch && checkSearch) {
+            toolbarSearch.addEventListener('click', function() {
+                checkSearch.checked = !checkSearch.checked;
+                checkSearch.dispatchEvent(new Event('change'));
+                toolbarSearch.classList.toggle('active', checkSearch.checked);
+            });
+            checkSearch.addEventListener('change', function() {
+                toolbarSearch.classList.toggle('active', checkSearch.checked);
+            });
+        }
+
+        if (toolbarThink && checkThink) {
+            toolbarThink.addEventListener('click', function() {
+                checkThink.checked = !checkThink.checked;
+                checkThink.dispatchEvent(new Event('change'));
+                toolbarThink.classList.toggle('active', checkThink.checked);
+            });
+            checkThink.addEventListener('change', function() {
+                toolbarThink.classList.toggle('active', checkThink.checked);
+            });
+        }
+
+        // Suggestion items hover
+        document.querySelectorAll('.suggestion-item').forEach(function(item) {
+            item.addEventListener('mouseenter', function() { this.style.background = 'var(--surface-3)'; });
+            item.addEventListener('mouseleave', function() { this.style.background = ''; });
+        });
+
+        // Sidebar collapse (desktop)
+        const collapseBtn = document.getElementById('collapseSidebarBtn');
+        const appRoot = document.getElementById('appRoot');
+        if (collapseBtn && appRoot) {
+            collapseBtn.addEventListener('click', function() {
+                appRoot.classList.toggle('sidebar-collapsed');
+                const isCollapsed = appRoot.classList.contains('sidebar-collapsed');
+                localStorage.setItem('youz_sidebar_v2_collapsed', isCollapsed ? '1' : '0');
+            });
+            const savedCollapsed = localStorage.getItem('youz_sidebar_v2_collapsed');
+            if (savedCollapsed === '1' && window.innerWidth > 768) {
+                appRoot.classList.add('sidebar-collapsed');
+            }
+        }
+
+        // Mobile sidebar
+        const hamburger = document.getElementById('hamburgerBtn');
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+
+        if (hamburger && sidebar && backdrop) {
+            hamburger.addEventListener('click', function() {
+                sidebar.classList.toggle('mobile-open');
+                backdrop.classList.toggle('show');
+            });
+            backdrop.addEventListener('click', function() {
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.remove('show');
+            });
+        }
+
+        // Model pill sync
+        function syncModelPill() {
+            const pillText = document.getElementById('modelPillText');
+            if (!pillText) return;
+            const model = localStorage.getItem('youz_model') || 'gemini';
+            const labels = { gemini: 'Gemini', deepseek: 'DeepSeek', claude: 'Claude', gpt4o: 'ChatGPT 4o', openai: 'OpenAI' };
+            pillText.textContent = labels[model] || model;
+        }
+        syncModelPill();
+        window.addEventListener('storage', syncModelPill);
+
+        // Apply saved theme immediately
+        const savedTheme = localStorage.getItem('youz_theme');
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        } else if (savedTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    });
+})();
+</script>
+</body>
+</html>
