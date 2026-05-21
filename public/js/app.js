@@ -1286,8 +1286,10 @@ function updateQuotaBadge(snapshot = null) {
 
 function showLimitNotice(data) {
     if (!limitNotice || !limitNoticeText) return;
+    const limitType = data?.limit?.type || 'chat';
     const reset = data?.limit?.usageDate || new Date().toISOString().slice(0,10);
-    limitNoticeText.textContent = `Anda telah mencapai batas. Upgrade ke YouzAi Premium atau coba lagi setelah reset limit (${reset}).`;
+    const label = limitType === 'image' ? 'generate image' : 'chat';
+    limitNoticeText.textContent = `Batas ${label} harian akun Anda sudah habis. Upgrade Premium atau tunggu reset (${reset}).`;
     limitNotice.classList.remove('hidden');
     limitNoticeCta?.classList.remove('hidden');
 }
@@ -1297,7 +1299,16 @@ async function loadQuotaSnapshot() {
         const params = new URLSearchParams(getUserContext());
         const res = await fetch(`/api/limits?${params.toString()}`);
         const data = await readApiResponse(res);
-        if (data?.success) updateQuotaBadge(data);
+        if (data?.success) {
+            updateQuotaBadge(data);
+            const usage = data?.usage || {};
+            const limits = data?.limits || {};
+            const hour = new Date().getHours();
+            const inPrimeTime = hour >= 7 && hour <= 23;
+            if (inPrimeTime && (usage.image >= limits.image || usage.chat >= limits.chat)) {
+                showLimitNotice({ limit: { type: usage.image >= limits.image ? 'image' : 'chat', usageDate: data?.usageDate } });
+            }
+        }
     } catch (error) {
         console.warn('Quota snapshot gagal dimuat', error?.message || error);
     }

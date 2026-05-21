@@ -311,6 +311,10 @@ input.inp[type=password]{letter-spacing:.1em}
   .btn-row .btn{width:100%;justify-content:center}
   .plan-grid{grid-template-columns:1fr}
 }
+.sql-editor-wrap{padding:12px 15px 15px}
+.sql-editor{width:100%;min-height:190px;background:#0b1220;color:#dbeafe;border:1px solid #263244;border-radius:12px;padding:12px;font:12px/1.6 var(--mono);resize:vertical}
+.sql-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.sql-hint{margin-top:8px;font-size:11px;color:var(--text-3)}
 </style>
 </head>
 <body>
@@ -634,6 +638,40 @@ input.inp[type=password]{letter-spacing:.1em}
     </div>
   </div>
 
+  <div class="card">
+    <div class="card-head">
+      <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 17l8 4 8-4"/></svg></span>
+      <span class="card-lbl">Supabase SQL Editor</span>
+    </div>
+    <div class="sql-editor-wrap">
+      <textarea id="supabaseSqlEditor" class="sql-editor">-- Supabase schema helper (compatible with lib/db.js)
+create table if not exists usage_daily (
+  user_key text not null,
+  usage_date date not null default current_date,
+  chat integer not null default 0,
+  image integer not null default 0,
+  updated_at timestamptz not null default now(),
+  primary key (user_key, usage_date)
+);
+
+create table if not exists user_settings (
+  user_key text primary key,
+  language text default 'id',
+  theme text default 'system',
+  thinking_enabled boolean default false,
+  send_with_enter boolean default true,
+  prompt_suggestions_enabled boolean default true,
+  conversation_backup jsonb default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);</textarea>
+      <div class="sql-actions">
+        <button class="btn sm" onclick="copySqlEditor()">Copy SQL</button>
+        <button class="btn sm primary" onclick="openSupabaseSql()">Open Supabase SQL</button>
+      </div>
+      <div class="sql-hint">Bisa langsung dipakai untuk inisialisasi tabel utama yang dipakai oleh DB.js.</div>
+    </div>
+  </div>
+
   <div class="card danger-card">
     <div class="card-head">
       <span class="card-ico"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
@@ -897,6 +935,14 @@ function qSave(msg = 'Pengaturan disimpan') {
   toast(msg);
   clearTimeout(saveT);
   saveT = setTimeout(async () => { try { await saveSettings(); } catch (err) { toast(err?.message || 'Gagal sync', true); } }, 300);
+}
+function copySqlEditor(){
+  const el = document.getElementById('supabaseSqlEditor');
+  if(!el) return;
+  navigator.clipboard.writeText(el.value || '').then(() => toast('SQL disalin')).catch(() => toast('Gagal copy SQL', true));
+}
+function openSupabaseSql(){
+  window.open('https://supabase.com/dashboard/project/_/sql/new', '_blank', 'noopener');
 }
 
 function clearSettingsSearch() {
