@@ -231,9 +231,13 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const mode = String(req.query?.mode || '').toLowerCase();
     if (mode === 'history') {
-      const { conversationId, userId, email } = req.query || {};
-      const history = await getConversationWithMessages({ conversationId, userId, email });
-      return res.status(200).json({ success: true, history, ts: Date.now() });
+      try {
+        const { conversationId, userId, email } = req.query || {};
+        const history = await getConversationWithMessages({ conversationId, userId, email });
+        return res.status(200).json({ success: true, history, ts: Date.now() });
+      } catch (error) {
+        return res.status(200).json({ success: false, content: error?.message || 'Gagal memuat riwayat.' });
+      }
     }
     if (mode === 'stream') {
       const { conversationId, prompt = '', userId = '', email = '', modelType = '' } = req.query || {};

@@ -82,13 +82,17 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    if (String(req.query?.scope || '') === 'notifications') {
-      const notifications = await listNotifications(userKey, { onlyUnread: false });
-      const unread_count = notifications.filter((row) => !(row?.read_by || []).includes(userKey)).length;
-      return res.status(200).json({ success: true, notifications, unread_count });
+    try {
+      if (String(req.query?.scope || '') === 'notifications') {
+        const notifications = await listNotifications(userKey, { onlyUnread: false });
+        const unread_count = notifications.filter((row) => !(row?.read_by || []).includes(userKey)).length;
+        return res.status(200).json({ success: true, notifications, unread_count });
+      }
+      const settings = await getUserSettings(userKey);
+      return res.status(200).json({ success: true, settings: settings || null });
+    } catch (error) {
+      return res.status(200).json({ success: false, message: error?.message || 'Gagal memuat pengaturan.' });
     }
-    const settings = await getUserSettings(userKey);
-    return res.status(200).json({ success: true, settings: settings || null });
   }
 
   if (req.method === 'POST') {

@@ -1231,7 +1231,10 @@ function setActiveModel(model, persist = true) {
         return;
     }
     if (normalizedModel === 'gpt4o' && !isPremium) {
-        showLimitNotice({ limit: { usageDate: quotaState?.usageDate || new Date().toISOString().slice(0, 10) } });
+        showLimitNotice({
+            limit: { plan: 'free' },
+            message: 'Model ChatGPT 4o khusus Premium. Upgrade untuk membuka akses.'
+        });
         return;
     }
     activeModel = normalizedModel;
@@ -1281,15 +1284,57 @@ function updateQuotaBadge(snapshot = null) {
         quotaBadge.classList.toggle('premium', plan === 'premium');
         quotaBadge.classList.remove('hidden');
     }
+    maybeShowLimitNoticeFromQuota({ plan, usage, limits, usageDate: quotaState?.usageDate, type: quotaState?.type });
 }
 
 
+function formatUsageResetLabel(usageDate) {
+    const base = String(usageDate || '').slice(0, 10);
+    const parsed = Date.parse(base);
+    if (Number.isNaN(parsed)) return '';
+    const next = new Date(parsed + 24 * 60 * 60 * 1000);
+    return next.toISOString().slice(0, 10);
+}
+
+function buildLimitNoticeMessage(limit = {}) {
+    const plan = String(limit?.plan || 'free').toLowerCase();
+    const usage = limit?.usage || { chat: 0, image: 0 };
+    const limits = limit?.limits || (plan === 'premium' ? { chat: 120, image: 15 } : { chat: 20, image: 3 });
+    const remaining = limit?.remaining || {
+        chat: Math.max(0, Number(limits.chat || 0) - Number(usage.chat || 0)),
+        image: Math.max(0, Number(limits.image || 0) - Number(usage.image || 0))
+    };
+    const usageDate = limit?.usageDate || new Date().toISOString().slice(0, 10);
+    const resetDate = formatUsageResetLabel(usageDate);
+    const reachedChat = Number(remaining.chat || 0) <= 0;
+    const reachedImage = Number(remaining.image || 0) <= 0;
+    const parts = [];
+    if (reachedChat) parts.push(`Chat harian habis (${usage.chat}/${limits.chat}).`);
+    if (reachedImage) parts.push(`Generate gambar harian habis (${usage.image}/${limits.image}).`);
+    if (!parts.length) return '';
+    const resetText = resetDate ? `Reset ${resetDate} (WIB).` : '';
+    const upgradeText = plan === 'premium' ? '' : ' Upgrade untuk limit lebih besar.';
+    return `${parts.join(' ')} ${resetText}${upgradeText}`.trim();
+}
+
+function maybeShowLimitNoticeFromQuota(limit = {}) {
+    const message = buildLimitNoticeMessage(limit);
+    if (!message) return;
+    const usageDate = String(limit?.usageDate || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const key = `youz_limit_notice_shown_${usageDate}`;
+    if (localStorage.getItem(key) === '1') return;
+    localStorage.setItem(key, '1');
+    showLimitNotice({ limit, message });
+}
+
 function showLimitNotice(data) {
     if (!limitNotice || !limitNoticeText) return;
-    const reset = data?.limit?.usageDate || new Date().toISOString().slice(0,10);
-    limitNoticeText.textContent = `Anda telah mencapai batas. Upgrade ke YouzAi Premium atau coba lagi setelah reset limit (${reset}).`;
+    const message = String(data?.message || buildLimitNoticeMessage(data?.limit) || '').trim();
+    if (!message) return;
+    const plan = String(data?.limit?.plan || 'free').toLowerCase();
+    limitNoticeText.textContent = message;
     limitNotice.classList.remove('hidden');
-    limitNoticeCta?.classList.remove('hidden');
+    limitNoticeCta?.classList.toggle('hidden', plan === 'premium');
 }
 
 async function loadQuotaSnapshot() {
@@ -1762,6 +1807,9 @@ async function sendMessage(options = {}) {
         response.content = normalizeResponseText(response.content);
 
         if (response.limit) updateQuotaBadge(response.limit);
+        if (!response.success && response.limit) {
+            showLimitNotice({ limit: response.limit });
+        }
         if (response.conversationId) conv.serverId = response.conversationId;
         
         const aiMessage = {
