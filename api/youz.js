@@ -53,7 +53,7 @@ async function generateImageWithHuggingFace(prompt, userKey) {
     const timeout = setTimeout(() => controller.abort(), 45000);
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${hfKey}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${hfKey}`, 'Content-Type': 'application/json', Accept: 'image/png' },
       body: JSON.stringify({
         inputs: String(prompt || 'Generate gambar artistik berkualitas tinggi.'),
         parameters: { guidance_scale: 3.5, num_inference_steps: 4 },
@@ -64,7 +64,14 @@ async function generateImageWithHuggingFace(prompt, userKey) {
     clearTimeout(timeout);
 
     if (!response || response._error) {
-      lastError = response?._error?.message || 'Koneksi ke Hugging Face timeout/gagal.';
+      const rawMessage = response?._error?.message || '';
+      if (String(rawMessage).toLowerCase().includes('fetch failed')) {
+        lastError = 'Koneksi ke Hugging Face gagal (fetch failed).';
+      } else if (response?._error?.name === 'AbortError') {
+        lastError = 'Permintaan ke Hugging Face timeout.';
+      } else {
+        lastError = rawMessage || 'Koneksi ke Hugging Face timeout/gagal.';
+      }
       continue;
     }
 

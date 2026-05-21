@@ -10,7 +10,7 @@ let activeSources = [];
 let typingAbortRequested = false;
 // ========== FITUR BARU: STATE TAMBAHAN ==========
 let webSearchEnabled = true;
-let thinkingModeEnabled = false;
+let thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') === '1';
 let sendWithEnterEnabled = localStorage.getItem('youz_send_with_enter_enabled') !== '0';
 let promptSuggestionsEnabled = localStorage.getItem('youz_prompt_suggestions_enabled') !== '0';
 let typingTimeout = null;
@@ -1715,7 +1715,7 @@ async function sendMessage(options = {}) {
                             <div class="image-gen-loading-head">
                                 <div class="image-gen-loading-title">Membuat gambar</div>
                                 <div class="image-gen-loading-status">
-                                    <span>Thinking</span>
+                                    <span>${thinkingModeEnabled ? 'Thinking' : 'Loading'}</span>
                                     <div class="thinking-dots slow" aria-hidden="true"><span></span><span></span><span></span></div>
                                 </div>
                             </div>
@@ -2356,7 +2356,7 @@ async function init() {
     loadFromStorage();
     await syncHistoryFromServerIfEmpty();
     webSearchEnabled = localStorage.getItem('youz_web_search_enabled') !== '0';
-    thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') !== '0';
+    thinkingModeEnabled = localStorage.getItem('youz_thinking_enabled') === '1';
     setActiveModel(localStorage.getItem('youz_model') || 'gemini', false);
     renderModelMenu();
     if (toolWebSearch) toolWebSearch.checked = webSearchEnabled;
