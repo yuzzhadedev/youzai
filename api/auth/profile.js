@@ -9,11 +9,10 @@ export default async function handler(req, res) {
   try {
     const user = JSON.parse(decodeURIComponent(match[1]));
     const nextName = String(req.body?.name || user.name || 'User').trim().slice(0, 80);
-    const nextEmail = String(req.body?.email || user.email || '').trim().toLowerCase();
     const updated = {
       ...user,
       name: nextName || user.name,
-      email: nextEmail || user.email
+      email: user.email
     };
     await upsertUserProfile(updated);
     const secureFlag = process.env.VERCEL_URL ? ' Secure;' : '';

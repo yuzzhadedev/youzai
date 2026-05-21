@@ -100,7 +100,6 @@ const newChatBtn = document.getElementById('newChatBtn');
 const userProfile = document.getElementById('userProfile');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
-const userEmail = document.getElementById('userEmail');
 const userMenuBtn = document.getElementById('userMenuBtn');
 const userMenuDropdown = document.getElementById('userMenuDropdown');
 const userSettingsBtn = document.getElementById('userSettingsBtn');
@@ -468,7 +467,6 @@ function updateUserUI() {
         sidebarAuthRequiredLinks.forEach(link => link.classList.remove('hidden'));
         userAvatar.src = currentUser.picture || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentUser.name || 'User') + '&background=3b82f6&color=fff';
         userName.textContent = currentUser.name || 'User';
-        userEmail.textContent = currentUser.email || '';
         const detectedPlan = String(currentUser.plan || currentUser.plan_name || '').toLowerCase();
         if (detectedPlan === 'premium' || detectedPlan.startsWith('premium_') || detectedPlan.startsWith('premium-')) {
             updateQuotaBadge({
@@ -756,7 +754,7 @@ function createMessageElement(msg, index) {
     }
     if (msg.generatedImage) {
         const imageData = encodeURIComponent(msg.generatedImage);
-        content = `${String(msg.content || '').trim() ? `${content}` : ''}<div class="message-image generated-image"><button class="generated-image-btn" type="button" data-image="${imageData}" aria-label="Preview gambar"><img src="${msg.generatedImage}" alt="Generated"></button></div>`;
+        content = `${String(msg.content || '').trim() ? `${content}` : ''}<div class="message-image generated-image"><button class="generated-image-btn" type="button" data-image="${imageData}" aria-label="Preview gambar"><span class="generated-image-skeleton" aria-hidden="true"></span><img class="progressive-image" src="${msg.generatedImage}" alt="Generated" loading="lazy"></button></div>`;
     }
     
     let feedbackIndicator = '';
@@ -770,7 +768,7 @@ function createMessageElement(msg, index) {
     const showMeta = !isUser && shouldShowThinkingMeta && (msg.isComplete === false || typeof msg.thinkingMs === 'number');
     const metaText = !isUser && shouldShowThinkingMeta
         ? (msg.isComplete === false
-            ? 'AI sedang berpikir'
+            ? 'Thinking...'
             : (typeof msg.thinkingMs === 'number' ? `Selesai berpikir selama ${formatThinkingDuration(msg.thinkingMs)}` : ''))
         : '';
     const metaHtml = showMeta && metaText
@@ -878,6 +876,18 @@ function createMessageElement(msg, index) {
             if (!imageUrl) return;
             openGeneratedImagePreview(imageUrl);
         });
+    }
+
+    const progressiveImage = messageDiv.querySelector('.progressive-image');
+    if (progressiveImage) {
+        const ownerBtn = progressiveImage.closest('.generated-image-btn');
+        const markLoaded = () => ownerBtn?.classList.add('is-loaded');
+        if (progressiveImage.complete) {
+            markLoaded();
+        } else {
+            progressiveImage.addEventListener('load', markLoaded, { once: true });
+            progressiveImage.addEventListener('error', markLoaded, { once: true });
+        }
     }
 
     applyCodeHighlighting(messageDiv);
@@ -1050,7 +1060,6 @@ async function copyMessage(content, btn) {
             btn.classList.remove('copied');
             btn.innerHTML = '<i class="far fa-copy"></i><span>Salin</span>';
         }, 2000);
-        console.log('✅ Pesan disalin');
     } catch (err) {
         console.error('Gagal menyalin:', err);
         showToast('Gagal menyalin pesan', 'error');
@@ -1073,7 +1082,6 @@ function handleFeedback(messageIndex, type) {
     saveToStorage();
     renderMessages(conv.messages);
     showToast(type === 'like' ? 'Disukai' : 'Tidak disukai', 'success');
-    console.log(`📝 Feedback: ${type} untuk pesan #${messageIndex}`);
 }
 
 async function regenerateResponse(messageIndex) {
@@ -1631,7 +1639,6 @@ async function streamChatSSE({ prompt, conversationId, signal }) {
 
 // ========== SEND MESSAGE ==========
 async function sendMessage(options = {}) {
-    console.log('📤 sendMessage called');
     if (isProcessing && abortController) {
         typingAbortRequested = true;
         if (typingTimeout) {
@@ -1648,10 +1655,8 @@ async function sendMessage(options = {}) {
     const forcedText = typeof options.forcedText === 'string' ? options.forcedText : null;
     const forcedImageData = options.forcedImageData || null;
     const text = (forcedText ?? messageInput.value).trim();
-    console.log('📝 Message:', text);
     
     if ((!text && !currentDraftImage && !forcedImageData) || isProcessing) {
-        console.log('❌ Blocked: no text or isProcessing');
         return;
     }
     
@@ -1709,14 +1714,17 @@ async function sendMessage(options = {}) {
                         <div class="image-gen-loading">
                             <div class="image-gen-loading-head">
                                 <div class="image-gen-loading-title">Membuat gambar</div>
-                                <div class="image-gen-loading-ticker"><span>loading</span></div>
+                                <div class="image-gen-loading-status">
+                                    <span>Thinking</span>
+                                    <div class="thinking-dots slow" aria-hidden="true"><span></span><span></span><span></span></div>
+                                </div>
                             </div>
                             <div class="image-gen-loading-card" aria-hidden="true"></div>
                         </div>
                     ` : `
                         <div class="thinking-indicator">
                             <div class="thinking-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                            <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'AI sedang berpikir' : '•••')}</span>
+                            <span>${hasImageDraft ? 'Memproses gambar...' : (thinkingModeEnabled ? 'Thinking...' : '•••')}</span>
                         </div>
                     `}
                 </div>
@@ -2232,12 +2240,12 @@ exportDataBtn?.addEventListener('click', () => {
 
 userProfileBtn?.addEventListener('click', (e) => {
     e.preventDefault();
-    if (currentUser) {
-        openSettings('profile');
-        toggleUserMenu(false);
-    } else {
+    if (!currentUser) {
         showToast(currentLanguage === 'id' ? 'Silakan login terlebih dahulu.' : 'Please login first.', 'info');
+        return;
     }
+    toggleUserMenu(false);
+    window.location.href = '/settings';
 });
 
 userLogoutBtn?.addEventListener('click', (e) => {
@@ -2249,6 +2257,12 @@ userLogoutBtn?.addEventListener('click', (e) => {
 userSettingsBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     toggleUserMenu(false);
+    window.location.href = '/settings';
+});
+
+userProfile?.addEventListener('click', (e) => {
+    if (!currentUser) return;
+    if (userMenuBtn?.contains(e.target) || userMenuDropdown?.contains(e.target)) return;
     window.location.href = '/settings';
 });
 
@@ -2387,7 +2401,6 @@ async function init() {
         updateChatRoute(activeConv && activeConv.messages?.length ? activeConv.id : null, true);
     }
     refreshSettingsNotificationBadge();
-    console.log('✅ Youz AI v2.8 initialized');
 }
 
 protectLogos();

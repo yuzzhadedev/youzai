@@ -35,8 +35,6 @@ function shouldGenerateImage(prompt = '', action = 'chat') {
 }
 
 async function generateImageWithHuggingFace(prompt, userKey) {
-  const plan = await getUserPlan(userKey);
-  const startMs = Date.now();
   const hfKey = process.env.HUGGINGFACE_API_KEY || process.env.HF_API_KEY;
   if (!hfKey) {
     return { success: false, content: 'HUGGINGFACE_API_KEY belum dikonfigurasi.' };
@@ -103,9 +101,6 @@ async function generateImageWithHuggingFace(prompt, userKey) {
   const base64 = Buffer.from(arrayBuffer).toString('base64');
   const imageUrl = `data:image/png;base64,${base64}`;
   await consumeQuota({ userKey, type: 'image', amount: 1 });
-  const minDurationMs = plan === 'premium' ? 22000 : 60000;
-  const elapsed = Date.now() - startMs;
-  if (elapsed < minDurationMs) await wait(minDurationMs - elapsed);
   return {
     success: true,
     content: '',
