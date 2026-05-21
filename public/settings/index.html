@@ -545,8 +545,8 @@ input.inp[type=password]{letter-spacing:.1em}
       <div class="row-r"><input id="profileNameInput" class="inp" type="text" value="Ahmad Fauzi"/></div>
     </div>
     <div class="row">
-      <div class="row-l"><div class="r-name">Email</div><div class="r-hint">Email akun terdaftar</div></div>
-      <div class="row-r"><input id="profileEmailInput" class="inp" type="email" value="ahmad@email.com"/></div>
+      <div class="row-l"><div class="r-name">Email</div><div class="r-hint">Email akun terdaftar (tidak bisa diubah)</div></div>
+      <div class="row-r"><input id="profileEmailInput" class="inp" type="email" value="ahmad@email.com" readonly aria-readonly="true"/></div>
     </div>
   </div>
   <div class="btn-row" style="margin-bottom:22px">
@@ -972,7 +972,7 @@ document.getElementById('showPromptSuggestionsToggle')?.addEventListener('change
 document.querySelectorAll('#themeSeg .seg-btn').forEach(btn => btn.addEventListener('click', () => { S.theme = btn.dataset.theme; qSave('Tema diperbarui'); }));
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
   try {
-    const payload = { name: document.getElementById('profileNameInput').value.trim(), email: document.getElementById('profileEmailInput').value.trim().toLowerCase() };
+    const payload = { name: document.getElementById('profileNameInput').value.trim() };
     const res = await fetch('/api/auth/profile', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
     const j = await res.json();
     if (!res.ok || !j?.success) throw new Error(j?.message || 'Gagal');
