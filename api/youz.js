@@ -64,7 +64,10 @@ async function generateImageWithHuggingFace(prompt, userKey) {
     clearTimeout(timeout);
 
     if (!response || response._error) {
-      lastError = response?._error?.message || 'Koneksi ke Hugging Face timeout/gagal.';
+      const rawError = String(response?._error?.message || '').toLowerCase();
+      lastError = rawError.includes('fetch failed')
+        ? 'fetch failed (jaringan ke Hugging Face tidak stabil)'
+        : (response?._error?.message || 'Koneksi ke Hugging Face timeout/gagal.');
       continue;
     }
 
@@ -94,7 +97,10 @@ async function generateImageWithHuggingFace(prompt, userKey) {
   }
 
   if (!imageBytes) {
-    return { success: false, content: `Hugging Face error: ${lastError || 'Gagal generate gambar.'}` };
+    return {
+      success: false,
+      content: `Hugging Face error: ${lastError || 'Gagal generate gambar.'}. Coba ulang 10-30 detik lagi atau ganti prompt yang lebih singkat.`
+    };
   }
 
   const arrayBuffer = imageBytes;

@@ -2965,6 +2965,11 @@ body {
 .limit-notice-text{font-size:14px;line-height:1.45;color:#eceff4;padding-right:24px;}
 .limit-notice-close{position:absolute;right:10px;top:8px;background:transparent;border:none;color:#c7cad1;cursor:pointer;}
 .limit-notice-cta{border:none;background:#1e2740;color:#cdd8ff;border-radius:999px;padding:10px 14px;font-weight:600;cursor:pointer;align-self:stretch;}
+.sidebar,.chat-header,.settings-container{box-shadow:0 16px 48px rgba(2,6,23,.24);}
+.sidebar{border-right:1px solid rgba(148,163,184,.18);}
+.chat-header{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(148,163,184,.18);}
+.settings-container{border:1px solid rgba(148,163,184,.22);border-radius:20px;}
+.limit-notice{background:linear-gradient(120deg,#222833,#1b2435);}
 
 
 .panel-model-item span small{display:block;font-size:10px;color:#9ca3af;margin-top:2px;}
